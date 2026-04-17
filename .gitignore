@@ -1,0 +1,31 @@
+# Node
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# Claude Code local settings only — skills/hooks/commands ARE part of the
+# agent's self-modification surface and MUST stay in git.
+.claude/settings.local.json
+
+# macOS
+.DS_Store
+
+# Env (credentials come from 1Password per ~/Documents/CLAUDE.md). If a
+# .env file is created during local testing, don't commit it.
+.env
+.env.*
+!.env.example
+
+# Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# The brainstorm transcript is reference material, not template content —
+# every per-agent fork would otherwise carry 546KB of meta design history.
+Terminal Saved Output.txt
