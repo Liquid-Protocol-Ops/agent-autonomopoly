@@ -18,8 +18,8 @@
   "devDependencies": {
     "@types/node": "^25.6.0",
     "tsx": "^4.7.0",
-    "typescript": "^5.4.0",
-    "vitest": "^1.3.0"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.5"
   },
   "dependencies": {
     "viem": "^2.21.0"

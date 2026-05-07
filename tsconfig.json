@@ -14,7 +14,8 @@
     "skipLibCheck": true,
     "declaration": true,
     "sourceMap": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "types": ["node"]
   },
   "include": ["harness/**/*.ts", "skills/**/*.ts", "scripts/**/*.ts"],
   "exclude": ["node_modules", "dist", "memory/**/*"]
