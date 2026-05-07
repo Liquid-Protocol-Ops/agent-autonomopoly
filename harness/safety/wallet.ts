@@ -13,6 +13,8 @@
 //   - Signer is a structural subset of viem LocalAccount so the interface
 //     stays stable across substrate changes.
 
+import { createWalletClient, http } from 'viem';
+import { base } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
 import type { Address, Hex, LocalAccount } from 'viem';
 
@@ -42,6 +44,18 @@ export function loadSignerFromEnv(): Signer {
     signMessage: account.signMessage.bind(account),
     signTypedData: account.signTypedData.bind(account),
   };
+}
+
+export function makeTxSenderFromEnv(rpcUrl: string): TxSender {
+  const raw = process.env[AGENT_PRIVATE_KEY];
+  if (raw === undefined || raw === '') throw new Error(`${AGENT_PRIVATE_KEY} is required`);
+  const normalized = raw.startsWith('0x') ? raw : `0x${raw}`;
+  if (!/^0x[0-9a-fA-F]{64}$/.test(normalized)) {
+    throw new Error(`${AGENT_PRIVATE_KEY} is malformed (expected 64-char hex, with or without 0x prefix)`);
+  }
+  const account = privateKeyToAccount(normalized as Hex);
+  const walletClient = createWalletClient({ account, chain: base, transport: http(rpcUrl) });
+  return ({ to, data }) => walletClient.sendTransaction({ to, data });
 }
 
 // ── v0b: Privy server-wallet substrate ──────────────────────────────
