@@ -34,3 +34,6 @@ jobs:
       - name: fee-router
         working-directory: platform/services/fee-router
         run: npm install && npm test
+      - name: cli-launcher
+        working-directory: platform/services/cli-launcher
+        run: npm install && npm test
