@@ -21,13 +21,13 @@
      *           ✦    ·        *          ·       ✦
   ·        ✦              *          ✦        ·        *
 
-  ╔════════════════════════════════════════════════════╗
-  ║                                                    ║
-  ║                  AUTONOMOPOLY                      ║
-  ║                                                    ║
-  ║      self-funding  ·  base mainnet  ·  accumulate  ║
-  ║                                                    ║
-  ╚════════════════════════════════════════════════════╝
+  ╔══════════════════════════════════════════════════════════════╗
+  ║                                                              ║
+  ║                         AUTONOMOPOLY                         ║
+  ║                                                              ║
+  ║    self-funding  ·  base mainnet  ·  accumulate  ·  build    ║
+  ║                                                              ║
+  ╚══════════════════════════════════════════════════════════════╝
 ```
 
 First deployed instance of the [deploy-autonomous](https://github.com/Liquid-Protocol-Ops/deploy-autonomous) template. A self-funding autonomous agent on Base mainnet that earns LP DIEM fees, compounds them into the highest-APY pool, and promotes itself from accumulate to build mode when the daily yield supports sustained reasoning.
