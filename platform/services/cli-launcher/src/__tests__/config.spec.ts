@@ -8,6 +8,7 @@ const REQUIRED = {
   PRIVY_APP_ID: 'privy-app-id',
   PRIVY_APP_SECRET: 'privy-app-secret',
   GH_TOKEN: 'ghp_token',
+  DIEM_PRICE_USD: '2248',
 };
 
 function setEnv(vars: Record<string, string>) {
@@ -18,6 +19,8 @@ function clearEnv() {
   for (const k of Object.keys(REQUIRED)) delete process.env[k];
   delete process.env['AGENT_SYMBOL'];
   delete process.env['AGENT_DESCRIPTION'];
+  delete process.env['DIEM_PRICE_USD'];
+  delete process.env['INITIAL_MARKET_CAP_USD'];
 }
 
 describe('loadConfig', () => {
@@ -51,6 +54,8 @@ describe('loadConfig', () => {
     const cfg = loadConfig();
     expect(cfg.chain.diemAddress).toBe('0xF4d97F2da56e8c3098f3a8D538DB630A2606a024');
     expect(cfg.chain.feeLockerAddress).toBe('0xF7d3BE3FC0de76fA5550C29A8F6fa53667B876FF');
+    expect(cfg.chain.initialMarketCapUsd).toBe(20000);
+    expect(cfg.chain.diemPriceUsd).toBe(2248);
   });
 
   for (const key of Object.keys(REQUIRED)) {

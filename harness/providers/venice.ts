@@ -1,19 +1,25 @@
-// Venice provider — claim DIEM → stake → mint bearer key → call inference.
+// Venice provider — claim LP DIEM fees → mint Venice API key → call inference.
 //
 // Required env vars:
-//   DIEM_TOKEN_ADDRESS     — DIEM ERC-20 / staking contract on Base mainnet
-//   VENICE_STAKING_ADDRESS — same address as DIEM_TOKEN_ADDRESS (DIEM is its own staking contract)
+//   DIEM_TOKEN_ADDRESS     — Liquid Protocol DIEM ERC-20 on Base mainnet (fee token)
+//   VVV_STAKING_ADDRESS    — Venice VVV staking contract on Base (sVVV balance gates key mint)
+//                            Fallback alias: VENICE_STAKING_ADDRESS
 //   RPC_URL                — Base mainnet JSON-RPC endpoint
 //
 // Optional env vars:
-//   VENICE_STAKE_THRESHOLD   — min DIEM (18-dec wei) before staking triggers (default: 0.1 ether)
-//   VENICE_BEARER_CACHE_PATH — where to persist the bearer key (default: memory/venice-bearer.json)
+//   VENICE_API_KEY           — Skip autonomous key mint; use this key directly (MVP fast path)
+//   VENICE_STAKE_THRESHOLD   — min sVVV wei before Venice key mint triggers (default: 1e18 = 1 VVV)
+//   VENICE_BEARER_CACHE_PATH — where to persist the minted key (default: memory/venice-bearer.json)
 //   VENICE_API_BASE          — Venice API base URL (default: https://api.venice.ai/api/v1)
 //   VENICE_MODEL             — inference model slug (default: llama-3.3-70b)
 //
-// On-chain write functions accept a TxSender (from wallet.ts), which abstracts the signing substrate
-// (Privy server wallet for v0; TEE for v1). Signer is used only for message signing in the Venice
-// key mint flow.
+// Venice two-step model:
+//   • API key mint  — requires sVVV balance (staked VVV); one-time per agent
+//   • Inference spend — draws from Venice DIEM credits (earned via VVV staking); separate from LP DIEM
+//
+// Key mint flow: GET /api_keys/generate_web3_key → personal_sign(token) → POST /api_keys/generate_web3_key
+//
+// On-chain write functions accept a TxSender (from wallet.ts), abstracting the signing substrate.
 
 import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import {
@@ -52,12 +58,8 @@ const ERC20_ABI = [
   },
 ] as const;
 
-const SDIEM_STAKING_ABI = [
-  {
-    type: 'function', name: 'stake',
-    inputs: [{ name: 'amount', type: 'uint256' }],
-    outputs: [], stateMutability: 'nonpayable',
-  },
+// sVVV balance — Venice staking contract balanceOf
+const SVVV_ABI = [
   {
     type: 'function', name: 'balanceOf',
     inputs: [{ name: 'account', type: 'address' }],
@@ -69,9 +71,9 @@ const SDIEM_STAKING_ABI = [
 
 export type VeniceConfig = {
   diemAddress: Address;
-  stakingAddress: Address;
+  stakingAddress: Address;  // VVV staking contract — balanceOf = sVVV balance
   rpcUrl: string;
-  stakeThreshold: bigint;
+  stakeThreshold: bigint;   // min sVVV wei (default: 1e18 = 1 VVV)
   bearerCachePath: string;
   veniceApiBase: string;
   model: string;
@@ -79,7 +81,7 @@ export type VeniceConfig = {
 
 export function loadConfig(): VeniceConfig {
   const diemAddress = process.env['DIEM_TOKEN_ADDRESS'];
-  const stakingAddress = process.env['VENICE_STAKING_ADDRESS'];
+  const stakingAddress = process.env['VVV_STAKING_ADDRESS'] ?? process.env['VENICE_STAKING_ADDRESS'];
   const rpcUrl = process.env['RPC_URL'];
   if (!diemAddress) throw new Error('DIEM_TOKEN_ADDRESS is required');
   if (!stakingAddress) throw new Error('VENICE_STAKING_ADDRESS is required');
@@ -88,7 +90,7 @@ export function loadConfig(): VeniceConfig {
     diemAddress: diemAddress as Address,
     stakingAddress: stakingAddress as Address,
     rpcUrl,
-    stakeThreshold: BigInt(process.env['VENICE_STAKE_THRESHOLD'] ?? String(parseEther('0.1'))),
+    stakeThreshold: BigInt(process.env['VENICE_STAKE_THRESHOLD'] ?? String(parseEther('1'))),
     bearerCachePath: process.env['VENICE_BEARER_CACHE_PATH'] ?? 'memory/venice-bearer.json',
     veniceApiBase: process.env['VENICE_API_BASE'] ?? 'https://api.venice.ai/api/v1',
     model: process.env['VENICE_MODEL'] ?? 'llama-3.3-70b',
@@ -108,7 +110,6 @@ export async function getClaimable(
   agentAddress: Address,
   publicClient: BasePublicClient = makePublicClient(config.rpcUrl),
 ): Promise<bigint> {
-  // Guard: confirm DIEM uses 18 decimals.
   const decimals = await publicClient.readContract({
     address: config.diemAddress,
     abi: ERC20_ABI,
@@ -124,6 +125,7 @@ export async function getClaimable(
   });
 }
 
+// sVVV balance — gates Venice API key mint
 export async function getStakedBalance(
   config: VeniceConfig,
   agentAddress: Address,
@@ -131,14 +133,15 @@ export async function getStakedBalance(
 ): Promise<bigint> {
   return publicClient.readContract({
     address: config.stakingAddress,
-    abi: SDIEM_STAKING_ABI,
+    abi: SVVV_ABI,
     functionName: 'balanceOf',
     args: [agentAddress],
   });
 }
 
-// ── On-chain writes (walletClient built by tick from full keypair) ──
+// ── On-chain writes ─────────────────────────────────────────────────
 
+// Claim accrued LP DIEM fees from FeeLocker to agent wallet.
 export async function claimDiem(
   config: VeniceConfig,
   agentAddress: Address,
@@ -152,56 +155,40 @@ export async function claimDiem(
   return txSender({ to: ADDRESSES.FEE_LOCKER, data });
 }
 
-export async function stakeDiem(
-  config: VeniceConfig,
-  amount: bigint,
-  txSender: TxSender,
-  publicClient: BasePublicClient = makePublicClient(config.rpcUrl),
-): Promise<void> {
-  // DIEM is its own staking contract — call stake() directly, no ERC-20 approve needed.
-  const data = encodeFunctionData({
-    abi: SDIEM_STAKING_ABI,
-    functionName: 'stake',
-    args: [amount],
-  });
-  const stakeTx = await txSender({ to: config.diemAddress, data });
-  await publicClient.waitForTransactionReceipt({ hash: stakeTx });
-}
-
 // ── Venice key mint ─────────────────────────────────────────────────
 
-// Flow: GET /auth/challenge → personal_sign(nonce) → POST /auth/verify → POST /api_keys
+// Flow: GET /api_keys/generate_web3_key → personal_sign(token) → POST /api_keys/generate_web3_key
+// Requires sVVV balance on Base (staked VVV via Venice staking contract).
 export async function mintVeniceKey(
   config: VeniceConfig,
   signer: Signer,
   fetchFn: typeof fetch = fetch,
 ): Promise<string> {
-  // 1. Get challenge nonce.
-  const challengeRes = await fetchFn(`${config.veniceApiBase}/auth/challenge`);
-  if (!challengeRes.ok) throw new Error(`Venice challenge failed: ${challengeRes.status}`);
-  const { nonce } = await challengeRes.json() as { nonce: string };
+  // 1. Get a short-lived JWT (15-min expiry, unauthenticated).
+  const tokenRes = await fetchFn(`${config.veniceApiBase}/api_keys/generate_web3_key`);
+  if (!tokenRes.ok) throw new Error(`Venice token fetch failed: ${tokenRes.status}`);
+  const { data: { token } } = await tokenRes.json() as { data: { token: string } };
 
-  // 2. Sign nonce — proves wallet ownership; Venice checks sDIEM balance on-chain.
-  const signature = await signer.signMessage({ message: nonce });
+  // 2. Sign the raw token string — proves ownership of a wallet with sVVV balance.
+  const signature = await signer.signMessage({ message: token });
 
-  // 3. Exchange for a short-lived JWT.
-  const verifyRes = await fetchFn(`${config.veniceApiBase}/auth/verify`, {
+  // 3. Mint a durable inference API key.
+  const mintRes = await fetchFn(`${config.veniceApiBase}/api_keys/generate_web3_key`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ address: signer.address, signature, nonce }),
+    body: JSON.stringify({
+      address: signer.address,
+      signature,
+      token,
+      apiKeyType: 'INFERENCE',
+      description: 'agent-autonomous',
+    }),
   });
-  if (!verifyRes.ok) throw new Error(`Venice verify failed: ${verifyRes.status}`);
-  const { jwt } = await verifyRes.json() as { jwt: string };
-
-  // 4. Mint a durable bearer API key.
-  const keyRes = await fetchFn(`${config.veniceApiBase}/api_keys`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${jwt}` },
-    body: JSON.stringify({ type: 'INFERENCE', name: 'agent' }),
-  });
-  if (!keyRes.ok) throw new Error(`Venice api_keys failed: ${keyRes.status}`);
-  const { key } = await keyRes.json() as { key: string };
-  return key;
+  if (!mintRes.ok) throw new Error(`Venice key mint failed: ${mintRes.status}`);
+  const mintBody = await mintRes.json() as { data?: { apiKey?: string }; apiKey?: string };
+  const apiKey = mintBody.data?.apiKey ?? mintBody.apiKey;
+  if (!apiKey) throw new Error(`Venice key mint: no apiKey in response: ${JSON.stringify(mintBody)}`);
+  return apiKey;
 }
 
 // ── Bearer cache ────────────────────────────────────────────────────
@@ -226,8 +213,13 @@ export async function loadOrMintBearer(
   signer: Signer,
   fetchFn: typeof fetch = fetch,
 ): Promise<string> {
+  // Fast path: manually provided key (MVP fallback; autonomous mint is the production path).
+  const envKey = process.env['VENICE_API_KEY'];
+  if (envKey) return envKey;
+
   const cached = loadCachedBearer(config.bearerCachePath);
   if (cached) return cached;
+
   const bearer = await mintVeniceKey(config, signer, fetchFn);
   saveBearer(config.bearerCachePath, bearer);
   return bearer;
@@ -277,7 +269,6 @@ export async function callInference(
     cache_hit: false,
     latency_ms,
     tokens: { input: data.usage.prompt_tokens, output: data.usage.completion_tokens },
-    // Venice cost is covered by staked sDIEM daily budget — not a per-call USD charge.
     cost_usd: 0,
   };
   emit(entry, logPath);

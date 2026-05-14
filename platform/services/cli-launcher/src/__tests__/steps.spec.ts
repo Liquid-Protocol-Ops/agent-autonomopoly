@@ -99,7 +99,7 @@ describe('forkTemplateRepo', () => {
     await forkTemplateRepo(config, 'agent-test', fetchFn as unknown as typeof fetch);
 
     expect(fetchFn).toHaveBeenCalledWith(
-      'https://api.github.com/repos/Liquid-Protocol-Ops/deploy-autonomous/forks',
+      'https://api.github.com/repos/Liquid-Protocol-Ops/deploy-autonomous/generate',
       expect.objectContaining({ method: 'POST' }),
     );
   });

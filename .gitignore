@@ -20,6 +20,12 @@ yarn-error.log*
 .env.*
 !.env.example
 
+# Agent secrets — bearer keys and credentials written at runtime must never
+# reach the public repo even though the rest of memory/ is tracked.
+memory/venice-bearer.json
+memory/*.key
+memory/*.secret
+
 # Editors
 .idea/
 .vscode/

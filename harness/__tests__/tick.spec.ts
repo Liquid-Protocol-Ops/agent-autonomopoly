@@ -10,7 +10,6 @@ const vMocks = vi.hoisted(() => ({
   getClaimable: vi.fn(),
   getStakedBalance: vi.fn(),
   claimDiem: vi.fn(),
-  stakeDiem: vi.fn(),
   loadOrMintBearer: vi.fn(),
   callInference: vi.fn(),
 }));
@@ -55,7 +54,6 @@ beforeEach(() => {
   vMocks.getClaimable.mockResolvedValue(0n);
   vMocks.getStakedBalance.mockResolvedValue(parseEther('1'));  // well-funded
   vMocks.claimDiem.mockResolvedValue('0xclaim' as `0x${string}`);
-  vMocks.stakeDiem.mockResolvedValue(undefined);
   vMocks.loadOrMintBearer.mockResolvedValue('test-bearer');
   vMocks.callInference.mockResolvedValue('tick');
 });
@@ -94,36 +92,27 @@ describe('runTick — inference path', () => {
   });
 });
 
-describe('runTick — claim + stake path', () => {
-  it('claims and stakes when claimable ≥ threshold', async () => {
+describe('runTick — claim path', () => {
+  it('claims when claimable ≥ threshold', async () => {
     vMocks.getClaimable.mockResolvedValue(parseEther('0.5'));
     await runTick(DEPS);
     expect(vMocks.claimDiem).toHaveBeenCalledOnce();
     expect(vMocks.claimDiem).toHaveBeenCalledWith(TEST_CONFIG, AGENT_ADDRESS, MOCK_TX_SENDER);
-    expect(vMocks.stakeDiem).toHaveBeenCalledOnce();
-    expect(vMocks.stakeDiem).toHaveBeenCalledWith(
-      TEST_CONFIG,
-      parseEther('0.5'),
-      MOCK_TX_SENDER,
-      MOCK_PUBLIC_CLIENT,
-    );
   });
 
-  it('waits for claim receipt before staking', async () => {
+  it('waits for claim receipt before continuing', async () => {
     vMocks.getClaimable.mockResolvedValue(parseEther('0.5'));
     const order: string[] = [];
     vMocks.claimDiem.mockImplementation(async () => { order.push('claim'); return '0xclaim'; });
     MOCK_PUBLIC_CLIENT.waitForTransactionReceipt.mockImplementation(async () => { order.push('wait'); return {}; });
-    vMocks.stakeDiem.mockImplementation(async () => { order.push('stake'); });
     await runTick(DEPS);
-    expect(order).toEqual(['claim', 'wait', 'stake']);
+    expect(order).toEqual(['claim', 'wait']);
   });
 
   it('skips claim when claimable < threshold', async () => {
     vMocks.getClaimable.mockResolvedValue(parseEther('0.05'));
     await runTick(DEPS);
     expect(vMocks.claimDiem).not.toHaveBeenCalled();
-    expect(vMocks.stakeDiem).not.toHaveBeenCalled();
   });
 });
 

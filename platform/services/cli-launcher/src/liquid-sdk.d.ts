@@ -34,4 +34,6 @@ declare module 'liquid-sdk' {
     constructor(config: LiquidSDKConfig);
     deployToken(params: DeployTokenParams): Promise<DeployTokenResult>;
   }
+
+  export function getTickFromMarketCapUSD(marketCapUSD: number, pairedTokenPriceUSD: number, tickSpacing?: number): number;
 }

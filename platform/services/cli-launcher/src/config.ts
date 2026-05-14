@@ -24,6 +24,8 @@ export interface ChainConfig {
   deployerPrivateKey: Hex;
   diemAddress: Address;
   feeLockerAddress: Address;
+  initialMarketCapUsd: number;
+  diemPriceUsd: number;
 }
 
 // ── Privy config ──────────────────────────────────────────────────────
@@ -73,6 +75,8 @@ export function loadConfig(dryRun = false): LauncherConfig {
       deployerPrivateKey: requireEnv('DEPLOYER_PRIVATE_KEY') as Hex,
       diemAddress: (process.env['DIEM_ADDRESS'] ?? '0xF4d97F2da56e8c3098f3a8D538DB630A2606a024') as Address,
       feeLockerAddress: (process.env['FEE_LOCKER_ADDRESS'] ?? '0xF7d3BE3FC0de76fA5550C29A8F6fa53667B876FF') as Address,
+      initialMarketCapUsd: Number(process.env['INITIAL_MARKET_CAP_USD'] ?? 20000),
+      diemPriceUsd: Number(requireEnv('DIEM_PRICE_USD')),
     },
     privy: {
       appId: requireEnv('PRIVY_APP_ID'),

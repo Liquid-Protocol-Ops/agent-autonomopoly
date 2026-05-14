@@ -25,6 +25,8 @@ export function printDeployPlan(config: LauncherConfig): void {
   console.log(`RPC           : ${config.chain.rpcUrl.replace(/\/[a-zA-Z0-9_-]{20,}/, '/***')}`);
   console.log(`DIEM address  : ${config.chain.diemAddress}`);
   console.log(`Fee locker    : ${config.chain.feeLockerAddress}`);
+  console.log(`DIEM price    : $${config.chain.diemPriceUsd.toLocaleString()}`);
+  console.log(`Starting MC   : $${config.chain.initialMarketCapUsd.toLocaleString()}`);
   console.log('');
   console.log(`Privy app     : ${config.privy.appId}`);
   console.log(`GitHub org    : ${config.github.targetOrg}`);

@@ -1,4 +1,5 @@
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 import type { Address, Hex } from 'viem';
 
 export interface AgentRegistryEntry {
@@ -13,6 +14,7 @@ export interface AgentRegistryEntry {
 }
 
 export function writeRegistryEntry(path: string, entry: AgentRegistryEntry): void {
+  mkdirSync(dirname(path), { recursive: true });
   const existing: AgentRegistryEntry[] = existsSync(path)
     ? (JSON.parse(readFileSync(path, 'utf8')) as AgentRegistryEntry[])
     : [];

@@ -1,0 +1,22 @@
+[
+  {
+    "id": "agent-selffunded-agent-test",
+    "name": "selffunded-agent-test",
+    "wallet": "0x27B37faD20247042566669a9B76001A4B7Ce8B16",
+    "walletId": "h6tbcuhbm3cv6fbpvpwnkcjo",
+    "tokenAddress": "0x572D1515ef67305C615d01eBec8e950718f3c990",
+    "deployTxHash": "0xd4a274902febce6aad47a4c8b0dcf7196e4f1afb3c07d7d83dbc82e25797b689",
+    "repoUrl": "https://github.com/Liquid-Protocol-Ops/agent-selffunded-agent-test",
+    "createdAt": "2026-05-13T12:44:00.000Z"
+  },
+  {
+    "id": "agent-autonomopoly",
+    "name": "AUTONOMOPOLY",
+    "wallet": "0x8767Df39eCeeaeB11554642237aC4E08660aB6A3",
+    "walletId": "o8ft8xy8ryzt3hwj5hzgiccv",
+    "tokenAddress": "0xB3D7e0c3C39A1D3F1B304663065A2F83Ddf56d8e",
+    "deployTxHash": "0xef7a9ecbf7a97cded543d636e8d0537c6d761c722cfd288ba38cc8cb9ff0eaa3",
+    "repoUrl": "https://github.com/Liquid-Protocol-Ops/agent-autonomopoly",
+    "createdAt": "2026-05-14T03:55:13.589Z"
+  }
+]

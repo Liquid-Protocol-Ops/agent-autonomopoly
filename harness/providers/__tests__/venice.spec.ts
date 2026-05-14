@@ -18,7 +18,7 @@ const DUMMY_ADDRESS = '0x0000000000000000000000000000000000000001';
 
 const BASE_ENV: Record<string, string> = {
   DIEM_TOKEN_ADDRESS: DUMMY_ADDRESS,
-  VENICE_STAKING_ADDRESS: DUMMY_ADDRESS,
+  VVV_STAKING_ADDRESS: DUMMY_ADDRESS,
   RPC_URL: 'https://base-mainnet.example.com',
 };
 
@@ -40,6 +40,8 @@ beforeEach(() => {
 afterEach(() => {
   rmSync(dir, { recursive: true });
   Object.keys(BASE_ENV).forEach(k => delete process.env[k]);
+  delete process.env['VENICE_API_KEY'];
+  delete process.env['VENICE_STAKING_ADDRESS'];
   vi.clearAllMocks();
 });
 
@@ -51,6 +53,13 @@ describe('loadConfig', () => {
     expect(cfg.diemAddress).toBe(DUMMY_ADDRESS);
     expect(cfg.stakingAddress).toBe(DUMMY_ADDRESS);
     expect(cfg.rpcUrl).toBe('https://base-mainnet.example.com');
+  });
+
+  it('falls back to VENICE_STAKING_ADDRESS when VVV_STAKING_ADDRESS is absent', () => {
+    delete process.env['VVV_STAKING_ADDRESS'];
+    process.env['VENICE_STAKING_ADDRESS'] = DUMMY_ADDRESS;
+    const cfg = loadConfig();
+    expect(cfg.stakingAddress).toBe(DUMMY_ADDRESS);
   });
 
   it('applies defaults for optional vars', () => {
@@ -65,8 +74,8 @@ describe('loadConfig', () => {
     expect(() => loadConfig()).toThrow('DIEM_TOKEN_ADDRESS is required');
   });
 
-  it('throws when VENICE_STAKING_ADDRESS is missing', () => {
-    delete process.env['VENICE_STAKING_ADDRESS'];
+  it('throws when both VVV_STAKING_ADDRESS and VENICE_STAKING_ADDRESS are missing', () => {
+    delete process.env['VVV_STAKING_ADDRESS'];
     expect(() => loadConfig()).toThrow('VENICE_STAKING_ADDRESS is required');
   });
 
@@ -85,16 +94,6 @@ describe('bearer cache', () => {
 
   it('round-trips a bearer through save + load', () => {
     const cachePath = join(dir, 'memory', 'venice-bearer.json');
-    // saveBearer requires path to be allowlisted; use memory/ prefix.
-    const allowedPath = 'memory/venice-bearer.json';
-    // Write via the public API after creating the dir.
-    import('node:fs').then(({ mkdirSync }) => mkdirSync(join(dir, 'memory'), { recursive: true }));
-    // Directly test loadCachedBearer with a manually written file.
-    import('node:fs').then(({ writeFileSync, mkdirSync }) => {
-      mkdirSync(join(dir, 'memory'), { recursive: true });
-      writeFileSync(cachePath, JSON.stringify({ bearer: 'vn-test-bearer-abc123' }), 'utf8');
-    });
-    // Sync version for the test.
     const { writeFileSync, mkdirSync } = require('node:fs');
     mkdirSync(join(dir, 'memory'), { recursive: true });
     writeFileSync(cachePath, JSON.stringify({ bearer: 'vn-test-bearer-abc123' }), 'utf8');
@@ -112,49 +111,57 @@ describe('bearer cache', () => {
 // ── mintVeniceKey ───────────────────────────────────────────────────
 
 describe('mintVeniceKey', () => {
-  it('follows challenge → verify → api_keys flow', async () => {
+  it('follows generate_web3_key GET → sign → POST flow', async () => {
     const cfg = loadConfig();
     const mockFetch = vi.fn()
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ nonce: 'test-nonce-42' }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ jwt: 'jwt-token-xyz' }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ key: 'vn-bearer-final' }) });
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ data: { token: 'test-jwt-token' } }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ data: { apiKey: 'vk-inference-key' } }) });
 
     const key = await mintVeniceKey(cfg, MOCK_SIGNER, mockFetch as unknown as typeof fetch);
 
-    expect(key).toBe('vn-bearer-final');
-    expect(mockFetch).toHaveBeenCalledTimes(3);
+    expect(key).toBe('vk-inference-key');
+    expect(mockFetch).toHaveBeenCalledTimes(2);
 
-    const [challengeCall, verifyCall, keyCall] = mockFetch.mock.calls;
-    expect(challengeCall![0]).toContain('/auth/challenge');
-    expect(verifyCall![0]).toContain('/auth/verify');
-    expect(JSON.parse(verifyCall![1]!.body as string)).toMatchObject({
-      address: DUMMY_ADDRESS,
-      nonce: 'test-nonce-42',
-    });
-    expect(keyCall![0]).toContain('/api_keys');
-    expect(keyCall![1]!.headers).toMatchObject({ Authorization: 'Bearer jwt-token-xyz' });
+    const [getCall, postCall] = mockFetch.mock.calls;
+    expect(getCall![0]).toContain('/api_keys/generate_web3_key');
+    expect(postCall![0]).toContain('/api_keys/generate_web3_key');
+
+    const body = JSON.parse(postCall![1]!.body as string);
+    expect(body.address).toBe(DUMMY_ADDRESS);
+    expect(body.token).toBe('test-jwt-token');
+    expect(body.signature).toBe('0xsignature');
+    expect(body.apiKeyType).toBe('INFERENCE');
   });
 
-  it('throws on challenge failure', async () => {
+  it('throws on token fetch failure', async () => {
     const cfg = loadConfig();
     const mockFetch = vi.fn().mockResolvedValueOnce({ ok: false, status: 503 });
     await expect(mintVeniceKey(cfg, MOCK_SIGNER, mockFetch as unknown as typeof fetch))
-      .rejects.toThrow('Venice challenge failed: 503');
+      .rejects.toThrow('Venice token fetch failed: 503');
   });
 
-  it('throws on verify failure', async () => {
+  it('throws on key mint failure', async () => {
     const cfg = loadConfig();
     const mockFetch = vi.fn()
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ nonce: 'n' }) })
-      .mockResolvedValueOnce({ ok: false, status: 401 });
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ data: { token: 'tok' } }) })
+      .mockResolvedValueOnce({ ok: false, status: 403 });
     await expect(mintVeniceKey(cfg, MOCK_SIGNER, mockFetch as unknown as typeof fetch))
-      .rejects.toThrow('Venice verify failed: 401');
+      .rejects.toThrow('Venice key mint failed: 403');
   });
 });
 
 // ── loadOrMintBearer ────────────────────────────────────────────────
 
 describe('loadOrMintBearer', () => {
+  it('returns VENICE_API_KEY env var without calling Venice', async () => {
+    process.env['VENICE_API_KEY'] = 'env-api-key-xyz';
+    const cfg = loadConfig();
+    const mockFetch = vi.fn();
+    const bearer = await loadOrMintBearer(cfg, MOCK_SIGNER, mockFetch as unknown as typeof fetch);
+    expect(bearer).toBe('env-api-key-xyz');
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
   it('returns cached bearer without calling Venice', async () => {
     const { writeFileSync, mkdirSync } = require('node:fs');
     const cachePath = join(dir, 'memory', 'bearer.json');

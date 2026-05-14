@@ -6,8 +6,8 @@ export interface ForkedRepo {
   htmlUrl: string;
 }
 
-// Forks the template repo into targetOrg with the agent's name as the repo name.
-// Uses GitHub REST API with a personal-access-token (PAT) or GitHub App token.
+// Creates a new repo from the template using GitHub's generate-from-template API.
+// Forking is disabled on template repos; generate creates a fresh copy instead.
 export async function forkTemplateRepo(
   config: GitHubConfig,
   agentRepoName: string,
@@ -16,7 +16,7 @@ export async function forkTemplateRepo(
   const [owner, repo] = config.templateRepo.split('/');
   if (!owner || !repo) throw new Error(`invalid templateRepo: ${config.templateRepo}`);
 
-  const res = await fetchFn(`https://api.github.com/repos/${owner}/${repo}/forks`, {
+  const res = await fetchFn(`https://api.github.com/repos/${owner}/${repo}/generate`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${config.token}`,
@@ -25,15 +25,16 @@ export async function forkTemplateRepo(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      organization: config.targetOrg,
+      owner: config.targetOrg,
       name: agentRepoName,
-      default_branch_only: true,
+      include_all_branches: false,
+      private: false,
     }),
   });
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`GitHub fork failed (${res.status}): ${text}`);
+    throw new Error(`GitHub generate failed (${res.status}): ${text}`);
   }
 
   const data = await res.json() as {

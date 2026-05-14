@@ -20,20 +20,20 @@ export interface DeployTokenResult {
   tokenAddress: Address;
 }
 
-// ── DIEM-paired 7-position tick layout ($1K → $10B MC) ───────────────
-//
-// Assumes 1B token supply, DIEM ≈ $1. Each decade of MC ≈ 23,027 ticks.
-// tickSpacing = 200 (aligns all bounds). 7 equal-weight positions (≈1428 bps each).
-
-const DIEM_POSITIONS = [
-  { tickLower: -138200, tickUpper: -115200, bps: 1429 }, // $1K  → $10K
-  { tickLower: -115200, tickUpper: -92000,  bps: 1429 }, // $10K → $100K
-  { tickLower:  -92000, tickUpper: -69000,  bps: 1429 }, // $100K→ $1M
-  { tickLower:  -69000, tickUpper: -46000,  bps: 1428 }, // $1M  → $10M
-  { tickLower:  -46000, tickUpper: -23000,  bps: 1428 }, // $10M → $100M
-  { tickLower:  -23000, tickUpper:      0,  bps: 1428 }, // $100M→ $1B
-  { tickLower:       0, tickUpper:  23000,  bps: 1429 }, // $1B  → $10B
-] as const;
+// Build LP positions by shifting the SDK's default POOL_POSITIONS.Liquid
+// to start at the target tick. The SDK defaults cover a ~$21K–$1.4B range
+// assuming DIEM as pair; we shift them so the bottom aligns with the
+// desired starting market cap.
+function buildLpPositions(startingTick: number) {
+  // SDK default bottom tick (-230400) is our anchor.
+  const DEFAULT_BOTTOM = -230400;
+  const shift = startingTick - DEFAULT_BOTTOM;
+  return {
+    tickLower: [-230400 + shift, -216000 + shift, -202000 + shift, -155000 + shift, -141000 + shift],
+    tickUpper: [-216000 + shift, -155000 + shift, -155000 + shift, -120000 + shift, -120000 + shift],
+    positionBps: [1000, 5000, 1500, 2000, 500],
+  };
+}
 
 export type TokenDeployer = (params: {
   agentWallet: Address;
@@ -56,25 +56,32 @@ export async function deployAgentToken(params: {
   if (params.deployer) return params.deployer(params);
 
   // Lazy import so the SDK is only required at deploy time (not in tests).
-  const { LiquidSDK } = await import('liquid-sdk');
+  const { LiquidSDK, getTickFromMarketCapUSD } = await import('liquid-sdk');
+
+  const startingTick = getTickFromMarketCapUSD(
+    params.chain.initialMarketCapUsd,
+    params.chain.diemPriceUsd,
+  );
 
   const sdk = new LiquidSDK({
     publicClient: params.publicClient,
     walletClient: params.walletClient,
   });
 
+  const { tickLower, tickUpper, positionBps } = buildLpPositions(startingTick);
+
   const result = await sdk.deployToken({
     name: params.agent.name,
     symbol: params.agent.symbol,
     pairedToken: params.chain.diemAddress,
-    tickIfToken0IsLiquid: DIEM_POSITIONS[0].tickLower,
+    tickIfToken0IsLiquid: startingTick,
     tickSpacing: 200,
     rewardRecipients: [params.agentWallet],
     rewardAdmins: [params.agentWallet],
     rewardBps: [10000],
-    tickLower: DIEM_POSITIONS.map(p => p.tickLower),
-    tickUpper: DIEM_POSITIONS.map(p => p.tickUpper),
-    positionBps: DIEM_POSITIONS.map(p => p.bps),
+    tickLower,
+    tickUpper,
+    positionBps,
   });
 
   return { txHash: result.txHash, tokenAddress: result.tokenAddress };

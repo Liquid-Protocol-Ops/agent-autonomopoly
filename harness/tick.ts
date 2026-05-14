@@ -1,8 +1,8 @@
 // Main tick loop — one execution per Modal invocation (v0).
 //
 // Flow per tick:
-//   1. Check claimable DIEM → claim + stake if ≥ threshold
-//   2. Verify staked balance ≥ threshold (gate for Venice access)
+//   1. Check claimable LP DIEM fees → claim if ≥ threshold (revenue collection)
+//   2. Verify sVVV balance ≥ threshold (gates Venice API key access)
 //   3. Load or mint Venice bearer key
 //   4. Execute the active task via Venice inference
 //
@@ -14,7 +14,6 @@ import {
   getClaimable,
   getStakedBalance,
   claimDiem,
-  stakeDiem,
   loadOrMintBearer,
   callInference,
 } from './providers/venice.js';
@@ -60,15 +59,15 @@ export async function runTick(deps: TickDeps): Promise<void> {
   const config = loadVeniceConfig();
   const publicClient = makePublicClient(config.rpcUrl);
 
-  // 1. Claim + stake whenever there's enough claimable DIEM.
+  // 1. Claim LP DIEM fees from FeeLocker whenever above threshold (revenue collection).
+  //    VVV staking (for Venice access) is a separate one-time setup — see scripts/swap-diem-vvv.ts.
   const claimable = await getClaimable(config, agentAddress, publicClient);
   if (claimable >= config.stakeThreshold) {
     const claimHash = await claimDiem(config, agentAddress, txSender);
     await publicClient.waitForTransactionReceipt({ hash: claimHash });
-    await stakeDiem(config, claimable, txSender, publicClient);
   }
 
-  // 2. Staked balance gates Venice access.
+  // 2. sVVV balance gates Venice API key access.
   const staked = await getStakedBalance(config, agentAddress, publicClient);
   if (staked < config.stakeThreshold) {
     console.log(`[tick] staked=${staked} below threshold=${config.stakeThreshold} — skipping inference`);
