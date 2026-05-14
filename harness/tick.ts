@@ -17,6 +17,7 @@ import {
   loadConfig as loadVeniceConfig,
   makePublicClient,
   getClaimable,
+  getDiemBalance,
   getStakedBalance,
   claimDiem,
   loadOrMintBearer,
@@ -103,12 +104,16 @@ export async function runTick(deps: TickDeps): Promise<void> {
   if (claimable >= config.stakeThreshold) {
     const claimHash = await claimDiem(config, agentAddress, txSender);
     await publicClient.waitForTransactionReceipt({ hash: claimHash });
-    console.log(`[tick] claimed ${claimable} DIEM`);
+
+    // Read actual wallet balance after claim — may differ from pre-claim estimate
+    // due to rounding or dust already in wallet.
+    const diemBalance = await getDiemBalance(config, agentAddress, publicClient);
+    console.log(`[tick] claimed ${claimable} DIEM | wallet balance: ${diemBalance}`);
 
     // 1a. Accumulate mode: reinvest claimed DIEM into ETH/DIEM v3 1% pool.
     //     Single-sided DIEM, range below current tick — earns fees as DIEM appreciates.
     if (AGENT_MODE === 'accumulate') {
-      const lp = await reinvestToLP(config.rpcUrl, agentAddress, claimable, 'short', txSender);
+      const lp = await reinvestToLP(config.rpcUrl, agentAddress, diemBalance, 'short', txSender);
       await publicClient.waitForTransactionReceipt({ hash: lp.mintTxHash });
       console.log(`[tick] LP reinvested | ticks=[${lp.tickLower},${lp.tickUpper}] currentTick=${lp.currentTick}`);
       return;  // accumulate mode does not proceed to inference

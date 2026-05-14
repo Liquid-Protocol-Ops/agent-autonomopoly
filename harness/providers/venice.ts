@@ -56,6 +56,11 @@ const ERC20_ABI = [
     type: 'function', name: 'decimals',
     inputs: [], outputs: [{ name: '', type: 'uint8' }], stateMutability: 'view',
   },
+  {
+    type: 'function', name: 'balanceOf',
+    inputs: [{ name: 'account', type: 'address' }],
+    outputs: [{ name: '', type: 'uint256' }], stateMutability: 'view',
+  },
 ] as const;
 
 // sVVV balance — Venice staking contract balanceOf
@@ -138,6 +143,20 @@ export async function getClaimable(
     abi: FEE_LOCKER_ABI,
     functionName: 'availableFees',
     args: [agentAddress, config.diemAddress],
+  });
+}
+
+// Actual DIEM wallet balance — read after claim to get the real mintable amount.
+export async function getDiemBalance(
+  config: VeniceConfig,
+  agentAddress: Address,
+  publicClient: BasePublicClient = makePublicClient(config.rpcUrl),
+): Promise<bigint> {
+  return publicClient.readContract({
+    address: config.diemAddress,
+    abi: ERC20_ABI,
+    functionName: 'balanceOf',
+    args: [agentAddress],
   });
 }
 
