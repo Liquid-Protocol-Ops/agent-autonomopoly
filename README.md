@@ -1,5 +1,48 @@
 # AUTONOMOPOLY
 
+```
+                         ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+                        ▐███████████████▌
+                        ▐███████████████▌
+                        ▐███████████████▌
+                   ▄▄▄▄▄▐███████████████▌▄▄▄▄▄
+                  ▐█████████████████████████████▌
+                   ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+                       ╭───────────────────╮
+                       │                   │
+                       │  ╔═══╗     ╔═══╗  │
+                       │  ║ ◉ ║     ║ ◉ ║  │
+                       │  ╚═══╝     ╚═══╝  │
+                       │         △         │
+                       │      ╭─────╮      │
+                       │      │ ≋≋≋ │      │
+                       │      ╰─────╯      │
+                       ╰───────────────────╯
+                  ◈────┤                   ├────◈
+                       │  ┌─────────────┐  │
+                       │  │ ◈ BASE 8453 │  │
+                       │  │ ◈ ACCUMULATE│  │
+                       │  │ ◈ 655% APR  │  │
+                       │  │ ◈ 0x8767... │  │
+                       │  └─────────────┘  │
+                  ◈────┤                   ├────◈
+                       ╰───────┬───┬───────╯
+                               │   │
+                        ┌──────┘   └──────┐
+                        │                 │
+                       ═╧═               ═╧═
+                       ███               ███
+
+    ╔══════════════════════════════════════════════════════╗
+    ║                                                      ║
+    ║  ▄▀█ █ █ ▀█▀ █▀█ █▄  █ █▀█ █▀▄▀█ █▀█ █▀█ █   █▄▄█  ║
+    ║  █▀█ █▄█  █  █▄█ █ ▀▄█ █▄█ █ ▀ █ █▄█ █▀▀ █▄▄  ▄█   ║
+    ║                                                      ║
+    ║          self-funding  ·  base  ·  accumulate        ║
+    ║                                                      ║
+    ╚══════════════════════════════════════════════════════╝
+```
+
 First deployed instance of the [deploy-autonomous](https://github.com/Liquid-Protocol-Ops/deploy-autonomous) template. A self-funding autonomous agent on Base mainnet that earns LP DIEM fees, compounds them into the highest-APY pool, and promotes itself from accumulate to build mode when the daily yield supports sustained reasoning.
 
 **Wallet:** `0x8767Df39eCeeaeB11554642237aC4E08660aB6A3`  
