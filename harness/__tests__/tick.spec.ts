@@ -17,7 +17,12 @@ const vMocks = vi.hoisted(() => ({
   REASONING_MODEL: 'claude-opus-4-7',
 }));
 
+const lMocks = vi.hoisted(() => ({
+  reinvestToLP: vi.fn(),
+}));
+
 vi.mock('../providers/venice.js', () => vMocks);
+vi.mock('../providers/liquidity.js', () => lMocks);
 
 import { runTick, type TickDeps } from '../tick.js';
 
@@ -64,6 +69,13 @@ beforeEach(() => {
   vMocks.loadOrMintBearer.mockResolvedValue('test-bearer');
   // Default: fast plan returns no-reasoning JSON; reason step returns prose.
   vMocks.callInference.mockResolvedValue(PLAN_NO_REASON);
+  lMocks.reinvestToLP.mockResolvedValue({
+    approveTxHash: '0xapprove' as `0x${string}`,
+    mintTxHash:    '0xmint' as `0x${string}`,
+    tickLower:     -400,
+    tickUpper:     -200,
+    currentTick:   100,
+  });
 });
 
 afterEach(() => { vi.clearAllMocks(); });
@@ -118,13 +130,14 @@ describe('runTick — claim path', () => {
     expect(vMocks.claimDiem).toHaveBeenCalledWith(TEST_CONFIG, AGENT_ADDRESS, MOCK_TX_SENDER);
   });
 
-  it('waits for claim receipt before continuing', async () => {
+  it('waits for claim receipt before reinvesting (accumulate mode)', async () => {
     vMocks.getClaimable.mockResolvedValue(parseEther('0.5'));
     const order: string[] = [];
     vMocks.claimDiem.mockImplementation(async () => { order.push('claim'); return '0xclaim'; });
     MOCK_PUBLIC_CLIENT.waitForTransactionReceipt.mockImplementation(async () => { order.push('wait'); return {}; });
     await runTick(DEPS);
-    expect(order).toEqual(['claim', 'wait']);
+    // accumulate mode: wait for claim receipt, then reinvestToLP, then wait for mint receipt
+    expect(order).toEqual(['claim', 'wait', 'wait']);
   });
 
   it('skips claim when claimable < threshold', async () => {

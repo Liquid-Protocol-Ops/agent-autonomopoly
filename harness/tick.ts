@@ -24,6 +24,7 @@ import {
   FAST_MODEL,
   REASONING_MODEL,
 } from './providers/venice.js';
+import { reinvestToLP } from './providers/liquidity.js';
 import {
   loadPrivyConfig,
   loadSignerFromPrivy,
@@ -40,6 +41,13 @@ export type TickDeps = {
   signer: Signer;
   txSender: TxSender;
 };
+
+// ── Mode ─────────────────────────────────────────────────────────────
+
+// accumulate: LP claimed DIEM into ETH/DIEM v3 pool; run on free llama only.
+// build:      stake yield for Venice Opus credits; run product-building ticks.
+// Controlled by AGENT_MODE env var until on-chain daily-rate determination is wired.
+const AGENT_MODE = (process.env['AGENT_MODE'] ?? 'accumulate') as 'accumulate' | 'build';
 
 // ── Bootstrap ────────────────────────────────────────────────────────
 
@@ -88,12 +96,23 @@ export async function runTick(deps: TickDeps): Promise<void> {
   const config = loadVeniceConfig();
   const publicClient = makePublicClient(config.rpcUrl);
 
+  console.log(`[tick] mode=${AGENT_MODE}`);
+
   // 1. Claim LP DIEM fees from FeeLocker whenever above threshold.
   const claimable = await getClaimable(config, agentAddress, publicClient);
   if (claimable >= config.stakeThreshold) {
     const claimHash = await claimDiem(config, agentAddress, txSender);
     await publicClient.waitForTransactionReceipt({ hash: claimHash });
     console.log(`[tick] claimed ${claimable} DIEM`);
+
+    // 1a. Accumulate mode: reinvest claimed DIEM into ETH/DIEM v3 1% pool.
+    //     Single-sided DIEM, range below current tick — earns fees as DIEM appreciates.
+    if (AGENT_MODE === 'accumulate') {
+      const lp = await reinvestToLP(config.rpcUrl, agentAddress, claimable, 'short', txSender);
+      await publicClient.waitForTransactionReceipt({ hash: lp.mintTxHash });
+      console.log(`[tick] LP reinvested | ticks=[${lp.tickLower},${lp.tickUpper}] currentTick=${lp.currentTick}`);
+      return;  // accumulate mode does not proceed to inference
+    }
   }
 
   // 2. sVVV balance gates Venice API key access.

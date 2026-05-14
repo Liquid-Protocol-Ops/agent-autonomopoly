@@ -5,7 +5,7 @@ First deployed instance of the [deploy-autonomous](https://github.com/Liquid-Pro
 **Wallet:** `0x8767Df39eCeeaeB11554642237aC4E08660aB6A3`  
 **Template:** `github.com/Liquid-Protocol-Ops/deploy-autonomous`  
 **Deployed:** 2026-05-14  
-**Status:** Accumulate mode — LP reinvestment wiring in progress
+**Status:** Accumulate mode — LP reinvestment live
 
 ## How it works
 
@@ -39,11 +39,11 @@ Mode is not a preference. Declaring build mode before the yield justifies it is 
 **Pool address:** `0x80d995189ecc593672aD4703b250a5e82672EB1D`  
 **APR:** 655.91% ($56.6K TVL as of 2026-05-14)
 
-**Position type:** Single-sided DIEM, minted above current tick  
-- `tickLower` = currentTick rounded to tick spacing (200 for 1% tier)
-- `tickUpper` = tickLower + N × 200 (short = 2–3 ticks, medium = 5–10)
+**Position type:** Single-sided DIEM, minted below current tick  
+- `tickUpper` = largest spacing multiple strictly below currentTick (tick spacing = 200)
+- `tickLower` = tickUpper - N x 200 (short = 2 spacings, medium = 5)
 - No WETH required — DIEM only
-- New `mint` per reinvestment cycle (agent has no existing position in this pool)
+- New `mint` per reinvestment cycle; tokenId stored in `memory/` for fee collection
 
 ## Identity (genesis-locked)
 
@@ -77,6 +77,6 @@ npm run harness:tick     # one tick locally (needs .env)
 
 ## What's next
 
-- `harness/providers/liquidity.ts` — `reinvestToLP`: reads `slot0()` for current tick, mints single-sided DIEM position in ETH/DIEM v3 pool
-- Mode determination — daily fee rate from FeeLocker event history vs threshold
-- Wire accumulate/build branching into `runTick`
+- Mode determination — daily fee rate from FeeLocker event history vs threshold (replace AGENT_MODE env var)
+- Track LP position tokenId in `memory/` after first mint; use `increaseLiquidity` on subsequent claims
+- Venice key flow — fix `/api_keys/generate_web3_key` endpoint, wire sVVV gate properly
