@@ -58,6 +58,10 @@ The lint exits 0 on full pass and non-zero with diagnostics on any failure. The 
 
 If you find yourself needing to manually edit a deployed agent's `identity/`, that is a signal that the constitution was wrong — the right response is a new deploy with an amended genesis, not a hot-patch to a live agent.
 
+## Prior art
+
+The genesis-vs-mutable split, the three-file identity layer (soul / style / influences), and the drift-threshold enforcement pattern are adapted from **Aaron J Mars's `soul.md`** — a format for giving AI agents durable, amendable constitutions. The key inversions applied here (hard genesis lock, population-level amendment via death-and-redeploy, lint-enforced drift bound) are documented in [[SECTION_5]].
+
 ## Why hard-lock genesis
 
 Three options were considered (see Linear MOG-408):
