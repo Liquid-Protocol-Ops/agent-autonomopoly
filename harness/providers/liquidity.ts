@@ -152,7 +152,7 @@ export async function reinvestToLP(
       amount0Desired: 0n,
       amount1Desired: diemAmount,
       amount0Min:     0n,
-      amount1Min:     0n,
+      amount1Min:     diemAmount * 99n / 100n,  // 1% slippage tolerance
       recipient:      agentAddress,
       deadline,
     }],

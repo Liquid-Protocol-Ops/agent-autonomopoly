@@ -8,6 +8,7 @@ const vMocks = vi.hoisted(() => ({
   loadConfig: vi.fn(),
   makePublicClient: vi.fn(),
   getClaimable: vi.fn(),
+  getDiemBalance: vi.fn(),
   getStakedBalance: vi.fn(),
   claimDiem: vi.fn(),
   loadOrMintBearer: vi.fn(),
@@ -64,6 +65,7 @@ beforeEach(() => {
   vMocks.loadConfig.mockReturnValue(TEST_CONFIG);
   vMocks.makePublicClient.mockReturnValue(MOCK_PUBLIC_CLIENT);
   vMocks.getClaimable.mockResolvedValue(0n);
+  vMocks.getDiemBalance.mockResolvedValue(parseEther('0.5'));  // post-claim wallet balance
   vMocks.getStakedBalance.mockResolvedValue(parseEther('1'));  // well-funded
   vMocks.claimDiem.mockResolvedValue('0xclaim' as `0x${string}`);
   vMocks.loadOrMintBearer.mockResolvedValue('test-bearer');
