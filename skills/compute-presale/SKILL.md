@@ -7,22 +7,25 @@ tags: [defi, on-chain, launch, venice]
 
 Bootstrap Venice compute for an unfunded agent by deploying a `MintDiemPresaleVault` alongside a new token launch.
 
-**How it works:**
-1. Depositors approve VVV and call `vault.deposit(vvvAmount, minDiemOut)`
-2. Vault stakes VVV → accumulates sVVV on VVV_STAKING
-3. Vault calls `VVV_STAKING.mintDiem(sVVV, minOut)` → burns sVVV, mints DIEM to vault
-4. Vault splits DIEM: `protocolFeeBps` to autonomopoly, remainder to `agentWallet`
-5. Agent stakes DIEM → sDIEM → Venice inference credits ($1 DIEM = $1/day budget)
-6. Depositors claim pro-rata token allocation after deposit window closes
+**Two deposit paths:**
+
+| Path | Function | Who uses it | Flow |
+|------|----------|-------------|------|
+| VVV | `deposit(vvvAmount, minDiemOut)` | VVV holders | Vault stakes VVV → sVVV (internal) → `mintDiem` → DIEM to agent |
+| DIEM | `depositDIEM(diemAmount)` | DIEM holders | DIEM passes through directly to agent |
+
+Depositors never see sVVV — it is the vault's internal staked balance created during VVV conversion.
 
 **Rate (Base mainnet, 2026-05):** ~0.00141 DIEM/VVV — need ~70,884 VVV for 100 DIEM (~$10,600)  
+**Deposit window:** default 24h; configurable at deploy time (minimum 2h, maximum 30 days)  
 **Protocol fee (autonomopoly):** set at deploy time (e.g. 200 bps = 2%)
 
-The vault allocates `extensionBps` of the token supply (e.g. 10% = `1000 bps`). Allocation scales linearly with DIEM minted vs `diemTarget`:
+Both paths add to `totalDiemMinted`. Allocation scales linearly with DIEM routed vs `diemTarget`:
 ```
 effectiveAllocation = min(totalDiemMinted, diemTarget) * extensionSupply / diemTarget
-depositorShare      = vvvDeposited[depositor] * effectiveAllocation / totalVvvDeposited
+depositorShare      = diemContributed[depositor] * effectiveAllocation / totalDiemMinted
 ```
+`diemContributed` is the DIEM-equivalent per depositor (VVV converted value or direct DIEM amount).  
 If only 50% of `diemTarget` is reached, only 50% of `extensionSupply` is distributable; the rest is burned.
 
 ## When to run
@@ -52,11 +55,12 @@ Defaults if no queue entry: `depositWindowDays=7`, `diemTarget=100`, `protocolFe
 ### Step 1 — Deploy the presale vault
 ```bash
 node --env-file=.env --import tsx scripts/deploy-compute-presale.ts \
-  --deposit-window-days 7 \
+  --deposit-window-hours 24 \
   --diem-target 100 \
   --protocol-fee-bps 200 \
   --dry-run
 # Remove --dry-run to execute
+# Min window: 2h. Max window: 30 days (720h).
 ```
 Note the `vaultAddress` from output.
 
@@ -80,7 +84,14 @@ RPC=https://mainnet.base.org
 cast call $VAULT "depositDeadline()(uint256)"   --rpc-url $RPC
 cast call $VAULT "totalDiemMinted()(uint256)"   --rpc-url $RPC
 cast call $VAULT "remainingCapacity()(uint256)" --rpc-url $RPC
-cast call $VAULT "totalVvvDeposited()(uint256)" --rpc-url $RPC
+cast call $VAULT "totalVvvDeposited()(uint256)" --rpc-url $RPC  # VVV path only
+
+# Per-depositor breakdown
+DEPOSITOR=<address>
+cast call $VAULT "diemContributed(address)(uint256)" $DEPOSITOR --rpc-url $RPC
+cast call $VAULT "vvvDeposited(address)(uint256)"    $DEPOSITOR --rpc-url $RPC
+cast call $VAULT "diemDeposited(address)(uint256)"   $DEPOSITOR --rpc-url $RPC
+cast call $VAULT "getShare(address)(uint256)"        $DEPOSITOR --rpc-url $RPC
 ```
 
 After `depositDeadline` passes, depositors call `claimTokens()` and anyone can call `burnUnclaimed()` to burn unallocated supply.

@@ -1,7 +1,11 @@
 // Deploy a MintDiemPresaleVault for the Venice Agent Launchpad.
 //
-// Depositors bring VVV tokens. The vault stakes VVV → burns sVVV → mints DIEM to agentWallet.
-// A protocol fee (protocolFeeBps) of every DIEM minted goes to the autonomopoly protocol address.
+// Depositors bring VVV tokens OR DIEM directly. For VVV deposits, the vault
+// stakes VVV → burns sVVV → mints DIEM, forwarding DIEM to agentWallet (minus protocol fee).
+// For DIEM deposits, DIEM passes through directly.
+//
+// Depositors earn pro-rata token allocation based on DIEM contributed (or DIEM-equivalent
+// from VVV conversion) vs totalDiemMinted.
 //
 // Usage:
 //   node --env-file=.env --import tsx scripts/deploy-compute-presale.ts \
@@ -9,7 +13,7 @@
 //     [--protocol 0x...]              # autonomopoly fee recipient (default: AGENT_ADDRESS)
 //     [--protocol-fee-bps 200]        # fee in bps, e.g. 200 = 2% (default: 0)
 //     [--diem-target 100]             # DIEM target in whole units (default: 100)
-//     [--deposit-window-days 7]       # how long deposits stay open (default: 7)
+//     [--deposit-window-hours 24]     # deposit window in hours, min 2 (default: 24)
 //     [--dry-run]
 //
 // Pass the deployed vault address to the token launch script via --presale-vault.
@@ -87,26 +91,31 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
 
   const dryRun          = args['dry-run'] === 'true';
-  const windowDays      = parseInt(args['deposit-window-days'] ?? '7');
+  const windowHours     = parseInt(args['deposit-window-hours'] ?? '24');
   const diemTargetUnits = parseInt(args['diem-target'] ?? '100');
   const agentWallet     = (args['agent-wallet'] ?? AGENT) as Address;
   const protocolAddr    = (args['protocol'] ?? AGENT) as Address;
   const protocolFeeBps  = BigInt(args['protocol-fee-bps'] ?? '0');
 
-  const depositWindow = BigInt(windowDays * 86400);
+  if (windowHours < 2) {
+    console.error('Error: --deposit-window-hours must be ≥ 2 (contract minimum is 2 hours)');
+    process.exit(1);
+  }
+
+  const depositWindow = BigInt(windowHours * 3600);
   const diemTarget    = BigInt(diemTargetUnits) * 10n ** 18n;
 
   console.log('\nDeploying MintDiemPresaleVault:');
-  console.log(`  vvv:              ${VVV}`);
-  console.log(`  vvvStaking:       ${VVV_STAKING}`);
-  console.log(`  diem:             ${DIEM}`);
+  console.log(`  vvv:              ${VVV}  (users deposit VVV tokens)`);
+  console.log(`  vvvStaking:       ${VVV_STAKING}  (vault stakes VVV → sVVV internally)`);
+  console.log(`  diem:             ${DIEM}  (users may also deposit DIEM directly)`);
   console.log(`  agentWallet:      ${agentWallet}`);
   console.log(`  diemTarget:       ${diemTargetUnits} DIEM`);
-  console.log(`  depositWindow:    ${depositWindow}s (${windowDays} days)`);
+  console.log(`  depositWindow:    ${depositWindow}s (${windowHours}h)`);
   console.log(`  factory:          ${LIQUID_FACTORY}`);
   console.log(`  protocol:         ${protocolAddr}`);
   console.log(`  protocolFeeBps:   ${protocolFeeBps} (${Number(protocolFeeBps) / 100}%)`);
-  console.log(`\n  Real rate: ~0.00141 DIEM/VVV → need ~${Math.ceil(diemTargetUnits / 0.00141).toLocaleString()} VVV to fill target`);
+  console.log(`\n  VVV path rate: ~0.00141 DIEM/VVV → need ~${Math.ceil(diemTargetUnits / 0.00141).toLocaleString()} VVV to fill target via VVV deposits`);
 
   if (dryRun) {
     console.log('\n[dry-run] Would deploy MintDiemPresaleVault with above params');
@@ -172,7 +181,7 @@ async function main() {
       vaultAddress,
       agentWallet,
       diemTarget:     diemTarget.toString(),
-      depositWindow:  depositWindow.toString(),
+      depositWindowHours: windowHours,
       protocolAddr,
       protocolFeeBps: protocolFeeBps.toString(),
       txHash,
