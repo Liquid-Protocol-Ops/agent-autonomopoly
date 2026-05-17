@@ -244,7 +244,7 @@ export async function reinvestToLP(
       amount0Desired: 0n,
       amount1Desired: diemAmount,
       amount0Min:     0n,
-      amount1Min:     diemAmount * 99n / 100n,  // 1% slippage tolerance
+      amount1Min:     0n,  // single-sided deposit: amount1 consumed may be < desired as tick drifts
       recipient:      agentAddress,
       deadline,
     }],
