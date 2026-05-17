@@ -445,7 +445,17 @@ jobs:
           Read and execute the skill defined in skills/${SKILL_NAME}/SKILL.md
           Use the chain context above instead of re-running those skills. Synthesize and build on their outputs."
           else
-            PROMPT="Today is $TODAY. Read and execute the skill defined in skills/${SKILL_NAME}/SKILL.md"
+            # Inject agent identity and goal state into every skill invocation
+            AGENT_MODE=$(jq -r '.mode // "accumulate"' memory/goals.json 2>/dev/null || echo "accumulate")
+            DIEM_CURRENT=$(jq -r '.milestones[0].current // "?"' memory/goals.json 2>/dev/null || echo "?")
+            DIEM_TARGET=$(jq -r '.milestones[0].target // 100' memory/goals.json 2>/dev/null || echo 100)
+            PROMPT="You are AUTONOMOPOLY — autonomous agent on Base mainnet.
+          Wallet: 0x8767Df39eCeeaeB11554642237aC4E08660aB6A3
+          Mode: ${AGENT_MODE}. DIEM: ${DIEM_CURRENT}/${DIEM_TARGET} toward compute milestone.
+          Today is $TODAY.
+
+          Read and execute the skill defined in skills/${SKILL_NAME}/SKILL.md
+          Lead with numbers. Be direct. Every DIEM matters."
           fi
           if [ -n "$VAR" ]; then
             PROMPT="$PROMPT

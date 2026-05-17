@@ -591,10 +591,12 @@ jobs:
         env:
           _INPUT_MESSAGE: ${{ inputs.message }}
           _INPUT_SOURCE: ${{ inputs.source }}
+          _EVENT_MESSAGE: ${{ github.event.client_payload.message }}
+          _EVENT_ACTION: ${{ github.event.action }}
         run: |
           if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
-            MESSAGE=$(echo '${{ toJson(github.event.client_payload.message) }}' | jq -r '.')
-            TYPE="${{ github.event.action }}"
+            MESSAGE="$_EVENT_MESSAGE"
+            TYPE="$_EVENT_ACTION"
             SOURCE="webhook"
             case "$TYPE" in
               telegram-message) SOURCE="telegram" ;;
@@ -663,7 +665,7 @@ jobs:
           MODEL="${CONFIG_MODEL:-claude-sonnet-4-6}"
 
           # Gateway routing — Venice or direct Anthropic
-          GATEWAY=$(grep -A1 '^gateway:' aeon.yml | grep 'provider:' | sed 's/.*provider: *//' | tr -d ' "\'' || echo "direct")
+          GATEWAY=$(grep -A1 '^gateway:' aeon.yml | grep 'provider:' | sed 's/.*provider: *//' | tr -d ' "'" || echo "direct")
           GATEWAY="${GATEWAY:-direct}"
           if [ "$GATEWAY" = "venice" ]; then
             if [ -z "${VENICE_API_KEY:-}" ]; then
@@ -718,7 +720,11 @@ jobs:
           chmod +x ./notify
 
           ALLOWED="Read,Write,Edit,Glob,Grep,WebFetch,WebSearch"
-          ALLOWED="$ALLOWED,Bash(curl:*),Bash(gh:*),Bash(git:*),Bash(jq:*)"
+          ALLOWED="$ALLOWED,Bash(curl:*),Bash(jq:*)"
+          ALLOWED="$ALLOWED,Bash(gh run list:*),Bash(gh run view:*),Bash(gh workflow list:*)"
+          ALLOWED="$ALLOWED,Bash(gh issue list:*),Bash(gh issue view:*),Bash(gh secret list:*)"
+          ALLOWED="$ALLOWED,Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git pull:*)"
+          ALLOWED="$ALLOWED,Bash(git log:*),Bash(git status:*),Bash(git diff:*)"
           ALLOWED="$ALLOWED,Bash(./notify:*)"
           ALLOWED="$ALLOWED,Bash(mkdir:*),Bash(ls:*),Bash(cat:*),Bash(chmod:*)"
           ALLOWED="$ALLOWED,Bash(date:*),Bash(echo:*),Bash(node:*),Bash(npm:*),Bash(npx:*)"
@@ -726,19 +732,32 @@ jobs:
 
           SOURCE="$_MSG_SOURCE"
           MESSAGE="$_MSG_MESSAGE"
-          PROMPT="Today is $TODAY. You received this message from the user on ${SOURCE}:
 
-          \"$MESSAGE\"
+          # Build agent identity context for this invocation
+          AGENT_MODE=$(jq -r '.mode // "accumulate"' memory/goals.json 2>/dev/null || echo "accumulate")
+          DIEM_CURRENT=$(jq -r '.milestones[0].current // "?"' memory/goals.json 2>/dev/null || echo "?")
+          DIEM_TARGET=$(jq -r '.milestones[0].target // 100' memory/goals.json 2>/dev/null || echo 100)
+          SOUL_EXCERPT=$(sed -n '/^## Who the agent is/,/^## /{ /^## Who/d; /^## [^W]/d; p }' identity/SOUL.md 2>/dev/null | head -8 || echo "")
 
-          Read memory/MEMORY.md for context. Look at the available skills in skills/ to understand what you can do.
+          PROMPT="You are AUTONOMOPOLY — an autonomous agent on Base mainnet (wallet: 0x8767Df39eCeeaeB11554642237aC4E08660aB6A3).
+Mode: ${AGENT_MODE}. DIEM accumulated: ${DIEM_CURRENT}/${DIEM_TARGET} toward compute milestone.
+${SOUL_EXCERPT}
 
-          Interpret what the user wants and act on it:
-          - If they want you to run a skill (e.g. \"write an article about X\", \"send me a digest\"), read that skill file and execute it.
-          - If they want information or have a question, research it and respond.
-          - If they want you to remember something, update memory/MEMORY.md.
-          - For anything else, do your best and explain what you did.
+Today is $TODAY. Message received via ${SOURCE}:
 
-          Always send your response back via ./notify so the user sees it."
+<creator_message>
+$MESSAGE
+</creator_message>
+
+Read memory/MEMORY.md and memory/goals.json for current state. Available skills are in skills/ (each has a SKILL.md).
+
+Respond as AUTONOMOPOLY — lead with numbers, be direct, no filler. Act on what the creator wants:
+- Run a skill: read the SKILL.md and execute it.
+- Status question: report mode, DIEM progress, LP state, last tick.
+- Remember something: update memory/MEMORY.md or memory/goals.json.
+- Anything else: do it and explain what you did.
+
+Always send your response via ./notify so the creator receives it."
           if ! CLAUDE_OUTPUT=$(echo "$PROMPT" | claude -p - \
             --model "$MODEL" --allowedTools "$ALLOWED" \
             --output-format json 2>&1); then
