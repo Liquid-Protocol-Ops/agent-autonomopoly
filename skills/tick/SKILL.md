@@ -30,3 +30,16 @@ or
 ```
 tick: nothing to claim/LP | maintenance inference ran
 ```
+
+## After every tick — Dependabot check
+
+After the tick completes (success or failure), run:
+```bash
+gh pr list --author app/dependabot --state open --json number,title,createdAt,url 2>/dev/null
+```
+
+Include any open Dependabot PRs in the `./notify` message. Format:
+```
+tick: <summary> | Dependabot: N open PR(s): #X title1, #Y title2
+```
+or omit the Dependabot section entirely if N=0.
