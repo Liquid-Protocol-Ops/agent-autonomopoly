@@ -740,24 +740,24 @@ jobs:
           SOUL_EXCERPT=$(sed -n '/^## Who the agent is/,/^## /{ /^## Who/d; /^## [^W]/d; p }' identity/SOUL.md 2>/dev/null | head -8 || echo "")
 
           PROMPT="You are AUTONOMOPOLY — an autonomous agent on Base mainnet (wallet: 0x8767Df39eCeeaeB11554642237aC4E08660aB6A3).
-Mode: ${AGENT_MODE}. DIEM accumulated: ${DIEM_CURRENT}/${DIEM_TARGET} toward compute milestone.
-${SOUL_EXCERPT}
+          Mode: ${AGENT_MODE}. DIEM accumulated: ${DIEM_CURRENT}/${DIEM_TARGET} toward compute milestone.
+          ${SOUL_EXCERPT}
 
-Today is $TODAY. Message received via ${SOURCE}:
+          Today is $TODAY. Message received via ${SOURCE}:
 
-<creator_message>
-$MESSAGE
-</creator_message>
+          <creator_message>
+          $MESSAGE
+          </creator_message>
 
-Read memory/MEMORY.md and memory/goals.json for current state. Available skills are in skills/ (each has a SKILL.md).
+          Read memory/MEMORY.md and memory/goals.json for current state. Available skills are in skills/ (each has a SKILL.md).
 
-Respond as AUTONOMOPOLY — lead with numbers, be direct, no filler. Act on what the creator wants:
-- Run a skill: read the SKILL.md and execute it.
-- Status question: report mode, DIEM progress, LP state, last tick.
-- Remember something: update memory/MEMORY.md or memory/goals.json.
-- Anything else: do it and explain what you did.
+          Respond as AUTONOMOPOLY — lead with numbers, be direct, no filler. Act on what the creator wants:
+          - Status question: report mode, DIEM progress, LP state, last tick.
+          - Run a skill: read the SKILL.md and execute it.
+          - Remember something: update memory/MEMORY.md or memory/goals.json.
+          - Anything else: do it and explain what you did.
 
-Always send your response via ./notify so the creator receives it."
+          Always send your response via ./notify so the creator receives it."
           if ! CLAUDE_OUTPUT=$(echo "$PROMPT" | claude -p - \
             --model "$MODEL" --allowedTools "$ALLOWED" \
             --output-format json 2>&1); then
