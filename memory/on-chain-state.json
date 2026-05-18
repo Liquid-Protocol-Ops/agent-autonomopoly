@@ -1,0 +1,27 @@
+{
+  "AUTONOMOPOLY agent wallet": {
+    "last_block": 46145149,
+    "last_run": "2026-05-18T07:08:28Z",
+    "alerted_tx": ["0xd33390e87f96d7e2ba4237afdb827fdad42978d0db3851ed35cbcbac1180e833"],
+    "median_usd_30d": null
+  },
+  "ETH/DIEM Uniswap v3 1% pool": {
+    "last_block": 46145149,
+    "last_run": "2026-05-18T07:08:28Z",
+    "alerted_tx": [],
+    "median_usd_30d": 138
+  },
+  "AUTONO token contract": {
+    "last_block": 46145149,
+    "last_run": "2026-05-18T07:08:28Z",
+    "alerted_tx": [],
+    "median_usd_30d": null
+  },
+  "AUTONO FeeLocker DIEM claimable": {
+    "last_block": 46145149,
+    "last_run": "2026-05-18T07:08:28Z",
+    "alerted_tx": [],
+    "median_usd_30d": null,
+    "note": "availableFees call reverted — contract may not be deployed or selector mismatch"
+  }
+}
