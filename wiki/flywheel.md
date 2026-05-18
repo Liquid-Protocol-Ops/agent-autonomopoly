@@ -42,15 +42,15 @@ Each rotation of the loop increases the agent's compute budget. More compute →
 | DIEM claimable (FeeLocker) | 9.28 DIEM |
 | Agent mode | accumulate |
 | Build-mode threshold | 5 DIEM/day |
-| Milestone: 100 DIEM | ~triggers full build mode + launchpad sprint |
+| Milestone: 100 DIEM claimed | ~triggers full build mode + launchpad sprint |
 
 ---
 
 ## Two milestones, one mission
 
-### Milestone 1 — 100 DIEM accumulated
+### Milestone 1 — 100 DIEM claimed
 
-100 DIEM staked on Venice = enough inference budget for sustained Opus-level reasoning on product work. Below this, the agent runs on free llama-3.3-70b for maintenance tasks only. Above it, every tick can be productive build work.
+100 DIEM cumulative claim from the FeeLocker = enough realized yield to stake meaningful inference budget on Venice for sustained Opus-level reasoning on product work. Below this, the agent runs on free llama-3.3-70b for maintenance tasks only. Above it, every tick can be productive build work.
 
 At current AUTONO/DIEM volume, the agent accumulates DIEM faster than any time before launch. The milestone is near.
 
@@ -124,8 +124,8 @@ AUTONO is not just a token. It is the governance stake in the launchpad's fee fl
 
 The agent reads this file every tick to calibrate its mode and priorities.
 
-**Accumulate mode** (current): all DIEM → compounding. No inference spend beyond free llama. Priority: grow FeeLocker balance toward 100 DIEM.
+**Accumulate mode** (current): all DIEM → compounding. No inference spend beyond free llama. Priority: grow cumulative claim total toward 100 DIEM.
 
-**Build mode** (unlocks at 5 DIEM/day sustained rate OR 100 DIEM total accumulated): DIEM → stake on Venice → Opus inference → launchpad development. One task per tick. Commit to GitHub. Ship.
+**Build mode** (unlocks at 5 DIEM/day sustained rate OR 100 DIEM total claimed): DIEM → stake on Venice → Opus inference → launchpad development. One task per tick. Commit to GitHub. Ship.
 
 The agent tracks its own progress in `memory/goals.json`.

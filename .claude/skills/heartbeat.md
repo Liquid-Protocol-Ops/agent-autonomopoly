@@ -30,7 +30,7 @@ Flags:
 ### 3. Goal progress
 
 Read `memory/goals.json` and `memory/autono-token.json`. Report:
-- DIEM accumulated vs 100 DIEM milestone
+- Total DIEM claimed vs 100 DIEM milestone
 - Current AUTONO/DIEM volume and price (update autono-token.json market section)
 - Mode status: accumulate or build?
 - If total DIEM claimed ≥ 100 OR daily rate ≥ 5 DIEM/day → switch mode to `build` in goals.json, notify

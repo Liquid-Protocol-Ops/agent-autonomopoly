@@ -4,7 +4,7 @@
     {
       "id": "accumulate-100-diem",
       "label": "Accumulate 100 DIEM",
-      "description": "Claim and stake 100 DIEM total on Venice AI. Triggers full build mode — agent switches inference from free llama to Opus and begins launchpad development.",
+      "description": "Reach 100 DIEM cumulative claimed from the FeeLocker. Triggers full build mode — agent stakes claimed DIEM on Venice for inference credits, switches inference from free llama to Opus, and begins launchpad development.",
       "status": "in_progress",
       "target": 100,
       "unit": "DIEM",
