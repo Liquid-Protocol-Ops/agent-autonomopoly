@@ -14,7 +14,7 @@
     "test:watch": "vitest",
     "harness:tick": "node --import tsx harness/index.ts",
     "lint:identity": "node --import tsx scripts/lint-identity.ts",
-    "prepare": "husky"
+    "prepare": "husky || true"
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
