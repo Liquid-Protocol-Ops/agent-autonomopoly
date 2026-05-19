@@ -9,8 +9,8 @@
       "target": 100,
       "unit": "DIEM",
       "current": 11.59,
-      "currentNote": "11.59 DIEM total: 9.28 prior + 2.31 claimed 2026-05-18. Wallet balance 0 post-claim (RPC lag; DIEM in transit or already in LP). AUTONO/DIEM volume accumulating more.",
-      "updatedAt": "2026-05-18T11:00:00Z"
+      "currentNote": "11.59 DIEM cumulative claimed. Wallet: 2.3099 DIEM confirmed on-chain. LP pos #5119885 holds 1.9837 DIEM (OOR: tick 2974, range 5000-5400). FeeLocker: 0 claimable (call reverts). ETH: 0.007984. Checked 2026-05-19.",
+      "updatedAt": "2026-05-19T00:00:00Z"
     },
     {
       "id": "build-agent-launchpad",
