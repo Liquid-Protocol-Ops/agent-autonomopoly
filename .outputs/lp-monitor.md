@@ -1,1 +1,1 @@
-AUTONOMOPOLY LP: all positions in range | tokenId=5150277 range=[3000,3600] tick=3359 IN_RANGE ✓ | FeeLocker=0.1838 DIEM claimable
+AUTONOMOPOLY LP: all positions in range | tick=2023 | tokenId=5153290 [800,2800] active | FeeLocker=0.9561 DIEM claimable | 6 burned positions
