@@ -1,1 +1,1 @@
-tick: claimed 1.1575 DIEM, LP'd 1.1575 DIEM | ticks=[1000,1400] currentTick=1553 | Dependabot: 0 open PRs
+tick: 0 claimed (FeeLocker 0.9561 DIEM < threshold) | LP'd 1.1575 DIEM | ticks=[600,1000] currentTick=1133 | Dependabot: 0 open PRs
