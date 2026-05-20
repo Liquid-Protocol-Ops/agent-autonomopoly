@@ -143,6 +143,23 @@ const SWAP_ROUTER_ABI = [{
   outputs: [{ name: 'amountOut', type: 'uint256' }],
 }] as const;
 
+const QUOTER_V2_ABI = [{
+  name: 'quoteExactInputSingle', type: 'function', stateMutability: 'nonpayable',
+  inputs: [{ name: 'params', type: 'tuple', components: [
+    { name: 'tokenIn',           type: 'address' },
+    { name: 'tokenOut',          type: 'address' },
+    { name: 'amountIn',          type: 'uint256' },
+    { name: 'fee',               type: 'uint24'  },
+    { name: 'sqrtPriceLimitX96', type: 'uint160' },
+  ]}],
+  outputs: [
+    { name: 'amountOut',                type: 'uint256' },
+    { name: 'sqrtPriceX96After',        type: 'uint160' },
+    { name: 'initializedTicksCrossed',  type: 'uint32'  },
+    { name: 'gasEstimate',              type: 'uint256' },
+  ],
+}] as const;
+
 // ── Helpers ────────────────────────────────────────────────────────────
 
 function tsDeadline(): bigint {
@@ -178,10 +195,31 @@ function snapTick(tick: number, spacing: number): number {
   return Math.floor(tick / spacing) * spacing;
 }
 
-// New tick range centred on currentTick: two spacings wide on each side.
+// New tick range centred on currentTick: 5 spacings on each side (10 total = 2000 ticks).
+// Wider range reduces reposition frequency vs the old 3-spacing range.
 function computeNewRange(currentTick: number, spacing: number): [number, number] {
   const base = snapTick(currentTick, spacing);
-  return [base - spacing, base + spacing * 2];
+  return [base - spacing * 5, base + spacing * 5];
+}
+
+// Sum ERC-20 Transfer events to `to` in a tx receipt (avoids RPC staleness after tx confirm).
+function parseTransferred(
+  logs: readonly { address: string; topics: readonly string[]; data: string }[],
+  tokenAddress: string,
+  to: string,
+): bigint {
+  const TRANSFER_SIG = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+  let total = 0n;
+  for (const log of logs) {
+    if (
+      log.address.toLowerCase() === tokenAddress.toLowerCase() &&
+      log.topics[0]?.toLowerCase() === TRANSFER_SIG &&
+      log.topics[2]?.slice(-40).toLowerCase() === to.slice(2).toLowerCase()
+    ) {
+      total += BigInt(log.data);
+    }
+  }
+  return total;
 }
 
 // Last tokenId in lp-positions.jsonl that isn't the one we're closing.
@@ -203,8 +241,10 @@ function latestOtherPosition(closingId: bigint): bigint | null {
 
 async function main() {
   const argv     = process.argv.slice(2);
-  const dryRun   = argv.includes('--dry-run');
-  const mintOnly = argv.includes('--mint-only');
+  const dryRun    = argv.includes('--dry-run');
+  const mintOnly  = argv.includes('--mint-only');
+  const skipSwap  = argv.includes('--skip-swap');  // use current wallet balances, skip swap
+  const force     = argv.includes('--force');       // reposition even when in range
   const rpcUrl   = process.env['RPC_URL'] ?? 'https://mainnet.base.org';
 
   // Resolve tokenId: --token-id flag or last entry in lp-positions.jsonl
@@ -272,19 +312,22 @@ async function main() {
   const diemPerWeth   = Number(sqrtPriceX96 ** 2n * (10n ** 18n) / (2n ** 192n)) / 1e18;
 
   // WETH/DIEM pool: token0=WETH, token1=DIEM.
-  // Below range (currentTick < tickLower): position held all token1 (DIEM).
-  // Above range (currentTick > tickUpper): position held all token0 (WETH).
-  const belowRange = currentTick < tickLower;  // all DIEM when withdrawn
-  const aboveRange = currentTick > tickUpper;  // all WETH when withdrawn
+  // Below range (currentTick < tickLower): position held all token0 (WETH).
+  // Above range (currentTick > tickUpper): position held all token1 (DIEM).
+  const belowRange = currentTick < tickLower;  // all WETH when withdrawn
+  const aboveRange = currentTick > tickUpper;  // all DIEM when withdrawn
   const inRange    = !belowRange && !aboveRange;
 
   console.log(`Current tick: ${currentTick}  DIEM/WETH: ${diemPerWeth.toFixed(6)}`);
-  console.log(`Position status: ${belowRange ? 'BELOW RANGE (all DIEM)' : aboveRange ? 'ABOVE RANGE (all WETH)' : 'IN RANGE'}`);
+  console.log(`Position status: ${belowRange ? 'BELOW RANGE (all WETH)' : aboveRange ? 'ABOVE RANGE (all DIEM)' : 'IN RANGE'}`);
   console.log(`FeeLocker:    ${formatUnits(claimable, 18)} DIEM claimable\n`);
 
-  if (inRange && !mintOnly) {
+  if (inRange && !mintOnly && !force) {
     console.log('Position is in range — no reposition needed. Run lp-monitor to re-evaluate.');
     process.exit(0);
+  }
+  if (inRange && force) {
+    console.log('--force: repositioning in-range position to widen range.');
   }
 
   // New tick range bracketing current tick
@@ -297,20 +340,32 @@ async function main() {
       console.log(`[dry-run] Would claim ${formatUnits(claimable, 18)} DIEM from FeeLocker`);
     }
     if (belowRange) {
-      console.log(`[dry-run] Below range → collected DIEM, swap 50% DIEM→WETH, mint [${newTickLower}, ${newTickUpper}]`);
+      console.log(`[dry-run] Below range → collected WETH, swap 50% WETH→DIEM, mint [${newTickLower}, ${newTickUpper}]`);
     } else {
-      console.log(`[dry-run] Above range → collected WETH, swap 50% WETH→DIEM, mint [${newTickLower}, ${newTickUpper}]`);
+      console.log(`[dry-run] Above range → collected DIEM, swap 50% DIEM→WETH, mint [${newTickLower}, ${newTickUpper}]`);
     }
     return;
   }
 
-  const send = async (label: string, to: Address, data: Hex) => {
+  // Privy simulates txs at the current head block before broadcasting.
+  // If an approval and its dependent tx land in the same block, the simulation
+  // for the dependent tx runs before the approval is visible → STF.
+  // waitBlock=true polls until chain head advances past the confirmed block,
+  // guaranteeing the next submission's simulation sees the approval.
+  const send = async (label: string, to: Address, data: Hex, waitBlock = false) => {
     console.log(`[${label}] sending...`);
     const hash = await txSender({ to, data });
     console.log(`[${label}] hash: ${hash}`);
     const receipt = await client.waitForTransactionReceipt({ hash });
     if (receipt.status === 'reverted') throw new Error(`[${label}] tx reverted: ${hash}`);
     console.log(`[${label}] confirmed (block ${receipt.blockNumber})`);
+    if (waitBlock) {
+      process.stdout.write(`[${label}] waiting for block ${receipt.blockNumber + 1n}...`);
+      while ((await client.getBlockNumber()) <= receipt.blockNumber) {
+        await new Promise(r => setTimeout(r, 500));
+      }
+      process.stdout.write(' ok\n');
+    }
     return receipt;
   };
 
@@ -320,6 +375,15 @@ async function main() {
 
   // ── 1. Close out-of-range position ────────────────────────────────
 
+  // Read initial balances before any transactions (avoids RPC staleness post-tx).
+  const [wethStart, diemStart] = await Promise.all([
+    readBalance(client, ADDRESSES.WETH, agentAddress),
+    readBalance(client, ADDRESSES.DIEM, agentAddress),
+  ]);
+
+  let collectLogs: readonly { address: string; topics: readonly string[]; data: string }[] = [];
+  let claimedDiem = 0n;
+
   if (!mintOnly) {
   console.log(`Step 1: close position ${tokenId}`);
 
@@ -328,10 +392,11 @@ async function main() {
     args: [{ tokenId, liquidity, amount0Min: 0n, amount1Min: 0n, deadline: tsDeadline() }],
   }));
 
-  await send('collect', ADDRESSES.NFPM_V3, encodeFunctionData({
+  const collectReceipt = await send('collect', ADDRESSES.NFPM_V3, encodeFunctionData({
     abi: NFPM_COLLECT_ABI, functionName: 'collect',
     args: [{ tokenId, recipient: agentAddress, amount0Max: MAX_UINT128, amount1Max: MAX_UINT128 }],
   }));
+  collectLogs = collectReceipt.logs;
 
   // ── 2. Claim FeeLocker fees ────────────────────────────────────────
 
@@ -341,24 +406,24 @@ async function main() {
       abi: FEE_LOCKER_ABI, functionName: 'claim',
       args: [agentAddress, ADDRESSES.DIEM],
     }));
+    claimedDiem = claimable;
   } else {
     console.log('\nStep 2: FeeLocker empty, skipping');
   }
   } // end !mintOnly block
 
-  // ── 3. Read balances post-withdrawal, compute swap ─────────────────
+  // ── 3. Compute balances from receipts + starting state ─────────────
+  // Parsing Transfer events from receipts avoids RPC staleness after tx confirmation.
 
-  const [wethBal, diemBal] = await Promise.all([
-    readBalance(client, ADDRESSES.WETH, agentAddress),
-    readBalance(client, ADDRESSES.DIEM, agentAddress),
-  ]);
+  const wethBal = wethStart + parseTransferred(collectLogs, ADDRESSES.WETH, agentAddress);
+  const diemBal = diemStart + parseTransferred(collectLogs, ADDRESSES.DIEM, agentAddress) + claimedDiem;
 
   console.log(`\nStep 3: balances — WETH: ${formatUnits(wethBal, 18)}  DIEM: ${formatUnits(diemBal, 18)}`);
 
   // Determine swap direction and amount.
   // In WETH/DIEM pool: token0=WETH, token1=DIEM.
-  // Below range (currentTick < tickLower): position held all token1 (DIEM) → have DIEM, need WETH → swap DIEM→WETH
-  // Above range (currentTick > tickUpper): position held all token0 (WETH) → have WETH, need DIEM → swap WETH→DIEM
+  // Below range (currentTick < tickLower): position held all token0 (WETH) → have WETH, need DIEM → swap WETH→DIEM
+  // Above range (currentTick > tickUpper): position held all token1 (DIEM) → have DIEM, need WETH → swap DIEM→WETH
   let swapAmountIn: bigint;
   let tokenIn: Address;
   let tokenOut: Address;
@@ -367,35 +432,58 @@ async function main() {
   const POOL_FEE_BPS = BigInt(ETH_DIEM_V3.FEE) / 100n;  // 10000 fee = 100 bps = 1%
 
   if (belowRange) {
-    // Below range → all DIEM was returned → swap 50% DIEM → WETH
-    swapAmountIn = diemBal / 2n;
-    tokenIn      = ADDRESSES.DIEM;
-    tokenOut     = ADDRESSES.WETH;
-    // Reduce approxOut by pool fee before slippage
-    approxOut    = BigInt(Math.floor(Number(swapAmountIn) / diemPerWeth)) * (10000n - POOL_FEE_BPS) / 10000n;
-    console.log(`        swap ${formatUnits(swapAmountIn, 18)} DIEM → WETH (50% of DIEM balance)`);
-  } else {
-    // Above range → all WETH was returned → swap 50% WETH → DIEM
+    // Below range → all WETH was returned (token0) → swap 50% WETH → DIEM
     swapAmountIn = wethBal / 2n;
     tokenIn      = ADDRESSES.WETH;
     tokenOut     = ADDRESSES.DIEM;
     // Reduce approxOut by pool fee before slippage
     approxOut    = BigInt(Math.floor(Number(swapAmountIn) * diemPerWeth)) * (10000n - POOL_FEE_BPS) / 10000n;
     console.log(`        swap ${formatUnits(swapAmountIn, 18)} WETH → DIEM (50% of WETH balance)`);
+  } else {
+    // Above range → all DIEM was returned (token1) → swap 50% DIEM → WETH
+    swapAmountIn = diemBal / 2n;
+    tokenIn      = ADDRESSES.DIEM;
+    tokenOut     = ADDRESSES.WETH;
+    // Reduce approxOut by pool fee before slippage
+    approxOut    = BigInt(Math.floor(Number(swapAmountIn) / diemPerWeth)) * (10000n - POOL_FEE_BPS) / 10000n;
+    console.log(`        swap ${formatUnits(swapAmountIn, 18)} DIEM → WETH (50% of DIEM balance)`);
   }
 
-  if (swapAmountIn === 0n) {
+  // Track swap amounts from receipt to avoid RPC staleness at mint step.
+  let wethSpent = 0n;
+  let diemFromSwap = 0n;
+  let diemSpent = 0n;
+  let wethFromSwap = 0n;
+
+  if (skipSwap) {
+    console.log('        --skip-swap: using current wallet balances directly');
+  } else if (swapAmountIn === 0n) {
     console.log('        swap amount is 0 — skipping swap, will mint single-sided');
   } else {
-    const amountOutMin = approxOut * (100n - SLIPPAGE) / 100n;
+    // Use QuoterV2 for accurate amountOut (accounts for price impact after removing liquidity).
+    // Fall back to linear estimate if QuoterV2 call fails.
+    let quotedOut = approxOut;
+    try {
+      const quoteResult = await client.simulateContract({
+        address: ADDRESSES.QUOTER_V2,
+        abi: QUOTER_V2_ABI,
+        functionName: 'quoteExactInputSingle',
+        args: [{ tokenIn, tokenOut, amountIn: swapAmountIn, fee: ETH_DIEM_V3.FEE, sqrtPriceLimitX96: 0n }],
+      });
+      quotedOut = quoteResult.result[0];
+      console.log(`        QuoterV2 quote: ${formatUnits(quotedOut, 18)} ${belowRange ? 'DIEM' : 'WETH'}`);
+    } catch (e) {
+      console.warn(`        QuoterV2 failed, using linear estimate: ${e}`);
+    }
+    const amountOutMin = quotedOut * (100n - SLIPPAGE) / 100n;
 
-    // Approve tokenIn to SwapRouter
-    await send(`approve-${belowRange ? 'diem' : 'weth'}-router`, belowRange ? ADDRESSES.DIEM : ADDRESSES.WETH, encodeFunctionData({
+    // MAX_UINT256 + waitBlock: ensures Privy's simulation for the swap sees this approval.
+    await send(`approve-${belowRange ? 'weth' : 'diem'}-router`, belowRange ? ADDRESSES.WETH : ADDRESSES.DIEM, encodeFunctionData({
       abi: ERC20_ABI, functionName: 'approve',
-      args: [ADDRESSES.SWAP_ROUTER_V3, swapAmountIn],
-    }));
+      args: [ADDRESSES.SWAP_ROUTER_V3, 2n ** 256n - 1n],
+    }), true);
 
-    await send('exactInputSingle', ADDRESSES.SWAP_ROUTER_V3, encodeFunctionData({
+    const swapReceipt = await send('exactInputSingle', ADDRESSES.SWAP_ROUTER_V3, encodeFunctionData({
     abi: SWAP_ROUTER_ABI, functionName: 'exactInputSingle',
     args: [{
       tokenIn,
@@ -407,14 +495,21 @@ async function main() {
       sqrtPriceLimitX96: 0n,
     }],
   }));
+
+    if (belowRange) {
+      wethSpent   = swapAmountIn;
+      diemFromSwap = parseTransferred(swapReceipt.logs, ADDRESSES.DIEM, agentAddress);
+    } else {
+      diemSpent   = swapAmountIn;
+      wethFromSwap = parseTransferred(swapReceipt.logs, ADDRESSES.WETH, agentAddress);
+    }
   } // end swap block
 
   // ── 4. Mint new in-range position ─────────────────────────────────
+  // Compute post-swap balances from receipt deltas — no RPC re-read needed.
 
-  const [wethForMint, diemForMint] = await Promise.all([
-    readBalance(client, ADDRESSES.WETH, agentAddress),
-    readBalance(client, ADDRESSES.DIEM, agentAddress),
-  ]);
+  const wethForMint = wethBal - wethSpent + wethFromSwap;
+  const diemForMint = diemBal - diemSpent + diemFromSwap;
 
   console.log(`\nStep 4: mint [${newTickLower}, ${newTickUpper}]`);
   console.log(`        WETH: ${formatUnits(wethForMint, 18)}`);
@@ -422,12 +517,12 @@ async function main() {
 
   await send('approve-weth-nfpm', ADDRESSES.WETH, encodeFunctionData({
     abi: ERC20_ABI, functionName: 'approve',
-    args: [ADDRESSES.NFPM_V3, wethForMint],
-  }));
+    args: [ADDRESSES.NFPM_V3, 2n ** 256n - 1n],
+  }), true);
   await send('approve-diem-nfpm', ADDRESSES.DIEM, encodeFunctionData({
     abi: ERC20_ABI, functionName: 'approve',
-    args: [ADDRESSES.NFPM_V3, diemForMint],
-  }));
+    args: [ADDRESSES.NFPM_V3, 2n ** 256n - 1n],
+  }), true);
 
   const mintReceipt = await send('mint', ADDRESSES.NFPM_V3, encodeFunctionData({
     abi: NFPM_MINT_ABI, functionName: 'mint',

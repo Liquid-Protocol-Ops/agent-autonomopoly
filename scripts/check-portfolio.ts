@@ -91,20 +91,23 @@ async function main() {
 
   // ── Wallet balances ──────────────────────────────────────────────
 
-  const [ethWei, diemBal, svvvBal, vvvBal] = await Promise.all([
+  const [ethWei, wethBal, diemBal, svvvBal, vvvBal] = await Promise.all([
     client.getBalance({ address: agentAddress }),
+    client.readContract({ address: ADDRESSES.WETH, abi: ERC20_ABI, functionName: 'balanceOf', args: [agentAddress] }),
     client.readContract({ address: ADDRESSES.DIEM, abi: ERC20_ABI, functionName: 'balanceOf', args: [agentAddress] }),
     client.readContract({ address: ADDRESSES.VVV_STAKING, abi: ERC20_ABI, functionName: 'balanceOf', args: [agentAddress] }),
     client.readContract({ address: ADDRESSES.VVV, abi: ERC20_ABI, functionName: 'balanceOf', args: [agentAddress] }),
   ]);
 
   const eth  = Number(formatUnits(ethWei, 18));
+  const weth = Number(formatUnits(wethBal, 18));
   const diem = Number(formatUnits(diemBal, 18));
   const svvv = Number(formatUnits(svvvBal, 18));
   const vvv  = Number(formatUnits(vvvBal, 18));
 
   console.log('--- Wallet balances ---');
   console.log(`ETH:  ${eth.toFixed(6)}`);
+  console.log(`WETH: ${weth.toFixed(4)}`);
   console.log(`DIEM: ${diem.toFixed(4)}`);
   console.log(`VVV:  ${vvv.toFixed(4)}`);
   console.log(`sVVV: ${svvv.toFixed(4)}`);

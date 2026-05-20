@@ -245,7 +245,11 @@ describe('makeTxSenderFromPrivy', () => {
   });
 
   it('throws on non-ok send-transaction response', async () => {
-    const mockFetch = vi.fn().mockResolvedValueOnce({ ok: false, status: 500 });
+    const mockFetch = vi.fn().mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      text: () => Promise.resolve('Internal Server Error'),
+    });
     const txSender = makeTxSenderFromPrivy(cfg, mockFetch as unknown as typeof fetch);
     await expect(txSender({ to: '0x0000000000000000000000000000000000000001', data: '0x' }))
       .rejects.toThrow('Privy eth_sendTransaction failed: 500');
