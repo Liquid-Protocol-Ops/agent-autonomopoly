@@ -1,1 +1,1 @@
-tick: FAILED — missing env: DIEM_TOKEN_ADDRESS, VVV_STAKING_ADDRESS, RPC_URL, AGENT_PRIVATE_KEY/PRIVY_* | Dependabot: 0 open PRs
+tick: claimed 1.157 DIEM, wallet DIEM=0 below LP threshold — maintenance inference ran | Dependabot: 0 open PRs
