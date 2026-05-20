@@ -178,7 +178,8 @@ function snapTick(tick: number, spacing: number): number {
   return Math.floor(tick / spacing) * spacing;
 }
 
-// New tick range centred on currentTick: two spacings wide on each side.
+// New tick range: 1 spacing below to 2 spacings above the snapped base (3 spacings total,
+// biased upward to give more room for price appreciation).
 function computeNewRange(currentTick: number, spacing: number): [number, number] {
   const base = snapTick(currentTick, spacing);
   return [base - spacing, base + spacing * 2];
@@ -206,6 +207,17 @@ async function main() {
   const dryRun   = argv.includes('--dry-run');
   const mintOnly = argv.includes('--mint-only');
   const rpcUrl   = process.env['RPC_URL'] ?? 'https://mainnet.base.org';
+
+  // Uniswap v3 requires token0 < token1 by address. Every downstream decision
+  // (mint args, swap direction, belowRange/aboveRange mapping) relies on this.
+  // Validate at startup so a future address change fails loudly rather than
+  // silently minting with inverted token order or swapping in the wrong direction.
+  if (ADDRESSES.WETH.toLowerCase() >= ADDRESSES.DIEM.toLowerCase()) {
+    throw new Error(
+      `Token ordering violated: WETH (${ADDRESSES.WETH}) must be < DIEM (${ADDRESSES.DIEM}) ` +
+      `for Uniswap v3 (token0 < token1). Update token0/token1 references throughout this file.`
+    );
+  }
 
   // Resolve tokenId: --token-id flag or last entry in lp-positions.jsonl
   let tokenId: bigint;
