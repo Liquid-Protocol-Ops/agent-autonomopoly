@@ -138,6 +138,77 @@ Drop an event if any of:
 - `tx_hash` already present in this watch's `alerted_tx` (cross-run dedup)
 - `category == "log"` and watch has `event_topics:` and the topic0 is not in the list
 
+### 4b. View-function reads (`check:` watches)
+
+When a `type: contract` watch carries a `check:` field, the value is a
+human-readable function signature (e.g. `availableFees(0xAGENT, 0xTOKEN)`)
+and the skill must perform a `view` read against the contract and surface
+the returned value in the alert.
+
+**Always** invoke the contract via `cast call` with the full canonical
+ABI signature in the form `name(arg_types)(return_type)`. `cast` derives
+the 4-byte selector from the signature string via keccak256, so passing
+the signature is the only path that's guaranteed correct.
+
+**Never hand-compute the selector** — do not write a hex selector into a
+calldata string, do not ask a model to recall the selector, do not copy
+one from chat history. The selector is a function of the canonical
+signature only; let `cast` (or `viem`'s `toFunctionSelector`) compute it.
+Hand-computed selectors have caused production reverts when the model
+emitted a hash collision from an unrelated ABI (`fulfillAdvancedOrder`,
+`safeTransferFrom`, etc.).
+
+Chain → JSON-RPC URL:
+
+| chain | rpc |
+|-------|-----|
+| ethereum | `https://eth.llamarpc.com` (or `https://mainnet.infura.io/v3/$INFURA_API_KEY` if set) |
+| base | `https://mainnet.base.org` |
+| arbitrum | `https://arb1.arbitrum.io/rpc` |
+| optimism | `https://mainnet.optimism.io` |
+| polygon | `https://polygon-rpc.com` |
+
+Example — claimable FeeLocker DIEM for the AUTONOMOPOLY watch:
+
+```bash
+# Signature: availableFees(address feeOwner, address token) -> uint256
+# Canonical selector (computed by cast/viem, never hand-typed): 0x8296535a
+cast call 0xF7d3BE3FC0de76fA5550C29A8F6fa53667B876FF \
+  "availableFees(address,address)(uint256)" \
+  0x8767Df39eCeeaeB11554642237aC4E08660aB6A3 \
+  0xF4d97F2da56e8c3098f3a8D538DB630A2606a024 \
+  --rpc-url https://mainnet.base.org
+```
+
+The return is a `uint256`. Decode it with `cast --to-unit <wei> ether` or
+the token's `decimals()` to render the human value for the alert. If
+`cast call` reverts, include the literal revert string from cast in the
+source footer (`feelocker=fail: execution reverted`) and continue — do
+**not** retry with a guessed selector.
+
+If `cast` is unavailable in the sandbox, the equivalent `eth_call` is:
+
+```bash
+# data = selector || left-padded address args; let cast print the calldata.
+DATA=$(cast calldata "availableFees(address,address)" \
+  0x8767Df39eCeeaeB11554642237aC4E08660aB6A3 \
+  0xF4d97F2da56e8c3098f3a8D538DB630A2606a024)
+curl -m 10 -s -X POST "${RPC_URL}" \
+  -H "Content-Type: application/json" \
+  -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"eth_call\",\"params\":[{\"to\":\"${ADDRESS}\",\"data\":\"${DATA}\"},\"latest\"]}"
+```
+
+Surface the decoded value in the watch's section of the alert, e.g.
+
+```
+*AUTONO FeeLocker DIEM claimable* (base)
+• Claimable: 1.7608 DIEM (block 46180000)
+```
+
+Apply `threshold_diem` (if set on the watch) the same way `threshold_usd`
+is applied for transfers: only notify when the read crosses the threshold
+since the last alert.
+
 ### 5. Categorize surviving events
 
 Tag each event with one short label so the alert says *what kind of move it was*:
