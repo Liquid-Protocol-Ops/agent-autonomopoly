@@ -8,9 +8,9 @@
       "status": "in_progress",
       "target": 100,
       "unit": "DIEM",
-      "current": 11.59,
-      "currentNote": "11.59 DIEM cumulative claimed. Wallet: 2.3099 DIEM confirmed on-chain. LP pos #5119885 holds 1.9837 DIEM (OOR: tick 2974, range 5000-5400). FeeLocker: 0 claimable (call reverts). ETH: 0.007984. Checked 2026-05-19.",
-      "updatedAt": "2026-05-19T00:00:00Z"
+      "current": 12.75,
+      "currentNote": "12.75 DIEM cumulative claimed. Wallet: ~1.16 DIEM (last on-chain 05-20). Active LP pos #5153290 range=[800,2800] IN_RANGE tick=1133 liq=160949757784828251054. FeeLocker: 0.9561 DIEM claimable (below 1.0 threshold). ETH: 0.007944. Checked 2026-05-21 via log reconstruction.",
+      "updatedAt": "2026-05-21T00:00:00Z"
     },
     {
       "id": "build-agent-launchpad",
