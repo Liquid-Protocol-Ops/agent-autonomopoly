@@ -19,3 +19,4 @@ date,skill,model,input_tokens,output_tokens,cache_read,cache_creation
 2026-05-20,tick,claude-sonnet-4-6,67613,7226,1873371,0
 2026-05-21,heartbeat,claude-sonnet-4-6,73959,20373,341423,0
 2026-05-21,lp-monitor,claude-sonnet-4-6,60640,2471,446707,0
+2026-05-22,claim-diem,claude-sonnet-4-6,17791,1606,256306,0
