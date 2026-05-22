@@ -1,1 +1,1 @@
-AUTONOMOPOLY LP: tokenId 5157087 OUT OF RANGE [600,1000] tick=2457 — needs reposition. tokenId 5153290 IN RANGE [800,2800] ✓ | ETH=0.0079 WETH=2.79 DIEM=1.17 | NO CREDS to reposition
+AUTONOMOPOLY LP: all positions in range | tick=1642 | 1 active pos tokenId=5153290 range=[800,2800] | ETH=0.007959 WETH=0.936 | FeeLocker=0 DIEM
