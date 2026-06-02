@@ -69,14 +69,16 @@ describe('loadConfig', () => {
     expect(cfg.bearerCachePath).toBe('memory/venice-bearer.json');
   });
 
-  it('throws when DIEM_TOKEN_ADDRESS is missing', () => {
+  it('falls back to ADDRESSES.DIEM when DIEM_TOKEN_ADDRESS is missing', () => {
     delete process.env['DIEM_TOKEN_ADDRESS'];
-    expect(() => loadConfig()).toThrow('DIEM_TOKEN_ADDRESS is required');
+    const cfg = loadConfig();
+    expect(cfg.diemAddress).toBe('0xF4d97F2da56e8c3098f3a8D538DB630A2606a024');
   });
 
-  it('throws when both VVV_STAKING_ADDRESS and VENICE_STAKING_ADDRESS are missing', () => {
+  it('falls back to ADDRESSES.VVV_STAKING when both staking address env vars are missing', () => {
     delete process.env['VVV_STAKING_ADDRESS'];
-    expect(() => loadConfig()).toThrow('VENICE_STAKING_ADDRESS is required');
+    const cfg = loadConfig();
+    expect(cfg.stakingAddress).toBe('0x321b7ff75154472B18EDb199033fF4D116F340Ff');
   });
 
   it('throws when RPC_URL is missing', () => {
