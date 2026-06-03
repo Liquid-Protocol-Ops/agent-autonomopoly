@@ -6,3 +6,17 @@ updates:
       interval: "monthly"
     cooldown:
       default-days: 5
+
+  - package-ecosystem: "npm"
+    directory: "/platform/services/fee-router"
+    schedule:
+      interval: "monthly"
+    cooldown:
+      default-days: 5
+
+  - package-ecosystem: "npm"
+    directory: "/platform/services/cli-launcher"
+    schedule:
+      interval: "monthly"
+    cooldown:
+      default-days: 5

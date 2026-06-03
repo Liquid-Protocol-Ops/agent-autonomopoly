@@ -515,12 +515,12 @@ jobs:
                 --model "$MODEL" --allowedTools "$ALLOWED" \
                 --output-format json 2>&1); then
                 echo "::error::Direct fallback also failed. Output: $CLAUDE_OUTPUT"
-                echo "$CLAUDE_OUTPUT" | tail -c 500 | tr '\n' ' ' | cut -c1-200 > /tmp/skill-error.txt
+                { echo "$CLAUDE_OUTPUT" | jq -r '(.error // .result // "claude-cli-error") | if type == "string" then . else tostring end | .[0:300]' 2>/dev/null || echo "$CLAUDE_OUTPUT" | head -c 300 | tr '\n' ' '; } > /tmp/skill-error.txt
                 exit 1
               fi
             else
               echo "::error::Claude CLI failed. Output: $CLAUDE_OUTPUT"
-              echo "$CLAUDE_OUTPUT" | tail -c 500 | tr '\n' ' ' | cut -c1-200 > /tmp/skill-error.txt
+              { echo "$CLAUDE_OUTPUT" | jq -r '(.error // .result // "claude-cli-error") | if type == "string" then . else tostring end | .[0:300]' 2>/dev/null || echo "$CLAUDE_OUTPUT" | head -c 300 | tr '\n' ' '; } > /tmp/skill-error.txt
               exit 1
             fi
           fi
@@ -548,7 +548,7 @@ jobs:
               --model "$MODEL" --allowedTools "$ALLOWED" \
               --output-format json 2>&1); then
               echo "::error::Direct fallback also failed. Output: $CLAUDE_OUTPUT"
-              echo "$CLAUDE_OUTPUT" | tail -c 500 | tr '\n' ' ' | cut -c1-200 > /tmp/skill-error.txt
+              { echo "$CLAUDE_OUTPUT" | jq -r '(.error // .result // "claude-cli-error") | if type == "string" then . else tostring end | .[0:300]' 2>/dev/null || echo "$CLAUDE_OUTPUT" | head -c 300 | tr '\n' ' '; } > /tmp/skill-error.txt
               exit 1
             fi
             RESULT_TEXT=$(echo "$CLAUDE_OUTPUT" | jq -r '.result // empty')

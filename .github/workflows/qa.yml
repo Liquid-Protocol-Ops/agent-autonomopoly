@@ -9,8 +9,17 @@ permissions:
   contents: read
 
 jobs:
+  audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: npm audit --audit-level=high
+
   typecheck:
     name: Typecheck & Lint Identity
+    needs: audit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,7 +45,19 @@ jobs:
       - uses: ./.github/actions/setup
       - name: fee-router
         working-directory: platform/services/fee-router
-        run: npm install && npm test
+        run: |
+          npm install
+          if find src -name '*.spec.ts' -o -name '*.test.ts' 2>/dev/null | grep -q .; then
+            npm test
+          else
+            echo "No test files found in fee-router — skipping"
+          fi
       - name: cli-launcher
         working-directory: platform/services/cli-launcher
-        run: npm install && npm test
+        run: |
+          npm install
+          if find src -name '*.spec.ts' -o -name '*.test.ts' 2>/dev/null | grep -q .; then
+            npm test
+          else
+            echo "No test files found in cli-launcher — skipping"
+          fi

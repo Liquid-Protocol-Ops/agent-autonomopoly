@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12",
+  "version": "1.0.0",
+  "description": "Uniswap v4 PositionManager reference — machine-readable action encodings and Base mainnet addresses for agent LP management",
+  "base_mainnet": {
+    "PositionManager": "0x7C5f5A4bBd8fD63184577525326123B519429bDc",
+    "PoolManager": "0x498581fF718922c3f8e6A244956aF099B2652b2b",
+    "UniversalRouter": "0x6fF5693b99212Da76ad316178A184AB56D299b43",
+    "Permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3"
+  },
+  "agent_pools": {
+    "wstDIEM_WETH_v4": {
+      "poolId": "0x43da55144439c36976064cdf90cc24402a07b7be6d37987b7673f1f481bd1f15",
+      "poolManager": "0x498581fF718922c3f8e6A244956aF099B2652b2b",
+      "inferenceVault": "0xa6076Ac24f21A9c526d6d32774d66cBB804Cf649",
+      "vaultRouter": "0xaa266759d6d546b3710D84E99ba49089812dCcBD",
+      "curveDIEM_wstDIEM": "0x60b9bDfFE446A17202b0e56318ED3aE67bb2694E"
+    },
+    "DIEM_ETH_v3": {
+      "note": "managed via scripts/reposition.ts using viem + Uniswap v3 SDK",
+      "feeLocker": "0xF7d3BE3FC0de76fA5550C29A8F6fa53667B876FF"
+    }
+  },
+  "actions": {
+    "MINT_POSITION": {
+      "value": "0x02",
+      "description": "Open a new LP position",
+      "params": [
+        { "name": "poolKey", "type": "PoolKey", "description": "currency0, currency1, fee, tickSpacing, hooks" },
+        { "name": "tickLower", "type": "int24", "description": "Lower tick bound" },
+        { "name": "tickUpper", "type": "int24", "description": "Upper tick bound" },
+        { "name": "liquidity", "type": "uint256", "description": "Desired liquidity units" },
+        { "name": "amount0Max", "type": "uint128", "description": "Max token0 to spend (slippage guard)" },
+        { "name": "amount1Max", "type": "uint128", "description": "Max token1 to spend (slippage guard)" },
+        { "name": "recipient", "type": "address", "description": "NFT recipient" },
+        { "name": "hookData", "type": "bytes", "description": "Arbitrary data forwarded to hooks" }
+      ]
+    },
+    "INCREASE_LIQUIDITY": {
+      "value": "0x00",
+      "description": "Add liquidity to an existing position",
+      "params": [
+        { "name": "tokenId", "type": "uint256", "description": "Position NFT id" },
+        { "name": "liquidity", "type": "uint256", "description": "Liquidity to add" },
+        { "name": "amount0Max", "type": "uint128", "description": "Max token0 to spend" },
+        { "name": "amount1Max", "type": "uint128", "description": "Max token1 to spend" },
+        { "name": "hookData", "type": "bytes", "description": "" }
+      ]
+    },
+    "DECREASE_LIQUIDITY": {
+      "value": "0x01",
+      "description": "Remove liquidity from an existing position",
+      "params": [
+        { "name": "tokenId", "type": "uint256", "description": "Position NFT id" },
+        { "name": "liquidity", "type": "uint256", "description": "Liquidity to remove" },
+        { "name": "amount0Min", "type": "uint128", "description": "Min token0 to receive (slippage guard)" },
+        { "name": "amount1Min", "type": "uint128", "description": "Min token1 to receive" },
+        { "name": "hookData", "type": "bytes", "description": "" }
+      ]
+    },
+    "BURN_POSITION": {
+      "value": "0x03",
+      "description": "Burn a zeroed-out position NFT",
+      "params": [
+        { "name": "tokenId", "type": "uint256" },
+        { "name": "amount0Min", "type": "uint128" },
+        { "name": "amount1Min", "type": "uint128" },
+        { "name": "hookData", "type": "bytes" }
+      ]
+    },
+    "COLLECT_FEES": {
+      "value": "0x06",
+      "description": "Collect accrued fees from a position (set liquidity delta to 0)",
+      "notes": "Use DECREASE_LIQUIDITY with liquidity=0 to collect without removing principal",
+      "params": [
+        { "name": "tokenId", "type": "uint256" },
+        { "name": "recipient", "type": "address" },
+        { "name": "amount0Min", "type": "uint128" },
+        { "name": "amount1Min", "type": "uint128" }
+      ]
+    },
+    "SETTLE_PAIR": {
+      "value": "0x10",
+      "description": "Pay token pair into PoolManager delta (used after DECREASE)",
+      "params": [
+        { "name": "currency0", "type": "address" },
+        { "name": "currency1", "type": "address" }
+      ]
+    },
+    "TAKE_PAIR": {
+      "value": "0x11",
+      "description": "Withdraw token pair from PoolManager delta (receive tokens out)",
+      "params": [
+        { "name": "currency0", "type": "address" },
+        { "name": "currency1", "type": "address" },
+        { "name": "recipient", "type": "address" }
+      ]
+    },
+    "SWEEP": {
+      "value": "0x14",
+      "description": "Sweep any remaining token balance to recipient (cleanup after operations)",
+      "params": [
+        { "name": "currency", "type": "address" },
+        { "name": "recipient", "type": "address" }
+      ]
+    },
+    "CLOSE_CURRENCY": {
+      "value": "0x15",
+      "description": "Close a currency's delta — settles or takes depending on sign",
+      "params": [
+        { "name": "currency", "type": "address" }
+      ]
+    }
+  },
+  "modifyLiquidities_signature": "modifyLiquidities(bytes unlockData, uint256 deadline)",
+  "unlockData_encoding": {
+    "description": "ABI-encode as (bytes[] actions, bytes[] params) — actions is packed action bytes, params is ABI-encoded args per action",
+    "typescript_pattern": "import { Actions } from '@uniswap/v4-sdk'; const unlockData = encodeAbiParameters([{type:'bytes'},{type:'bytes[]'}], [actionBytes, encodedParams])"
+  },
+  "dune_queries": {
+    "lp_portfolio": "Q7591697",
+    "description": "Returns recommended_action, reposition_flag, il_pct, fee_apr_pct, net_pnl_usd per position. Primary source of truth for reposition decisions.",
+    "fields": ["position_id", "token_id", "pool", "recommended_action", "reposition_flag", "il_pct", "fee_apr_pct", "net_pnl_usd", "tick_current", "tick_lower", "tick_upper", "in_range"]
+  },
+  "reposition_rules": {
+    "trigger_reposition": "reposition_flag = true OR recommended_action IN ('REPOSITION', 'CLOSE')",
+    "target_range": "current_tick ± 5 * tickSpacing",
+    "script": "scripts/reposition.ts",
+    "claims_fees_before_close": true
+  }
+}
