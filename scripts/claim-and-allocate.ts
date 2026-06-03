@@ -125,8 +125,9 @@ function estimateVeniceDemandDiem(toolRoutingPath: string): number {
   let totalCostDiem = 0;
   for (const line of lines) {
     try {
-      const entry = JSON.parse(line) as { model?: string; cost_diem?: number };
-      if (entry.model?.includes('opus') && entry.cost_diem) {
+      // venice.ts emits entries with the model under `variant` (e.g. ":claude-opus-4-7"), not `model`
+      const entry = JSON.parse(line) as { variant?: string; cost_diem?: number };
+      if (entry.variant?.includes('opus') && entry.cost_diem) {
         totalCostDiem += entry.cost_diem;
       }
     } catch { /* skip */ }
