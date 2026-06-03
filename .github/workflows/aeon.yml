@@ -559,6 +559,13 @@ jobs:
             CACHE_READ=$(echo "$CLAUDE_OUTPUT" | jq '.usage.cache_read_input_tokens // 0')
             CACHE_CREATION=$(echo "$CLAUDE_OUTPUT" | jq '.usage.cache_creation_input_tokens // 0')
             TOTAL_TOKENS=$((INPUT_TOKENS + OUTPUT_TOKENS))
+            # If the direct fallback also returns 0 tokens the skill produced no output.
+            # Fail loudly so cron-state records a real failure instead of a counterfeit success.
+            if [ "$INPUT_TOKENS" -eq 0 ]; then
+              echo "::error::Direct fallback also returned 0 tokens — skill produced no output"
+              echo "retry-also-zero-tokens" > /tmp/skill-error.txt
+              exit 1
+            fi
           fi
 
           echo "SKILL_INPUT_TOKENS=$INPUT_TOKENS" >> "$GITHUB_OUTPUT"

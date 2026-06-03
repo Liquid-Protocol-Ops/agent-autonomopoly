@@ -21,7 +21,7 @@
 //
 // On-chain write functions accept a TxSender (from wallet.ts), abstracting the signing substrate.
 
-import { writeFileSync, readFileSync, existsSync } from 'node:fs';
+import { writeFileSync, readFileSync, existsSync, chmodSync } from 'node:fs';
 import {
   createPublicClient,
   encodeFunctionData,
@@ -243,7 +243,11 @@ export function loadCachedBearer(cachePath: string): string | null {
 
 export function saveBearer(cachePath: string, bearer: string): void {
   assertAllowed(cachePath);
-  writeFileSync(cachePath, JSON.stringify({ bearer }), 'utf8');
+  // Write with mode 0o600 (owner-read-only) so the bearer key is never world-readable.
+  // chmodSync follows to harden any pre-existing file that may have been created with
+  // looser permissions — writeFileSync's mode only applies on creation.
+  writeFileSync(cachePath, JSON.stringify({ bearer }), { encoding: 'utf8', mode: 0o600 });
+  chmodSync(cachePath, 0o600);
 }
 
 export async function loadOrMintBearer(

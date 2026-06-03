@@ -125,8 +125,11 @@ function estimateVeniceDemandDiem(toolRoutingPath: string): number {
   let totalCostDiem = 0;
   for (const line of lines) {
     try {
-      const entry = JSON.parse(line) as { model?: string; cost_diem?: number };
-      if (entry.model?.includes('opus') && entry.cost_diem) {
+      // harness/providers/venice.ts emits entries with the model under the `variant` field
+      // (formatted as ":claude-opus-4-7"), not `model`. Reading the wrong field caused this
+      // function to always return 0, so build-mode allocation never staked for Opus demand.
+      const entry = JSON.parse(line) as { variant?: string; cost_diem?: number };
+      if (entry.variant?.includes('opus') && entry.cost_diem) {
         totalCostDiem += entry.cost_diem;
       }
     } catch { /* skip */ }
