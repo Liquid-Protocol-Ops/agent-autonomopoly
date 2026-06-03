@@ -15,7 +15,7 @@
   "dependencies": {
     "@hono/node-server": "^1.13.7",
     "hono": "^4.12.23",
-    "viem": "^2.21.0"
+    "viem": "^2.51.3"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
