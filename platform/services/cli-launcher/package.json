@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "liquid-sdk": "^1.7.3",
-    "viem": "2.48.8"
+    "viem": "2.51.3"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
