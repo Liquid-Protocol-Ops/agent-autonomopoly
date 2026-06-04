@@ -28,12 +28,60 @@ import { createWalletClient, http } from 'viem';
 import { base } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
 import type { Address, Hex, LocalAccount } from 'viem';
+import { ADDRESSES } from '../../platform/constants.js';
 
 export type Signer = Pick<LocalAccount, 'address' | 'signMessage' | 'signTypedData'>;
 
 // TxSender abstracts "send a contract call" without exposing the substrate.
 // Returns the transaction hash.
 export type TxSender = (params: { to: Address; data: Hex }) => Promise<Hex>;
+
+// ── Destination allow-list (defense-in-depth fund guard) ─────────────
+//
+// The signing substrate is the single chokepoint through which every on-chain
+// write passes. It rejects any transaction whose destination is not a known
+// protocol contract. So even if the agent runtime is hijacked (e.g. prompt
+// injection reaching a skill) or a script is buggy, funds cannot be routed to
+// an arbitrary address — the worst case is a blocked call, not a drain.
+//
+// The allow-list is sourced from platform/constants ADDRESSES (self-maintaining:
+// every legitimate destination the agent's scripts call is already declared
+// there) plus any extra targets passed explicitly or via the TX_EXTRA_ALLOWED
+// env var (comma-separated lower/mixed-case addresses). Fail closed.
+
+export class TxDestinationNotAllowed extends Error {
+  public readonly to: string;
+  constructor(to: string) {
+    super(`tx destination not in protocol allow-list: ${to}`);
+    this.name = 'TxDestinationNotAllowed';
+    this.to = to;
+  }
+}
+
+function allowedTargets(extra?: readonly Address[]): ReadonlySet<string> {
+  const set = new Set<string>();
+  for (const addr of Object.values(ADDRESSES)) set.add(addr.toLowerCase());
+  const env = process.env['TX_EXTRA_ALLOWED'];
+  if (env) {
+    for (const a of env.split(',')) {
+      const t = a.trim().toLowerCase();
+      if (t) set.add(t);
+    }
+  }
+  if (extra) for (const a of extra) set.add(a.toLowerCase());
+  return set;
+}
+
+export function assertTxAllowed(to: Address | undefined, extra?: readonly Address[]): void {
+  // Reject contract-creation (no `to`) and any unknown destination. The agent's
+  // legitimate flows all target a declared protocol contract; bare deploys go
+  // through reviewed, explicitly-allow-listed paths if ever needed.
+  if (!to || !allowedTargets(extra).has(to.toLowerCase())) {
+    throw new TxDestinationNotAllowed(String(to));
+  }
+}
+
+export type TxSenderOptions = { allowedTargets?: readonly Address[] };
 
 // ── v0a: env-key substrate (TEST ONLY — never use in production) ─────
 
@@ -57,7 +105,7 @@ export function loadSignerFromEnv(): Signer {
   };
 }
 
-export function makeTxSenderFromEnv(rpcUrl: string): TxSender {
+export function makeTxSenderFromEnv(rpcUrl: string, opts?: TxSenderOptions): TxSender {
   const raw = process.env[AGENT_PRIVATE_KEY];
   if (raw === undefined || raw === '') throw new Error(`${AGENT_PRIVATE_KEY} is required`);
   const normalized = raw.startsWith('0x') ? raw : `0x${raw}`;
@@ -66,7 +114,10 @@ export function makeTxSenderFromEnv(rpcUrl: string): TxSender {
   }
   const account = privateKeyToAccount(normalized as Hex);
   const walletClient = createWalletClient({ account, chain: base, transport: http(rpcUrl) });
-  return ({ to, data }) => walletClient.sendTransaction({ to, data });
+  return ({ to, data }) => {
+    assertTxAllowed(to, opts?.allowedTargets);
+    return walletClient.sendTransaction({ to, data });
+  };
 }
 
 // ── v0b: Privy server-wallet substrate ──────────────────────────────
@@ -158,8 +209,10 @@ export async function loadSignerFromPrivy(
 export function makeTxSenderFromPrivy(
   config: PrivyWalletConfig,
   fetchFn: typeof fetch = fetch,
+  opts?: TxSenderOptions,
 ): TxSender {
   return async ({ to, data }: { to: Address; data: Hex }): Promise<Hex> => {
+    assertTxAllowed(to, opts?.allowedTargets);
     const body: Record<string, unknown> = {
       method: 'eth_sendTransaction',
       caip2: 'eip155:8453',
