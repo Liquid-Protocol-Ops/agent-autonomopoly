@@ -10,7 +10,7 @@
 //     [--metadata '{"k":"v"}']
 //     [--vvv-vault 0x...]            # optional: VVV presale vault (10% supply, irrevocable)
 //     [--diem-vault 0x...]           # optional: DIEM presale vault (10% supply, time-lock)
-//     [--presale-vault 0x...]        # optional: StakesaleVault (single vault, configurable bps)
+//     [--presale-vault 0x...]        # optional: pre-deployed presale vault (single vault, configurable bps)
 //     [--extension-bps 2000]         # bps for --presale-vault (default: 2000 = 20%)
 //     [--dry-run]
 //
