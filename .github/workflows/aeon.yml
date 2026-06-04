@@ -77,7 +77,7 @@ jobs:
         if: github.event_name == 'issues'
         uses: actions/checkout@v5
         with:
-          token: ${{ secrets.GH_GLOBAL || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Determine skill
         id: skill
@@ -102,7 +102,7 @@ jobs:
         if: steps.work.outputs.mode != ''
         uses: actions/checkout@v5
         with:
-          token: ${{ secrets.GH_GLOBAL || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Configure git identity
         if: steps.work.outputs.mode != ''
@@ -184,6 +184,22 @@ jobs:
             ./"$script" "$SKILL" "$VAR" || echo "::notice::$(basename "$script") skipped or failed (non-fatal)"
           done
 
+      - name: Refresh Venice key (privileged — no LLM)
+        if: steps.work.outputs.mode != ''
+        env:
+          # Privileged + idempotent: mints the agent's Venice inference key via Privy
+          # signing and writes it back to the repo secret (needs secrets:write). Runs
+          # in its own NON-LLM step so the Privy credential + the org token are never
+          # exposed to the claude -p step. refresh-venice-key.ts tests the current key
+          # first and no-ops when it is still valid.
+          VENICE_API_KEY: ${{ secrets.VENICE_API_KEY }}
+          RPC_URL: ${{ secrets.RPC_URL }}
+          PRIVY_APP_ID: ${{ secrets.PRIVY_APP_ID }}
+          PRIVY_APP_SECRET: ${{ secrets.PRIVY_APP_SECRET }}
+          PRIVY_WALLET_ID: ${{ secrets.PRIVY_WALLET_ID }}
+          GH_TOKEN: ${{ secrets.GH_GLOBAL || secrets.GITHUB_TOKEN }}
+        run: node --import tsx scripts/refresh-venice-key.ts || echo "::warning::venice key refresh failed (non-fatal)"
+
       - name: Run
         id: run
         if: steps.work.outputs.mode != ''
@@ -193,8 +209,11 @@ jobs:
           BANKR_LLM_KEY: ${{ secrets.BANKR_LLM_KEY }}
           VENICE_API_KEY: ${{ secrets.VENICE_API_KEY }}
           SURPLUS_API_KEY: ${{ secrets.SURPLUS_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GH_GLOBAL || secrets.GITHUB_TOKEN }}
-          GH_TOKEN: ${{ secrets.GH_GLOBAL || secrets.GITHUB_TOKEN }}
+          # Repo-scoped token only — the LLM step does same-repo gh reads + git
+          # push and needs no org scope. The org token (GH_GLOBAL) now lives only
+          # in the privileged "Refresh Venice key" pre-step below.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
@@ -467,7 +486,7 @@ jobs:
           # agent never needs `gh secret set` / `gh workflow run` / cross-repo
           # writes via the Bash tool. refresh-venice-key.ts shells gh from inside
           # node (a child process), which is unaffected by this allow-list.
-          ALLOWED="$ALLOWED,Bash(gh pr list:*),Bash(gh pr view:*),Bash(gh issue list:*),Bash(gh issue view:*),Bash(gh run list:*),Bash(gh run view:*),Bash(gh workflow list:*),Bash(gh secret list:*)"
+          ALLOWED="$ALLOWED,Bash(gh pr list:*),Bash(gh pr view:*),Bash(gh issue list:*),Bash(gh issue view:*),Bash(gh run list:*),Bash(gh run view:*),Bash(gh workflow list:*)"
           ALLOWED="$ALLOWED,Bash(./notify:*)"
           ALLOWED="$ALLOWED,Bash(mkdir:*),Bash(ls:*),Bash(cat:*),Bash(chmod:*)"
           ALLOWED="$ALLOWED,Bash(date:*),Bash(echo:*),Bash(node:*),Bash(npm:*),Bash(npx:*)"

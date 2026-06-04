@@ -53,10 +53,13 @@ gateway:
 
 # Reactive triggers — auto-repair on consecutive failures
 reactive:
-  refresh-venice-key:               # re-mint Venice key when skills are failing
-    trigger:
-      - { on: tick,       when: "consecutive_failures >= 3" }
-      - { on: claim-diem, when: "consecutive_failures >= 3" }
+  # refresh-venice-key now runs as a dedicated non-LLM pre-step every tick
+  # (see .github/workflows/aeon.yml "Refresh Venice key") — idempotent, and keeps
+  # the Privy mint + `gh secret set` org token out of the LLM step.
+  # refresh-venice-key:
+  #   trigger:
+  #     - { on: tick,       when: "consecutive_failures >= 3" }
+  #     - { on: claim-diem, when: "consecutive_failures >= 3" }
   # heartbeat:
   #   trigger:
   #     - { on: tick, when: "consecutive_failures >= 3" }
