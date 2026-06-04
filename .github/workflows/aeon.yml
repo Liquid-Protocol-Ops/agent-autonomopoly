@@ -458,7 +458,12 @@ jobs:
           chmod +x ./notify
 
           ALLOWED="Read,Write,Edit,Glob,Grep,WebFetch,WebSearch"
-          ALLOWED="$ALLOWED,Bash(curl:*),Bash(gh:*),Bash(git:*),Bash(jq:*)"
+          ALLOWED="$ALLOWED,Bash(curl:*),Bash(git:*),Bash(jq:*)"
+          # gh is restricted to read-only subcommands (matches messages.yml). The
+          # agent never needs `gh secret set` / `gh workflow run` / cross-repo
+          # writes via the Bash tool. refresh-venice-key.ts shells gh from inside
+          # node (a child process), which is unaffected by this allow-list.
+          ALLOWED="$ALLOWED,Bash(gh pr list:*),Bash(gh pr view:*),Bash(gh issue list:*),Bash(gh issue view:*),Bash(gh run list:*),Bash(gh run view:*),Bash(gh workflow list:*),Bash(gh secret list:*)"
           ALLOWED="$ALLOWED,Bash(./notify:*)"
           ALLOWED="$ALLOWED,Bash(mkdir:*),Bash(ls:*),Bash(cat:*),Bash(chmod:*)"
           ALLOWED="$ALLOWED,Bash(date:*),Bash(echo:*),Bash(node:*),Bash(npm:*),Bash(npx:*)"
@@ -601,6 +606,40 @@ jobs:
             echo "date,skill,model,input_tokens,output_tokens,cache_read,cache_creation" > "$CSV"
           fi
           echo "$(date -u +%Y-%m-%d),${{ steps.skill.outputs.name }},${{ steps.run.outputs.SKILL_MODEL }},${{ steps.run.outputs.SKILL_INPUT_TOKENS }},${{ steps.run.outputs.SKILL_OUTPUT_TOKENS }},${{ steps.run.outputs.SKILL_CACHE_READ_TOKENS }},${{ steps.run.outputs.SKILL_CACHE_CREATION_TOKENS }}" >> "$CSV"
+
+      - name: Redact secrets from captured output
+        if: steps.work.outputs.mode != '' && steps.run.outcome == 'success'
+        env:
+          # Injected into this NON-LLM step (no prompt-injection surface) so the
+          # redactor can scrub any secret VALUE the model may have emitted, before
+          # it is committed to the public repo / published to the Pages dashboard.
+          PRIVY_APP_SECRET: ${{ secrets.PRIVY_APP_SECRET }}
+          PRIVY_WALLET_ID: ${{ secrets.PRIVY_WALLET_ID }}
+          PRIVY_APP_ID: ${{ secrets.PRIVY_APP_ID }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          BANKR_LLM_KEY: ${{ secrets.BANKR_LLM_KEY }}
+          VENICE_API_KEY: ${{ secrets.VENICE_API_KEY }}
+          SURPLUS_API_KEY: ${{ secrets.SURPLUS_API_KEY }}
+          GH_GLOBAL: ${{ secrets.GH_GLOBAL }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+          COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
+          ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
+          BANKR_API_KEY: ${{ secrets.BANKR_API_KEY }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          DEVTO_API_KEY: ${{ secrets.DEVTO_API_KEY }}
+          NEYNAR_API_KEY: ${{ secrets.NEYNAR_API_KEY }}
+          NEYNAR_SIGNER_UUID: ${{ secrets.NEYNAR_SIGNER_UUID }}
+          DUNE_API_KEY: ${{ secrets.DUNE_API_KEY }}
+          RPC_URL: ${{ secrets.RPC_URL }}
+          SKILL: ${{ steps.skill.outputs.name }}
+        run: python3 scripts/redact-output.py
 
       - name: Capture skill output
         if: steps.work.outputs.mode != '' && steps.run.outcome == 'success'

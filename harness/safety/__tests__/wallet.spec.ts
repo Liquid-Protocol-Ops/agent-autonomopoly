@@ -5,7 +5,10 @@ import {
   loadPrivyConfig,
   loadSignerFromPrivy,
   makeTxSenderFromPrivy,
+  assertTxAllowed,
+  TxDestinationNotAllowed,
 } from '../wallet.js';
+import { ADDRESSES } from '../../../platform/constants.js';
 
 // Known fixture: a deterministic private key with a well-known address.
 // This is a public test vector; do not use this key for anything real.
@@ -232,15 +235,16 @@ describe('makeTxSenderFromPrivy', () => {
       json: async () => ({ data: { hash: '0xdeadbeef', transaction_id: 'tid' } }),
     });
     const txSender = makeTxSenderFromPrivy(cfg, mockFetch as unknown as typeof fetch);
+    // Destination must be an allow-listed protocol contract (see assertTxAllowed).
     const hash = await txSender({
-      to: '0x1234567890123456789012345678901234567890',
+      to: ADDRESSES.FEE_LOCKER,
       data: '0xabcd',
     });
     expect(hash).toBe('0xdeadbeef');
     const body = JSON.parse(mockFetch.mock.calls[0]![1]!.body as string);
     expect(body.method).toBe('eth_sendTransaction');
     expect(body.caip2).toBe('eip155:8453');
-    expect(body.params.transaction.to).toBe('0x1234567890123456789012345678901234567890');
+    expect(body.params.transaction.to).toBe(ADDRESSES.FEE_LOCKER);
     expect(body.params.transaction.data).toBe('0xabcd');
   });
 
@@ -251,7 +255,70 @@ describe('makeTxSenderFromPrivy', () => {
       text: () => Promise.resolve('Internal Server Error'),
     });
     const txSender = makeTxSenderFromPrivy(cfg, mockFetch as unknown as typeof fetch);
-    await expect(txSender({ to: '0x0000000000000000000000000000000000000001', data: '0x' }))
+    await expect(txSender({ to: ADDRESSES.DIEM, data: '0x' }))
       .rejects.toThrow('Privy eth_sendTransaction failed: 500');
+  });
+
+  it('rejects a tx to an address outside the protocol allow-list BEFORE any network call', async () => {
+    const mockFetch = vi.fn();
+    const txSender = makeTxSenderFromPrivy(cfg, mockFetch as unknown as typeof fetch);
+    await expect(
+      txSender({ to: '0x000000000000000000000000000000000000dEaD', data: '0xabcd' }),
+    ).rejects.toBeInstanceOf(TxDestinationNotAllowed);
+    // Fail-closed: the signing request must never have been issued.
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+});
+
+// ── Destination allow-list guard ─────────────────────────────────────
+
+describe('assertTxAllowed', () => {
+  const savedExtra = process.env['TX_EXTRA_ALLOWED'];
+  afterEach(() => {
+    if (savedExtra === undefined) delete process.env['TX_EXTRA_ALLOWED'];
+    else process.env['TX_EXTRA_ALLOWED'] = savedExtra;
+  });
+
+  it('allows every protocol address declared in ADDRESSES', () => {
+    for (const addr of Object.values(ADDRESSES)) {
+      expect(() => assertTxAllowed(addr)).not.toThrow();
+    }
+  });
+
+  it('allows a known address regardless of checksum casing', () => {
+    expect(() => assertTxAllowed(ADDRESSES.FEE_LOCKER.toLowerCase() as `0x${string}`)).not.toThrow();
+    expect(() => assertTxAllowed(ADDRESSES.FEE_LOCKER.toUpperCase().replace('0X', '0x') as `0x${string}`)).not.toThrow();
+  });
+
+  it('throws TxDestinationNotAllowed for an unknown destination', () => {
+    expect(() => assertTxAllowed('0x000000000000000000000000000000000000dEaD'))
+      .toThrow(TxDestinationNotAllowed);
+  });
+
+  it('throws for contract-creation (undefined destination)', () => {
+    expect(() => assertTxAllowed(undefined)).toThrow(TxDestinationNotAllowed);
+  });
+
+  it('honors an explicit allowedTargets extension', () => {
+    const extra = '0x000000000000000000000000000000000000dEaD' as `0x${string}`;
+    expect(() => assertTxAllowed(extra)).toThrow(TxDestinationNotAllowed);
+    expect(() => assertTxAllowed(extra, [extra])).not.toThrow();
+  });
+
+  it('honors the TX_EXTRA_ALLOWED env extension (comma-separated, case-insensitive)', () => {
+    const extra = '0x00000000000000000000000000000000DeaDBeeF';
+    expect(() => assertTxAllowed(extra as `0x${string}`)).toThrow(TxDestinationNotAllowed);
+    process.env['TX_EXTRA_ALLOWED'] = `0xsomethingelse, ${extra.toLowerCase()} `;
+    expect(() => assertTxAllowed(extra as `0x${string}`)).not.toThrow();
+  });
+
+  it('does not echo a full secret-like value — only the rejected address', () => {
+    try {
+      assertTxAllowed('0x000000000000000000000000000000000000dEaD');
+      expect.unreachable('should have thrown');
+    } catch (err) {
+      expect((err as TxDestinationNotAllowed).to.toLowerCase())
+        .toBe('0x000000000000000000000000000000000000dead');
+    }
   });
 });

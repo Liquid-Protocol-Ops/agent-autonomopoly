@@ -15,7 +15,12 @@ on:
         required: false
         type: string
   repository_dispatch:
-    types: [telegram-message, discord-message, slack-message, cron-tick]
+    # Only the internal cron-tick fan-out. The telegram/discord/slack message
+    # types were removed: that path injected github.event.client_payload.message
+    # straight into the agent prompt with NO sender authentication. Inbound
+    # messages now arrive solely via the authenticated poll-and-dispatch path
+    # below (Telegram Gate 2 + the Discord/Slack sender allow-lists).
+    types: [cron-tick]
 
 permissions:
   contents: write
@@ -480,8 +485,10 @@ jobs:
           TELEGRAM_ALLOWED_USER_IDS: ${{ secrets.TELEGRAM_ALLOWED_USER_IDS }}
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
           DISCORD_CHANNEL_ID: ${{ secrets.DISCORD_CHANNEL_ID }}
+          DISCORD_ALLOWED_USER_IDS: ${{ secrets.DISCORD_ALLOWED_USER_IDS }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+          SLACK_ALLOWED_USER_IDS: ${{ secrets.SLACK_ALLOWED_USER_IDS }}
         run: |
           MESSAGES='[]'
 
@@ -536,14 +543,28 @@ jobs:
             for ((i=0; i<COUNT; i++)); do
               CONTENT=$(echo "$RESPONSE" | jq -r ".[$i].content // empty")
               IS_BOT=$(echo "$RESPONSE" | jq -r ".[$i].author.bot // false")
+              AUTHOR_ID=$(echo "$RESPONSE" | jq -r ".[$i].author.id // empty")
               MSG_ID=$(echo "$RESPONSE" | jq -r ".[$i].id // empty")
               HAS_CHECK=$(echo "$RESPONSE" | jq -r "[.[$i].reactions[]? | select(.emoji.name == \"✅\") | .me] | any")
 
               if [ -n "$CONTENT" ] && [ "$IS_BOT" != "true" ] && [ "$HAS_CHECK" != "true" ]; then
+                # Gate: sender must be in allowlist (required — no allowlist = no messages processed), mirrors Telegram Gate 2
+                SENDER_ALLOWED=false
+                if [ -n "${DISCORD_ALLOWED_USER_IDS:-}" ] && [ -n "$AUTHOR_ID" ]; then
+                  IFS=',' read -ra ALLOWED_ARR <<< "$DISCORD_ALLOWED_USER_IDS"
+                  for allowed in "${ALLOWED_ARR[@]}"; do
+                    if [ "${allowed// /}" = "$AUTHOR_ID" ]; then SENDER_ALLOWED=true; break; fi
+                  done
+                fi
+                # Mark processed regardless so a blocked message isn't re-evaluated next tick
                 curl -s -X PUT -H "Authorization: Bot $DISCORD_BOT_TOKEN" \
                   "https://discord.com/api/v10/channels/$DISCORD_CHANNEL_ID/messages/$MSG_ID/reactions/%E2%9C%85/@me" > /dev/null
-                MESSAGES=$(echo "$MESSAGES" | jq --arg src "discord" --arg txt "$CONTENT" '. + [{source: $src, text: $txt}]')
-                echo "Discord: $CONTENT"
+                if [ "$SENDER_ALLOWED" = "true" ]; then
+                  MESSAGES=$(echo "$MESSAGES" | jq --arg src "discord" --arg txt "$CONTENT" '. + [{source: $src, text: $txt}]')
+                  echo "Discord [allowed uid=$AUTHOR_ID]: queued"
+                else
+                  echo "Discord [blocked uid=$AUTHOR_ID]: not in allowlist"
+                fi
               fi
             done
           fi
@@ -557,17 +578,31 @@ jobs:
             for ((i=0; i<COUNT; i++)); do
               TEXT=$(echo "$RESPONSE" | jq -r ".messages[$i].text // empty")
               TS=$(echo "$RESPONSE" | jq -r ".messages[$i].ts // empty")
+              USER_ID=$(echo "$RESPONSE" | jq -r ".messages[$i].user // empty")
               BOT_ID=$(echo "$RESPONSE" | jq -r ".messages[$i].bot_id // empty")
               HAS_CHECK=$(echo "$RESPONSE" | jq -r ".messages[$i].reactions[]? | select(.name == \"white_check_mark\") | .name // empty")
 
               if [ -n "$TEXT" ] && [ "$BOT_ID" = "null" ] && [ -z "$HAS_CHECK" ]; then
+                # Gate: sender must be in allowlist (required — no allowlist = no messages processed), mirrors Telegram Gate 2
+                SENDER_ALLOWED=false
+                if [ -n "${SLACK_ALLOWED_USER_IDS:-}" ] && [ -n "$USER_ID" ]; then
+                  IFS=',' read -ra ALLOWED_ARR <<< "$SLACK_ALLOWED_USER_IDS"
+                  for allowed in "${ALLOWED_ARR[@]}"; do
+                    if [ "${allowed// /}" = "$USER_ID" ]; then SENDER_ALLOWED=true; break; fi
+                  done
+                fi
+                # Mark processed regardless so a blocked message isn't re-evaluated next tick
                 curl -s -X POST -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
                   -H "Content-Type: application/json" \
                   -d "$(jq -n --arg ch "$SLACK_CHANNEL_ID" --arg ts "$TS" \
                     '{channel: $ch, timestamp: $ts, name: "white_check_mark"}')" \
                   "https://slack.com/api/reactions.add" > /dev/null
-                MESSAGES=$(echo "$MESSAGES" | jq --arg src "slack" --arg txt "$TEXT" '. + [{source: $src, text: $txt}]')
-                echo "Slack: $TEXT"
+                if [ "$SENDER_ALLOWED" = "true" ]; then
+                  MESSAGES=$(echo "$MESSAGES" | jq --arg src "slack" --arg txt "$TEXT" '. + [{source: $src, text: $txt}]')
+                  echo "Slack [allowed uid=$USER_ID]: queued"
+                else
+                  echo "Slack [blocked uid=$USER_ID]: not in allowlist"
+                fi
               fi
             done
           fi
