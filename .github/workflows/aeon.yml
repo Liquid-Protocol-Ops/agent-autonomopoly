@@ -458,7 +458,11 @@ jobs:
           chmod +x ./notify
 
           ALLOWED="Read,Write,Edit,Glob,Grep,WebFetch,WebSearch"
-          ALLOWED="$ALLOWED,Bash(curl:*),Bash(git:*),Bash(jq:*)"
+          ALLOWED="$ALLOWED,Bash(curl:*),Bash(jq:*)"
+          # git restricted to local/read-only subcommands — the agent can stage +
+          # commit locally but CANNOT push or run `git config`. Every push goes
+          # through the workflow's gated Commit step (see "Enforce write allow-list").
+          ALLOWED="$ALLOWED,Bash(git add:*),Bash(git commit:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git rev-parse:*)"
           # gh is restricted to read-only subcommands (matches messages.yml). The
           # agent never needs `gh secret set` / `gh workflow run` / cross-repo
           # writes via the Bash tool. refresh-venice-key.ts shells gh from inside
@@ -848,6 +852,21 @@ jobs:
             echo "Running $(basename "$script")..."
             ./"$script" || echo "::notice::$(basename "$script") failed (non-fatal)"
           done
+
+      - name: Enforce write allow-list
+        if: steps.work.outputs.mode != '' && steps.run.outcome == 'success'
+        run: |
+          # Fail closed if the agent changed anything outside its mutation surface
+          # (harness/, scripts/, .github/, platform/, deps, genesis). On violation,
+          # discard ALL changes from this run so nothing poisoned can be pushed by a
+          # later always() step. Skills + memory + identity self-evolution still flow.
+          if ! node scripts/check-write-allowlist.mjs; then
+            echo "::error::write-allowlist violation — discarding all changes from this run"
+            git fetch --quiet origin main || true
+            git reset --hard FETCH_HEAD 2>/dev/null || git reset --hard HEAD
+            git clean -fd 2>/dev/null || true
+            exit 1
+          fi
 
       - name: Commit results
         if: steps.work.outputs.mode != ''
