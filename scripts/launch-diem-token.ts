@@ -182,6 +182,25 @@ async function main() {
   const dryRun        = args['dry-run'] === 'true';
   const marketcapDIEM = parseFloat(args['marketcap-diem'] ?? '50');
   const creator       = (args['creator'] ?? AGENT) as Address;
+
+  // Fail-closed creator guard: a non-agent creator routes tokenAdmin / rewardAdmins
+  // / rewardRecipients / feeRecipient to that address. Because launch params can
+  // originate from an agent-writable queue (memory/launch-queue.jsonl), only the
+  // agent's own wallet is permitted unless an operator explicitly allow-lists
+  // others via LAUNCH_CREATOR_ALLOWLIST (comma-separated addresses).
+  {
+    const allowedCreators = new Set(
+      [AGENT, ...(process.env['LAUNCH_CREATOR_ALLOWLIST'] ?? '').split(',')]
+        .map((a) => a.trim().toLowerCase())
+        .filter(Boolean),
+    );
+    if (!allowedCreators.has(creator.toLowerCase())) {
+      throw new Error(
+        `creator ${creator} is not allow-listed — refusing to route token admin/fees ` +
+          `to a non-agent address. Set LAUNCH_CREATOR_ALLOWLIST to permit it.`,
+      );
+    }
+  }
   const image         = args['image'] ?? '';
   const metadata      = args['metadata'] ?? '';
   const vvvVault      = args['vvv-vault'] as Address | undefined;
