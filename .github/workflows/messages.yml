@@ -795,7 +795,9 @@ jobs:
           ALLOWED="$ALLOWED,Bash(curl:*),Bash(jq:*)"
           ALLOWED="$ALLOWED,Bash(gh run list:*),Bash(gh run view:*),Bash(gh workflow list:*)"
           ALLOWED="$ALLOWED,Bash(gh issue list:*),Bash(gh issue view:*),Bash(gh secret list:*)"
-          ALLOWED="$ALLOWED,Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git pull:*)"
+          # git restricted to local subcommands — no push/pull/config from the
+          # message handler. The gated Commit step does the push.
+          ALLOWED="$ALLOWED,Bash(git add:*),Bash(git commit:*)"
           ALLOWED="$ALLOWED,Bash(git log:*),Bash(git status:*),Bash(git diff:*)"
           ALLOWED="$ALLOWED,Bash(./notify:*)"
           ALLOWED="$ALLOWED,Bash(mkdir:*),Bash(ls:*),Bash(cat:*),Bash(chmod:*)"
@@ -877,6 +879,20 @@ jobs:
           echo "| Cache read | $CACHE_READ |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Cache creation | $CACHE_CREATION |" >> "$GITHUB_STEP_SUMMARY"
           echo "| **Total** | **$TOTAL** |" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Enforce write allow-list
+        if: steps.msg.outputs.source != ''
+        run: |
+          # Untrusted-message path: fail closed if the agent changed anything outside
+          # its mutation surface (e.g. a prompt-injected edit to harness/scripts/
+          # workflows). Discard all changes so nothing poisoned is pushed.
+          if ! node scripts/check-write-allowlist.mjs; then
+            echo "::error::write-allowlist violation in message handler — discarding all changes"
+            git fetch --quiet origin main || true
+            git reset --hard FETCH_HEAD 2>/dev/null || git reset --hard HEAD
+            git clean -fd 2>/dev/null || true
+            exit 1
+          fi
 
       - name: Commit results
         if: steps.msg.outputs.source != ''

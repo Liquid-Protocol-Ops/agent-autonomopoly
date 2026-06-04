@@ -36,3 +36,7 @@ memory/*.secret
 # The brainstorm transcript is reference material, not template content —
 # every per-agent fork would otherwise carry 546KB of meta design history.
 Terminal Saved Output.txt
+
+# Runtime-generated transient notify script + dedup log (never committed)
+/notify
+/.notify-sent-hashes

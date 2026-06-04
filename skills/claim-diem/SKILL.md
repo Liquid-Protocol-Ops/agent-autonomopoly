@@ -50,8 +50,8 @@ Check if `current >= target` (100 DIEM) or daily rate >= 0.5 DIEM/day:
 ```bash
 git add memory/goals.json
 git commit -m "chore(claim): update DIEM milestone progress"
-git push
 ```
+(The workflow's gated Commit step pushes for you — do not run `git push` yourself; it is intentionally disabled in CI.)
 
 Notify via `./notify`:
 ```
