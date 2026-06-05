@@ -46,6 +46,15 @@ def err(reason: str) -> None:
     sys.exit(1)
 
 
+def _exc_summary(exc: Exception) -> str:
+    # Return a log-safe summary of an exception — breaks taint flow from credentials.
+    # Tweepy exceptions carry HTTP responses, not credential values, but we
+    # reference only the status code so static analysis can confirm no secrets leak.
+    if hasattr(exc, "response") and exc.response is not None:
+        return f"{type(exc).__name__} HTTP {exc.response.status_code}"
+    return type(exc).__name__
+
+
 def get_client():
     try:
         import tweepy
@@ -94,7 +103,7 @@ def action_post(text: str, reply_to: str | None = None) -> None:
         tweet_id = str(response.data["id"]) if response.data else None
         ok({"tweet_id": tweet_id, "text_posted": text[:80]})
     except Exception as exc:
-        err(f"post failed: {exc}")
+        err(f"post failed: {_exc_summary(exc)}")
 
 
 def action_engagement(tweet_url: str) -> None:
@@ -117,7 +126,7 @@ def action_engagement(tweet_url: str) -> None:
             "reposts": metrics.get("retweet_count", 0) + metrics.get("quote_count", 0),
         })
     except Exception as exc:
-        err(f"engagement check failed: {exc}")
+        err(f"engagement check failed: {_exc_summary(exc)}")
 
 
 def action_listen(check_mentions: bool) -> None:
@@ -167,7 +176,7 @@ def action_listen(check_mentions: bool) -> None:
         results["mentions"] = mentions
         ok(results)
     except Exception as exc:
-        err(f"listen failed: {exc}")
+        err(f"listen failed: {_exc_summary(exc)}")
 
 
 def main():
@@ -198,7 +207,7 @@ def main():
             client.like(me.data.id, args.tweet_id_arg)
             ok({"liked": args.tweet_id_arg})
         except Exception as exc:
-            err(f"like failed: {exc}")
+            err(f"like failed: {_exc_summary(exc)}")
 
     elif args.action == "init":
         action_init()

@@ -107,6 +107,26 @@ npm run lint:identity    # identity/ drift + frontmatter validation
 npm run harness:tick     # one tick locally (needs .env)
 ```
 
+## Twitter/X presence
+
+AUTONO posts, listens, and engages on [@AUTONOMOPOLY](https://x.com/AUTONOMOPOLY) via X API v2 (tweepy, OAuth 1.0a). No browser automation.
+
+| Skill | Schedule | What it does |
+|-------|----------|-------------|
+| `tweet-engage` | Daily 06:00 UTC | Generates 1-2 tweet drafts → `.pending-x/` |
+| `tweet-broadcast` | Daily 14:00 UTC | Posts queued content; each file = standalone tweet |
+| `tweet-listen` | Every ~1 min (Vercel cron) | Fetches mentions, likes each, drafts replies |
+| `tweet-reflect` | Sunday 20:00 UTC | Updates `memory/x-strategy.md` from engagement data |
+| `tweet-promote` | Tue + Fri 10:00 UTC | Generates Venice video promo → queues tweet |
+
+All Twitter skills run `claude-opus-4-8`.
+
+**Near-real-time dispatch:** A Vercel Edge Function at `agent-autonomopoly.vercel.app/api/cron/listen` fires every minute and dispatches tweet-listen via GitHub Actions. An X webhook is registered at `/api/webhook/x` for future use (X Account Activity API events are Enterprise-only; cron is the active path).
+
+**Operator access:** `@_proxystudio` is the only account that can request on-chain actions or repo changes. All other accounts receive informational replies only.
+
+**As-built spec:** `docs/superpowers/specs/2026-06-05-twitter-asbuilt.md`
+
 ## What's next
 
 - Reach 100 DIEM cumulative claimed → unlock build mode (sustained Opus inference)

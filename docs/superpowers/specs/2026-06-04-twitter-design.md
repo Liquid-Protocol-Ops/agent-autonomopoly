@@ -1,7 +1,7 @@
 # Twitter/X Integration — Signal-Loop Design
 
 **Date:** 2026-06-04  
-**Status:** Approved  
+**Status:** Superseded — see [`2026-06-05-twitter-asbuilt.md`](2026-06-05-twitter-asbuilt.md) for the as-built implementation (X API v2 via tweepy, not browser-use)  
 **Scope:** AUTONOMOPOLY's self-funded, self-improving presence on Twitter/X via browser-use automation and three signal feedback loops.
 
 ---

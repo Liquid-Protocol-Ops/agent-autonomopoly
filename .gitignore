@@ -40,3 +40,7 @@ Terminal Saved Output.txt
 # Runtime-generated transient notify script + dedup log (never committed)
 /notify
 /.notify-sent-hashes
+.vercel
+
+# Browser session cookies from obsolete Playwright approach (X API v2 needs no session file)
+memory/x-session.json

@@ -1,6 +1,5 @@
 {
   "buildCommand": null,
-  "outputDirectory": ".",
   "crons": [
     {
       "path": "/api/cron/listen",
