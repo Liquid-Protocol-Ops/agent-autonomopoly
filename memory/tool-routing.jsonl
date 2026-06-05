@@ -59,3 +59,4 @@
 {"ts":"2026-06-05T01:26:12.548Z","provider":"venice","variant":":llama-3.3-70b","cache_hit":false,"latency_ms":2478,"tokens":{"input":1065,"output":56},"cost_usd":0,"cost_diem":0}
 {"ts":"2026-06-05T03:48:17.013Z","provider":"venice","variant":":llama-3.3-70b","cache_hit":false,"latency_ms":2153,"tokens":{"input":1065,"output":56},"cost_usd":0,"cost_diem":0}
 {"ts":"2026-06-05T05:25:33.250Z","provider":"venice","variant":":llama-3.3-70b","cache_hit":false,"latency_ms":2344,"tokens":{"input":1065,"output":54},"cost_usd":0,"cost_diem":0}
+{"ts":"2026-06-05T08:21:42.453Z","provider":"venice","variant":":llama-3.3-70b","cache_hit":false,"latency_ms":1955,"tokens":{"input":1065,"output":34},"cost_usd":0,"cost_diem":0}
