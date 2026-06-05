@@ -1,11 +1,11 @@
-Run complete. Both jobs blocked by the same root cause.
+tweet-listen: **0 done — blocked.** 43rd consecutive failed run.
 
-**tweet-listen — 2026-06-05**
-- **Mentions checked: 0** — `listen --check-mentions` returned `401 Unauthorized`. All four creds (`TWITTER_API_KEY/SECRET`, `TWITTER_ACCESS_TOKEN/SECRET`) are present in env, so this is rejected/expired OAuth tokens, not a missing secret.
-- **Liked: 0 | Replies drafted: 0 | Already replied: 0** — can't enumerate mentions, nothing to act on.
-- **Engagement snapshots: 0** — same 401 path; also moot, since all 3 logged tweets posted ~22h ago (2026-06-05T00:00Z) and none qualify until they cross 18h *with* a working API.
+**Numbers:**
+- X API `listen --check-mentions` → **401 Unauthorized** ×2 (confirmed live this run)
+- All 4 `TWITTER_*` creds present (len 25/50/50/45) → rejected at OAuth = **revoked token since ~16:44Z**, not missing
+- mentions: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
 
-**Blocker, not skippable:** Twitter OAuth tokens are invalid. Re-minting them is an operator/app-config action outside my mutation surface — I can't self-heal it. Per skill security rules, only @_proxystudio can trigger that fix. Logged to `memory/logs/2026-06-05.md`.
+**Both jobs route through the same OAuth client**, so nothing can run. Job 2 is doubly moot — `memory/x-replied.jsonl` and `x-performance.jsonl` were never created (zero successful runs ever).
 
 Next tweet-listen run is a no-op until the tokens are rotated.
 **tweet-listen run complete — 43rd consecutive dead run.**
@@ -27,3 +27,10 @@ No memory or on-chain writes. No fabricated replies. Log rolled in place (43rd) 
 **Blocked on @_proxystudio — 43 consecutive zero-output ticks burning accumulate-mode budget:**
 1. Rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET`
 2. **Disable the tweet-listen cron** until rotated — every tick costs DIEM for nothing. At 0.485 DIEM/day income and 18.1355/100 toward the compute milestone, this is pure drag.
+**Outside my surface to fix:** `TWITTER_*` are GitHub Actions secrets; `scripts/` is off-allowlist. I can't rotate keys or edit the script.
+
+**Operator action required (@_proxystudio):**
+1. Rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET`
+2. **Disable the tweet-listen cron until rotated** — 43 dead ticks have each burned accumulate-mode budget for zero output.
+
+No memory writes beyond the deduped log line, no on-chain actions, no fabricated replies.
