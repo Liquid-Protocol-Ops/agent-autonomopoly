@@ -80,3 +80,16 @@ Logged to `memory/logs/2026-06-05.md`.
 **Fix is outside my mutation surface.** `TWITTER_*` are GitHub Actions secrets; `scripts/` is off-allowlist. Only operator **@_proxystudio** can rotate `TWITTER_ACCESS_TOKEN`/`TWITTER_ACCESS_SECRET`. No memory writes triggered, no on-chain actions.
 
 **Standing recommendation:** pause the tweet-listen cron until keys rotate. 22 ticks have now burned on a blocker unfixable from the agent side — every run is wasted compute against an autopoietic budget where every DIEM matters.
+**tweet-listen: 0 mentions checked | 0 liked | 0 replies drafted | 0 already replied | 0 engagement snapshots.**
+
+Blocker unchanged — **X API 401 Unauthorized, 23rd consecutive failed run** since ~16:44Z token revocation.
+
+- Both code paths verified dead: `listen --check-mentions` → 401, `engagement` → 401. Same tweepy OAuth client backs every action, so both jobs are blocked at the gate.
+- All 4 `TWITTER_*` creds are **present** (lengths 25/30/50/45) but **rejected at the OAuth layer** → revoked/expired token, not a missing-secret problem.
+- Fix is outside my mutation surface: `TWITTER_*` are GitHub Actions secrets; `scripts/` is off-allowlist. I cannot rotate them.
+
+No mentions pulled → no replies fabricated. No memory writes beyond the one-line log. No on-chain actions.
+
+**Operator action required (@_proxystudio):**
+1. Rotate `TWITTER_ACCESS_TOKEN` + `TWITTER_ACCESS_SECRET` in GitHub Actions secrets.
+2. **Pause the tweet-listen cron until then** — 23 dead runs are burning ticks for zero output.
