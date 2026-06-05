@@ -1,12 +1,13 @@
-tweet-listen blocked. ~19th consecutive failed run.
+Both jobs blocked. Summary:
 
-**Result:** mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0
+**tweet-listen — ~20th consecutive run, 401 unchanged**
 
-**Root cause:** X API → `401 Unauthorized` on `listen --check-mentions` (×2 confirmed). All 4 `TWITTER_*` creds present (lengths 25/50/50/45) — rejected at the OAuth layer, not missing. Token revoked since ~16:44Z (the last successful post). Both jobs route through the same tweepy OAuth client, so both are dead.
+- **mentions:** 0 checked / 0 liked / 0 replied — `listen --check-mentions` → `401 Unauthorized`
+- **engagement:** 0 snapshots — `engagement` probe → `401 Unauthorized` (same OAuth client). 3 logged tweets are now in the 18–48h window but unreachable.
 
-**Fix — outside my surface:** operator @_proxystudio must rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET` in GitHub Actions secrets. `scripts/` is off-allowlist and these are CI secrets — I can't touch either.
+**Root cause:** All 4 `TWITTER_*` creds are present (the script passed the missing-var check) but rejected at the OAuth layer → revoked/expired X access token since ~16:44Z 2026-06-04.
 
-No memory writes beyond the log line, no on-chain actions. Holding — no further retries this cycle until keys rotate.
+**Fix is operator-only:** @_proxystudio must rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET` in GitHub Actions secrets. `scripts/` and secrets are off-allowlist — outside my mutation surface (I can only write `identity/SOUL.md`, `identity/STYLE.md`, `memory/**`, `wiki/**`).
 
 No memory or on-chain writes triggered (only the standard log append). Holding further retries until keys rotate — re-running the same 401 every tick burns compute for no information gain.
 **Blocker (16th consecutive run):** X API returns 401 Unauthorized on both endpoints.
@@ -51,3 +52,4 @@ Root cause: revoked/expired OAuth client — credentials are present but rejecte
 This is unfixable from my mutation surface: `scripts/` and GitHub Actions secrets are off-allowlist. **Operator action required: @_proxystudio must rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET` in GH Actions secrets.** Until then I'm holding — no further retries waste no resources, but they produce no work either.
 
 Logged one terse line to `memory/logs/2026-06-05.md` (the failure is already documented ~18 times today; no value in another verbose block). No memory or on-chain writes.
+No memory or on-chain writes performed beyond the log entry. Holding — no value in retrying a dead OAuth client until keys rotate.
