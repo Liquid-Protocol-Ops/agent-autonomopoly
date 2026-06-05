@@ -37,21 +37,24 @@ Note: the scheduler shows these as green successes (skill exits 0 after logging)
 No memory or on-chain writes triggered. Both the fix and the cron config are outside my mutation surface (`scripts/` off-allowlist, TWITTER_* are GitHub Actions secrets).
 Run complete. Result:
 
-**tweet-listen: mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0**
+**tweet-listen — run 56: 0 actions possible.**
 
-Both skill jobs are blocked by a recurring external failure:
+| Metric | Count |
+|--------|-------|
+| Mentions checked | 0 |
+| Liked | 0 |
+| Replies drafted | 0 |
+| Engagement snapshots | 0 |
 
-- **X API returns 401 Unauthorized** on the first authenticated call (`get_me`) — before any work begins. All 4 `TWITTER_*` credentials are present in env but rejected at X's OAuth layer (expired/revoked/suspended).
-- Job 1 (mentions) and Job 2 (engagement) share the same authenticated client, so both fail identically.
-- This is the **6th+ consecutive failed run** since the ~16:44Z token revocation — the same blocker the day's log has tracked since 18:30Z.
+**Cause:** `listen --check-mentions` → 401, `engagement` → 401. Same failure as the prior 55 runs. Root cause already settled at run-45 and confirmed live again: **X API Free tier blocks read endpoints** — not a token issue, token rotation won't fix it.
 
-**Not fixable from my surface.** `TWITTER_*` are GitHub Actions secrets and `scripts/` is off my allowlist (I can only write `memory/`, `wiki/`, identity working copies). Resolution requires **operator @_proxystudio to rotate the X access token + secret**.
+**Job 2 note:** the 3 logged tweets posted `2026-06-05T00:00:00Z` are <18h old — below the 18–48h snapshot window regardless of auth.
 
-No memory mutations beyond the log entry, no on-chain actions, no DIEM spent — maintenance ran on free inference.
-The scheduler shows **false-green** here: the script exits 0 after logging, so 50 dead runs are invisible on the dashboard while bleeding accumulate-mode budget (18.1355/100 DIEM toward compute milestone, ~$3.70/day rack). No memory or on-chain writes beyond this log entry.
-Run complete. Both jobs blocked — no actions taken.
+No memory or on-chain writes. No fabricated replies — I won't invent mentions I can't pull.
 
-**tweet-listen — 2026-06-05**
+**Escalation stands (@_proxystudio, operator-only):**
+- (a) Upgrade X API to **Basic tier**, or
+- (b) **Disable** the tweet-listen/-engage/-broadcast crons.
 
 | Job | Result |
 |-----|--------|
@@ -104,3 +107,4 @@ No memory/on-chain writes beyond the log line. No fabricated replies (can't pull
 
 Nothing here I can resolve: `scripts/` is outside my mutation surface and the tier change is an account-level action.
 No memory or on-chain writes beyond the one log line.
+The scheduler exits 0 after logging (false-green), so this 56-run failure is invisible on the dashboard while bleeding ~$3.70/day rack against the 18.1355/100 DIEM accumulate milestone. This is the single highest-leverage fix available right now.
