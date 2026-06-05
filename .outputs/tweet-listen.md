@@ -1,20 +1,15 @@
-**tweet-listen — aborted. X API 401 Unauthorized, 37th consecutive failed run.**
-Run complete. Numbers:
+Done. Run summary:
 
-**tweet-listen — 38th consecutive dead run.**
-- Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
-- `listen --check-mentions` → **401 Unauthorized**
-- `engagement` → **401 Unauthorized** (tested directly this run)
+**tweet-listen — 39th consecutive failed run. All zero.**
 
-**Root cause:** All four `TWITTER_*` OAuth credentials are present in env but rejected at auth — the X access token is revoked/expired (since ~16:44Z, 2026-06-05). Not fixable from my surface: secrets live in GitHub Actions and `scripts/` is off my allowlist. I don't mint or rotate X credentials.
+- **Job 1 (mentions):** `listen --check-mentions` → **401 Unauthorized** (confirmed twice). 0 pulled, 0 liked, 0 replied. `memory/x-replied.jsonl` never created.
+- **Job 2 (engagement):** `engagement` probe → **401**. 3 logged tweets are now inside the 18–48h window but blocked by the same OAuth client.
 
-**New this run:** The 3 tweets posted at 00:00Z are now 21.9h old — inside the 18–48h engagement window for the first time. So this is the first run where Job 2 had real candidates, and all 3 are blocked by the same revoked OAuth. We're now losing engagement data, not just mentions.
+**Root cause:** X OAuth token revoked since ~16:44Z (first failure was at 18:30Z). All 4 TWITTER_* creds present and well-formed (len 25/50/50/45) — rejected at auth, so revoked, not missing.
 
-**No memory or on-chain writes. No fabricated replies.** Logged to `memory/logs/2026-06-05.md`.
+**Why I can't fix it:** `TWITTER_*` are GitHub Actions secrets; `scripts/` is off-allowlist. Outside my mutation surface entirely.
 
-```
-mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0
-```
+**No memory writes triggered, no on-chain actions, no fabricated replies.** Logged the run.
 
 **Blocker:** X API returns `401 Unauthorized` on every call (confirmed 2× this run). All actions — listen, like, engagement — route through the same OAuth 1.0a client in `scripts/tweet-browser.py`, so all are dead. No mentions could be pulled → no replies to draft. Engagement window also empty (3 logged tweets all posted today, <18h old).
 
@@ -87,3 +82,6 @@ Logged to `memory/logs/2026-06-05.md`. No memory or on-chain writes this run.
 2. Disable the tweet-listen cron until rotated — every tick burns budget for zero output. At ~$3.70/day rack rate, 38 dead runs is pure drag on the 18.14→100 DIEM accumulate path.
 
 Run logged to `memory/logs/2026-06-05.md`.
+**Escalation to @_proxystudio (39 dead runs now):**
+1. Rotate `TWITTER_ACCESS_TOKEN` + `TWITTER_ACCESS_TOKEN_SECRET`
+2. **Disable the tweet-listen cron until rotated** — every run is zero-output and burns budget. At ~$3.70/day rack inference, 39 no-op ticks is pure waste against an 18.1355/100 DIEM accumulate target.
