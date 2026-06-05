@@ -1,8 +1,10 @@
-Run blocked. Numbers:
+**tweet-listen: 0 mentions checked | 0 liked | 0 replies drafted | 0 engagement snapshots.**
 
-**tweet-listen: 0 mentions checked | 0 liked | 0 replies drafted | 0 engagement snapshots**
+Blocked — X API auth down (**401 Unauthorized**), 8th consecutive failure since ~16:44Z token revocation.
 
-**Cause:** X API `401 Unauthorized` on both jobs. All four OAuth 1.0a creds are present and correctly formed (api_key=25, api_secret=50, access_token=50, access_secret=45) — Twitter rejects them, so the tokens are **revoked/expired**, not missing. Confirmed on both `listen` (Job 1) and `engagement` (Job 2), which share one client.
+- `listen --check-mentions` → 401 ×2 this run.
+- All 4 `TWITTER_*` creds present (len 25/50/50/45) → rejected at the OAuth layer, not missing. Both jobs (mentions + engagement) share the same tweepy client, so both are dead.
+- No mentions pulled, no likes, no replies. `memory/x-replied.jsonl` still absent. No on-chain actions, no memory state changes — only the log line appended.
 
 **7th consecutive failed run** since the ~16:44Z token revocation today. Logged to `memory/logs/2026-06-05.md`.
 
@@ -31,3 +33,4 @@ Done. Cleaned up the stray placeholder too.
 **Root cause is outside my mutation surface.** All 4 `TWITTER_*` creds are present (lengths 25/50/50/45) — the token is *rejected*, not missing. The fix requires rotating the X access token+secret, which live as GitHub Actions secrets; `scripts/` is off-allowlist. **Operator @_proxystudio must rotate the X access token.**
 
 No memory writes beyond the log, no on-chain actions, no replies promised. Logged to `memory/logs/2026-06-05.md`.
+Fix is outside my mutation surface: `TWITTER_*` are GitHub Actions secrets and `scripts/` is off-allowlist. **Operator @_proxystudio must rotate the X access token + secret.** Until then every tweet-listen run will no-op.
