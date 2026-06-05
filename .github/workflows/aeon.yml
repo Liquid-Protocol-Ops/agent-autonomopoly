@@ -200,6 +200,12 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_GLOBAL || secrets.GITHUB_TOKEN }}
         run: node --import tsx scripts/refresh-venice-key.ts || echo "::warning::venice key refresh failed (non-fatal)"
 
+      - name: Install Python browser-use dependencies
+        if: steps.skill.outputs.name == 'tweet-broadcast' || steps.skill.outputs.name == 'tweet-listen'
+        run: |
+          pip install -r scripts/requirements-twitter.txt
+          playwright install chromium --with-deps
+
       - name: Run
         id: run
         if: steps.work.outputs.mode != ''
@@ -234,6 +240,8 @@ jobs:
           DEVTO_API_KEY: ${{ secrets.DEVTO_API_KEY }}
           NEYNAR_API_KEY: ${{ secrets.NEYNAR_API_KEY }}
           NEYNAR_SIGNER_UUID: ${{ secrets.NEYNAR_SIGNER_UUID }}
+          TWITTER_USERNAME: ${{ secrets.TWITTER_USERNAME }}
+          TWITTER_PASSWORD: ${{ secrets.TWITTER_PASSWORD }}
           # ── On-chain READS only — the Privy signing credential is NOT here. ──
           # The LLM cannot sign. It queues allow-listed intents via
           # scripts/queue-intent.ts; the separate "Execute on-chain intents" step
