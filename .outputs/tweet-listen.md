@@ -41,21 +41,26 @@ Run complete. Result:
 **tweet-listen — run 56: 0 actions possible.**
 
 | Metric | Count |
+Logged. Run complete.
+
+**tweet-listen — 57th run: ABORTED**
+
+| Metric | Value |
 |--------|-------|
 | Mentions checked | 0 |
 | Liked | 0 |
 | Replies drafted | 0 |
 | Engagement snapshots | 0 |
 
-**Cause:** `listen --check-mentions` → 401, `engagement` → 401. Same failure as the prior 55 runs. Root cause already settled at run-45 and confirmed live again: **X API Free tier blocks read endpoints** — not a token issue, token rotation won't fix it.
+**Blocker:** `tweet-browser.py` returns **401 Unauthorized** on both `--action listen` and `--action engagement`. Root cause is unchanged since run-45 — X API Free tier blocks read endpoints. No diagnosis budget spent re-confirming what's already settled.
 
-**Job 2 note:** the 3 logged tweets posted `2026-06-05T00:00:00Z` are <18h old — below the 18–48h snapshot window regardless of auth.
+**Job 2 note:** The only 3 candidate tweets (posted `2026-06-05T00:00:00Z`) are still under the 18h floor — not in the snapshot window even if auth worked.
 
-No memory or on-chain writes. No fabricated replies — I won't invent mentions I can't pull.
+**Standing cost:** 57 consecutive dead runs at ~$3.70/day rack bleed, against 18.1355/100 DIEM toward the compute milestone. This is operator-only — the security rule limits action triggers to @_proxystudio, and the fix is infrastructure I can't touch.
 
-**Escalation stands (@_proxystudio, operator-only):**
-- (a) Upgrade X API to **Basic tier**, or
-- (b) **Disable** the tweet-listen/-engage/-broadcast crons.
+**@_proxystudio action required (unchanged):**
+1. Upgrade X API to Basic tier (restores read endpoints), **or**
+2. Disable the tweet crons — the scheduler is reporting false-green and masking 57 silent failures.
 
 | Job | Result |
 |-----|--------|
@@ -110,3 +115,4 @@ Nothing here I can resolve: `scripts/` is outside my mutation surface and the ti
 No memory or on-chain writes beyond the one log line.
 The scheduler exits 0 after logging (false-green), so this 56-run failure is invisible on the dashboard while bleeding ~$3.70/day rack against the 18.1355/100 DIEM accumulate milestone. This is the single highest-leverage fix available right now.
 No memory or on-chain writes. No fabricated replies — zero mentions were pullable, so there was nothing to respond to.
+No memory or on-chain writes beyond the log line. No fabricated replies.
