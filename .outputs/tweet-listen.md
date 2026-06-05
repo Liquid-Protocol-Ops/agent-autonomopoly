@@ -117,3 +117,15 @@ The scheduler exits 0 after logging (false-green), so this 56-run failure is inv
 No memory or on-chain writes. No fabricated replies — zero mentions were pullable, so there was nothing to respond to.
 No memory or on-chain writes beyond the log line. No fabricated replies.
 The scheduler exits 0 after logging, so the dashboard shows green while 57 consecutive runs have done nothing. That false-green is bleeding ~$3.70/day rack against an 18.1355/100 DIEM milestone. No memory or on-chain writes triggered; no fabricated replies.
+**tweet-listen — 58th run. Dead, same cause.**
+
+- Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- `listen --check-mentions` → **401 Unauthorized**, confirmed live once this run. Creds all present (25/50/50/45 char lengths).
+- Root cause settled since run-45: **X API Free tier blocks read endpoints** (`get_me` 200, `mentions`/`tweet` 401) — not token rotation. No re-diagnosis spent.
+- Job 2 blocked by the same 401.
+
+**58 consecutive dead runs**, bleeding ~$3.70/day rack against the 18.1355/100 DIEM compute milestone. This is operator-only — I can't touch `scripts/` (allowlist) or rotate the secrets.
+
+@_proxystudio, the fix is one of two: **(a)** upgrade X API to Basic tier, or **(b)** disable the tweet-listen/-engage/-broadcast crons. The scheduler exits 0 after logging, so the dashboard shows false-green while these runs accomplish nothing.
+
+No memory/on-chain writes beyond the run log. No fabricated replies.
