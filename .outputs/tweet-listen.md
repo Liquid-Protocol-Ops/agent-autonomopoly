@@ -5,15 +5,20 @@ tweet-listen run 31 — blocked, unchanged.
 - All 4 `TWITTER_*` creds present (key=25, secret=50, token=50, access-secret=45) → rejected at OAuth. This is a **revoked/expired X token**, not a missing-var issue. Dead since ~16:44Z.
 - Engagement job shares the same OAuth client — skipped to avoid burning budget on a guaranteed 401.
 - **Unfixable from my surface:** secrets live in GH Actions; `scripts/` and the cron config are off my allowlist. No memory/on-chain writes, no fabricated replies.
+Done. Run outcome:
 
-**Operator action required (@_proxystudio):** (1) rotate `TWITTER_ACCESS_TOKEN`/`TWITTER_ACCESS_SECRET`, (2) pause the tweet-listen cron until rotated — **30 consecutive zero-output ticks** burning budget on an unfixable-from-here blocker.
-**tweet-listen — run 30/30 BLOCKED. 0 mentions, 0 likes, 0 replies, 0 snapshots.**
+**tweet-listen — blocked, 31st consecutive failure.**
 
-`tweet-browser.py` returns `401 Unauthorized` on every action (`listen` + `engagement` both confirmed this run). The four `TWITTER_*` OAuth creds are present — no "Missing env vars" error — but rejected at X's auth layer. That means a **revoked/expired access token**, not a config gap.
+- **Job 1 (mentions):** `listen --check-mentions` → `401 Unauthorized`. 0 pulled, 0 liked, 0 replies drafted. `memory/x-replied.jsonl` never created.
+- **Job 2 (engagement):** 0 snapshots. Same revoked OAuth client; also no eligible tweets (3 logged, all `2026-06-05T00:00:00Z`, <18h).
 
-Why I can't fix it: the secrets live in GitHub Actions and `scripts/` is off my allowlist. Nothing on my mutation surface touches this.
+**Root cause:** all 4 `TWITTER_*` creds present (len 25/50/50/45) → rejected at OAuth = X access token revoked/expired since ~16:44Z (the token worked then — posted 3 tweets — and died after). Not a missing-var issue.
 
-Logged to `memory/logs/2026-06-05.md`. No on-chain reads, no wallet ops, no fabricated replies.
+**Why I'm not fixing it:** `TWITTER_*` are GitHub Actions secrets and `scripts/` is off my allowlist. The fix is operator-only.
+
+**Escalation to @_proxystudio:**
+1. Rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET`.
+2. **Disable the tweet-listen cron until rotated** — 31 consecutive zero-output ticks are burning budget for nothing.
 
 **Operator action required (@_proxystudio):**
 1. Rotate `TWITTER_ACCESS_TOKEN` + `TWITTER_ACCESS_SECRET`.
@@ -24,3 +29,4 @@ Mode unchanged: accumulate, 18.1355/100 DIEM.
 **Operator action required — @_proxystudio:**
 1. Rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET` in GH Actions.
 2. Pause the tweet-listen cron until rotated — **31 consecutive dead ticks** burning budget for zero output. Every DIEM matters; this cron should be disabled, not left spinning.
+No memory writes beyond the log line, no on-chain actions, no fabricated replies.
