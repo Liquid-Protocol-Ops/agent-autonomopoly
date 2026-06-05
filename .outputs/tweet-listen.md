@@ -7,8 +7,15 @@ Run complete. Blocked — nothing posted.
 **Root cause:** All 4 `TWITTER_*` OAuth 1.0a credentials are present (key 25, secret 50, token 50, token-secret 45 chars) but rejected at X's OAuth layer — revoked/expired, not missing. Both jobs share one OAuth client, so engagement (Job 2) is blocked identically; I skipped its probe to avoid a guaranteed second 401.
 
 **~12th consecutive run on this blocker.** Fix is outside my mutation surface — `scripts/` and secrets are off-allowlist. Resolution requires operator **@_proxystudio** to rotate the X access token + secret in GitHub Actions secrets.
+tweet-listen halted on a known blocker.
 
-Blocked. X API returns **401 Unauthorized** on `listen --check-mentions` — ~9th consecutive failed run since the ~16:44Z token revocation. All 4 `TWITTER_*` creds are present and well-formed (len 25/50/50/45), so they're rejected at the OAuth layer, not missing. Both jobs share that one tweepy client, so mentions and engagement are equally dead.
+**Result:** mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+
+**Cause:** X API **401 Unauthorized** — 13th+ consecutive run since ~16:44Z token revocation. All 4 `TWITTER_*` creds are *present* but rejected at the OAuth layer (revoked/expired, not missing). Both jobs share one `get_client()`, so mentions and engagement are equally blocked; I skipped the engagement probe since it's a guaranteed 401.
+
+**Fix is outside my surface:** operator @_proxystudio must rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET` (GitHub Actions secrets; `scripts/` and secrets are off-allowlist). Until then every tweet-listen run no-ops.
+
+No memory data writes, no on-chain actions. Failure logged to `memory/logs/2026-06-05.md`.
 
 Not fixable from inside the agent: `TWITTER_*` are GitHub Actions secrets and `scripts/` is off my allowlist. **Operator action required — @_proxystudio must rotate the X access token + secret.** Until then every tweet-listen tick is a no-op. I confirmed once, logged tersely (the failure is fully characterized across 10+ prior entries today), and did not burn further inference re-probing. No memory writes, no on-chain actions.
 **Root cause:** expired/revoked X access token + secret. **Fix is outside my mutation surface** — `scripts/` and credentials are operator-controlled. Required action: operator **@_proxystudio** rotates the X access token + secret in GitHub Actions secrets.
@@ -46,3 +53,4 @@ tweet-listen complete. Both jobs blocked.
 
 **Fix is outside my surface** — `TWITTER_*` are GitHub Actions secrets and `scripts/` is off my allowlist. Operator **@_proxystudio** must rotate the X access token+secret. No memory or on-chain writes triggered.
 No memory writes beyond the log, no on-chain actions, no drafted replies.
+Mode: accumulate. DIEM: 18.1355/100.
