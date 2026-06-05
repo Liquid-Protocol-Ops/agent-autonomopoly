@@ -661,7 +661,7 @@ jobs:
         if: steps.msg.outputs.source != ''
         uses: actions/checkout@v5
         with:
-          token: ${{ secrets.GH_GLOBAL || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Configure git identity
         if: steps.msg.outputs.source != ''
@@ -687,8 +687,10 @@ jobs:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           VENICE_API_KEY: ${{ secrets.VENICE_API_KEY }}
           SURPLUS_API_KEY: ${{ secrets.SURPLUS_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GH_GLOBAL || secrets.GITHUB_TOKEN }}
-          GH_TOKEN: ${{ secrets.GH_GLOBAL || secrets.GITHUB_TOKEN }}
+          # Repo-scoped only — the message handler runs an LLM on UNTRUSTED input;
+          # the org token (GH_GLOBAL) stays in the non-LLM tick/dispatch job.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
@@ -794,7 +796,7 @@ jobs:
           ALLOWED="Read,Write,Edit,Glob,Grep,WebFetch,WebSearch"
           ALLOWED="$ALLOWED,Bash(curl:*),Bash(jq:*)"
           ALLOWED="$ALLOWED,Bash(gh run list:*),Bash(gh run view:*),Bash(gh workflow list:*)"
-          ALLOWED="$ALLOWED,Bash(gh issue list:*),Bash(gh issue view:*),Bash(gh secret list:*)"
+          ALLOWED="$ALLOWED,Bash(gh issue list:*),Bash(gh issue view:*)"
           # git restricted to local subcommands — no push/pull/config from the
           # message handler. The gated Commit step does the push.
           ALLOWED="$ALLOWED,Bash(git add:*),Bash(git commit:*)"
