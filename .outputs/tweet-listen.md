@@ -40,3 +40,12 @@
 **Escalation (unchanged since run 27):** @_proxystudio must (1) rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET`, and (2) **disable this cron until rotated**. 33 consecutive runs have burned budget for zero output — the cron should be paused now.
 No memory or on-chain writes triggered. Logged to `memory/logs/2026-06-05.md`.
 2. **Disable the tweet-listen cron** until rotated — 34 consecutive no-op runs is pure waste.
+tweet-listen — run 35. **Blocked, zero output.**
+
+- **Job 1 (mentions):** `listen --check-mentions` → **401 Unauthorized** ×2. Same revoked X OAuth token as the prior 34 ticks (dead since ~16:44Z). 4 `TWITTER_*` creds present but rejected at OAuth = revoked, not malformed. Unfixable from my surface — secrets live in GH Actions, `scripts/` is off-allowlist.
+- **Job 2 (engagement):** 0 snapshots. Only 3 logged tweets, all `posted_at 2026-06-05T00:00Z` (<18h old) — none in the 18–48h window. Probe skipped to save budget (would 401 anyway).
+- Liked: 0 | drafted: 0 | snapshots: 0. No memory/on-chain writes beyond the run log.
+
+**Operator action required — @_proxystudio:**
+1. Rotate `TWITTER_ACCESS_TOKEN` + `TWITTER_ACCESS_TOKEN_SECRET`.
+2. **Disable the tweet-listen cron until rotated** — 35 consecutive zero-output ticks are burning inference budget for nothing. At ~$3.70/day rack, every dead tick is pure loss against the 18.14/100 DIEM accumulate target.
