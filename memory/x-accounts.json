@@ -1,0 +1,26 @@
+[
+  {
+    "handle": "@liquidlauncher",
+    "source": "seed",
+    "description": "Liquid Protocol official account",
+    "added_at": "2026-06-04T00:00:00Z",
+    "engagement_score": 0,
+    "status": "active"
+  },
+  {
+    "handle": "@_proxystudio",
+    "source": "seed",
+    "description": "Liquid Protocol ecosystem — proxystudio",
+    "added_at": "2026-06-04T00:00:00Z",
+    "engagement_score": 0,
+    "status": "active"
+  },
+  {
+    "handle": "@m00npapi",
+    "source": "seed",
+    "description": "Liquid Protocol ecosystem — m00npapi",
+    "added_at": "2026-06-04T00:00:00Z",
+    "engagement_score": 0,
+    "status": "active"
+  }
+]
