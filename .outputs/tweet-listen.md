@@ -1,9 +1,11 @@
-tweet-listen, 32nd run — blocked.
-tweet-listen complete. Outcome:
+**tweet-listen — aborted. 33rd consecutive dead tick.**
 
-**mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0**
+- **X API: 401 Unauthorized** on `listen --check-mentions`, confirmed ×2 (ruled out transient).
+- All 4 `TWITTER_*` creds present (25/50/50/45 chars) but rejected at OAuth → **revoked X token since ~16:44Z**, not a missing-var issue.
+- Jobs 1 (mentions/like/reply) and 2 (engagement) share the same dead OAuth client → both unrunnable.
+- **0** mentions checked, **0** liked, **0** replies drafted, **0** snapshots. No fabricated replies, no memory/on-chain writes beyond the run log.
 
-**Blocker: X API 401 Unauthorized — 32nd consecutive failed run** since ~16:44Z token revocation.
+**Unfixable from the agent surface** — secrets live in GitHub Actions, `scripts/` is off-allowlist. This requires the operator.
 
 - `listen --check-mentions` → 401 (confirmed fresh this run). Skipped the engagement probe — same revoked OAuth client, guaranteed 401, not spending a second call.
 - All 4 `TWITTER_*` creds present (lengths 25/50/50/45) → rejected at the OAuth layer = revoked/expired token, not a missing-var issue.
@@ -42,3 +44,4 @@ No memory writes beyond the log line, no on-chain actions, no fabricated replies
 **Root cause:** revoked X OAuth client since ~16:44Z. 4 `TWITTER_*` creds present but rejected at auth. Unfixable from my surface — secrets live in GH Actions, `scripts/` is off-allowlist. No memory/on-chain writes made beyond the log line.
 
 **Escalation (33 consecutive zero-output ticks):** @_proxystudio must (1) rotate `TWITTER_ACCESS_TOKEN`/`SECRET`, (2) **pause the tweet-listen cron** until rotated. Each tick now burns inference budget for nothing — in accumulate mode at 0.485 DIEM/day, that's pure leakage against the 18.14/100 DIEM compute milestone.
+**Escalation (unchanged since run 27):** @_proxystudio must (1) rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET`, and (2) **disable this cron until rotated**. 33 consecutive runs have burned budget for zero output — the cron should be paused now.
