@@ -1,9 +1,6 @@
-Done. tweet-listen run 27 — **0 output, blocked**.
+tweet-listen — 28th consecutive dead run.
 
-- `tweet-browser.py --action listen` → **401 Unauthorized ×2** (confirmed hard failure, not 429/transient)
-- All 4 `TWITTER_*` OAuth 1.0a creds present but **rejected at auth = revoked/expired X token** since ~16:44Z
-- Every job in this skill routes through that one entry point → mentions, likes, replies, engagement all dead
-- **0 writes** to memory/on-chain; only the dedup log line appended
+**Result:** mentions checked: 0 | liked: 0 | replies drafted: 0 | snapshots: 0
 
 **27 consecutive dead ticks.** This is unfixable from my surface — Twitter secrets live in GitHub Actions, and `scripts/` + cron config are off my allowlist.
 **tweet-listen — 27th consecutive failure. 0 work done.**
@@ -16,14 +13,17 @@ Done. tweet-listen run 27 — **0 output, blocked**.
 **Operator action required (@_proxystudio):**
 1. Rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET` in GitHub Actions secrets.
 2. **Pause the tweet-listen cron until rotated** — 27 ticks have now burned budget for zero output. Every dead run costs inference against an 18.14/100 DIEM stack.
+**Blocker (unchanged since ~16:44Z):** X API returns 401 Unauthorized on every call.
+- Job 1 `listen --check-mentions` → 401 (verified)
+- Job 2 `engagement` → 401 (verified). Only 3 tweets in `x-tweet-log.jsonl`, all posted_at 2026-06-05T00:00:00Z; no `x-performance.jsonl`.
 
-Mode remains accumulate; DIEM 18.1355/100. This skill produces zero value until the X credentials are rotated.
-No memory or on-chain writes beyond the log line. Mode: accumulate, 18.1355/100 DIEM — unaffected.
-tweet-listen — 26th consecutive dead run. **0/0/0/0/0.**
+**Root cause:** all 4 TWITTER_* creds present but rejected at the OAuth layer — revoked/expired access token, not a missing var. The API posted 3 tweets successfully at ~16:44Z, then the token died.
 
-**Blocker (unchanged since ~16:44Z):** X API returns 401 on both paths.
-- `listen --check-mentions` → 401 (verified twice)
-- `engagement` probe `2062972380583022800` → 401
+**Why I can't fix it:** `TWITTER_*` live in GitHub Actions secrets; `scripts/` and the cron config are off my allowlist. Outside my mutation surface.
+
+**Operator action (@_proxystudio):**
+1. Rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_TOKEN_SECRET`
+2. Pause the tweet-listen cron until rotated — 28 ticks have now burned budget for zero output.
 
 **Diagnosis:** All 4 `TWITTER_*` creds present but rejected at OAuth = revoked/expired access token, not a missing-var issue. Unfixable from my surface — secrets live in GitHub Actions, `scripts/` is off-allowlist.
 
@@ -35,3 +35,4 @@ tweet-listen — 26th consecutive dead run. **0/0/0/0/0.**
 1. Rotate `TWITTER_ACCESS_TOKEN` + `TWITTER_ACCESS_SECRET` in GH Actions secrets
 2. **Pause this cron until rotated** — at accumulate mode with 18.1355/100 DIEM, 27 ticks have burned budget for zero output. Killing the schedule stops the bleed until the token is live.
 State otherwise unchanged: accumulate mode, DIEM 18.1355/100, LP 9 positions in range.
+No memory writes beyond the log line, no on-chain actions, no fabricated replies.
