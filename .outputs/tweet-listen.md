@@ -1,33 +1,15 @@
 **tweet-listen run 54 — BLOCKED, logged.**
+**tweet-listen — 54th run. 0 mentions / 0 likes / 0 replies / 0 snapshots.**
 
-- **Job 1 (mentions):** `listen --check-mentions` → **401 Unauthorized** (confirmed ×2 live). 0 mentions pullable → 0 likes, 0 replies. No fabrication.
-- **Job 2 (engagement):** `engagement` → **401**. 3 parked tweets (`2062972380583022800`, `2062972393027408313`, `2062972404658229395`) are now ~23h old — inside the 18–48h window — but snapshot-blocked by the same auth failure.
-Run 53 complete.
+`listen --check-mentions` → 401 confirmed live. Blocker unchanged and fully diagnosed (settled run-45):
 
-**tweet-listen — run 53**
-- mentions checked: **0** | liked: **0** | replies drafted: **0** | already replied: **0** | engagement snapshots: **0**
+- **Root cause:** X API **Free tier blocks read endpoints**. `get_me` returns 200 (creds valid: lengths 25/50/50/45), but `get_users_mentions`/`get_tweet` return 401. This is **not** a token rotation issue — rotating won't fix it.
+- **Job 1 (mentions):** 0 pullable → 0 likes, 0 replies. No fabrication.
+- **Job 2 (engagement):** 3 parked tweets snapshot-blocked by the same 401.
 
-**Why zero:** `listen --check-mentions` → **401 Unauthorized** (confirmed live, single probe). All four Twitter credentials are present (lengths 25/50/50/45), so this is not a missing-secret problem. Root cause settled at run 45 and re-verified through run 52: **X API Free tier blocks read endpoints** — `get_me` returns 200 (creds valid), but `get_users_mentions`/`get_tweet` return 401. Token rotation will not fix it. Job 2 engagement uses the same client → same 401.
-
-**This is now 53 consecutive dead runs**, bleeding ~$3.70/day rack against the accumulate budget (18.1355/100 DIEM toward the compute milestone). The scheduler exits 0 after logging, so the dashboard shows false-green and hides the escalation.
-
-**Operator-only fix — @_proxystudio, two real options:**
-1. Upgrade X API to **Basic tier** (unblocks read endpoints), or
-2. **Disable** the `tweet-listen` / `tweet-engage` / `tweet-broadcast` crons to stop the budget bleed.
-
-**Job 1 (mentions):** `listen --check-mentions` → 401 Unauthorized. No mentions pullable → no likes, no replies. No fabrication.
-
-**Job 2 (engagement):** Now *eligible* — all 3 logged tweets (`2062972380583022800`, `2062972393027408313`, `2062972404658229395`) are ~23h old, inside the 18–48h window, with no prior snapshot. But `engagement` → 401 on the first call. Same auth wall as Job 1.
-
-**Root cause (unchanged, settled run-45):** X API Free tier blocks read endpoints. Both jobs route the same client; both blocked. Not token rotation — needs Basic tier. Fix is outside my mutation surface (`TWITTER_*` are GitHub Actions secrets, `scripts/` off-allowlist).
-
-**Operator action required — @_proxystudio, two real fixes only:**
-- (a) Upgrade X API to **Basic tier**, or
-- (b) **Disable** tweet-listen / -engage / -broadcast crons.
-
-**@_proxystudio — two real options:**
+**54 consecutive dead runs**, bleeding ~$3.70/day rack against the 18.1355/100 DIEM accumulate milestone. Fix is operator-only, @_proxystudio:
 1. Upgrade X API to **Basic tier**, or
-2. **Disable** the tweet-listen/-engage/-broadcast crons.
+2. **Disable** tweet-listen/-engage/-broadcast crons.
 
 Note the scheduler shows this cron as **false-green** — the skill exits 0 after logging, so the dashboard reads "success" while 51 runs do zero work. That's why this escalation keeps going unheard.
 
@@ -110,3 +92,4 @@ No memory or on-chain writes made; no fabricated replies. I held this run to a s
 2. **Disable** the `tweet-listen` / `tweet-engage` / `tweet-broadcast` crons to stop bleeding ~$3.70/day rack against the 18.1355/100 DIEM compute milestone.
 
 No memory or on-chain writes. No fabricated replies — with 0 mentions pullable, there was nothing to respond to.
+The scheduler shows false-green (the skill exits 0 after logging), so this escalation is invisible on the dashboard. No memory writes beyond the log line; no on-chain actions.
