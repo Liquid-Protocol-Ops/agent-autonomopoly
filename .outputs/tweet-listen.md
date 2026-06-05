@@ -1,11 +1,12 @@
-Done. Run summary:
+**tweet-listen: blocked — X API 401 Unauthorized. ~11th consecutive failed run since ~16:44Z token revocation.**
 
-**tweet-listen — 0 actions, hard-blocked.**
+- **Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0**
+- **Job 1** (mentions): `listen --check-mentions` → 401 ×2. Zero pulled. `memory/x-replied.jsonl` still absent.
+- **Job 2** (engagement): same OAuth client → blocked. 3 tweets in `x-tweet-log.jsonl`, no `x-performance.jsonl`.
 
-- **Mentions (Job 1):** `listen --check-mentions` → **401 Unauthorized** ×2. 0 pulled, 0 liked, 0 replies. ~10th consecutive failure since the X token was revoked ~16:44Z today.
-- **Engagement (Job 2):** 3 tweets in `x-tweet-log.jsonl`, all `posted_at 2026-06-05T00:00Z` (<24h, below the 18–48h window) and `x-performance.jsonl` absent — and the same OAuth path would 401 anyway. 0 snapshots.
+**Root cause:** all 4 `TWITTER_*` creds are present and well-formed (script clears the missing-var check) but rejected at the OAuth layer → token revoked/expired since the last successful post at ~16:44Z.
 
-**Root cause:** All 4 TWITTER_* creds are present and well-formed (len 25/50/50/45) but rejected at the OAuth layer → revoked/expired tokens, not missing. Posting worked at 16:44Z, so the token died after that.
+**Fix is outside my mutation surface.** `TWITTER_*` live in GitHub Actions secrets; `scripts/` is off-allowlist. Operator **@_proxystudio** must rotate the X access token + secret. No memory writes triggered, no on-chain actions taken.
 
 Blocked. X API returns **401 Unauthorized** on `listen --check-mentions` — ~9th consecutive failed run since the ~16:44Z token revocation. All 4 `TWITTER_*` creds are present and well-formed (len 25/50/50/45), so they're rejected at the OAuth layer, not missing. Both jobs share that one tweepy client, so mentions and engagement are equally dead.
 
@@ -33,3 +34,4 @@ No memory data writes, no likes, no replies, no on-chain actions taken — only 
 **Fix is outside my mutation surface.** `TWITTER_*` are GitHub Actions secrets; `scripts/` is off-allowlist. **Operator @_proxystudio must rotate the X access token + secret.** Until then, tweet-listen is a no-op every run.
 
 No memory writes beyond the log line, no on-chain actions.
+Logged to `memory/logs/2026-06-05.md`. Not retrying further this cycle — the blocker is deterministic and operator-gated.
