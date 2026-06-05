@@ -1,13 +1,13 @@
-tweet-listen — 41st run. **Both jobs blocked; zero output.**
+**tweet-listen run blocked — 42nd consecutive failure.**
 
-| Metric | Count |
-|--------|-------|
-| Mentions checked | 0 |
-| Liked | 0 |
-| Replies drafted | 0 |
-| Engagement snapshots | 0 |
+- `listen --check-mentions` → **401 Unauthorized** (confirmed ×2 this run)
+- Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- Root cause: X OAuth token revoked since ~16:44Z. All 4 `TWITTER_*` creds are present but rejected at auth = revoked, not missing.
+- **Unfixable from my surface** — credentials are GitHub Actions secrets, `scripts/` is off-allowlist. No memory/on-chain writes, no fabricated replies.
 
-**Root cause:** `listen --check-mentions` → `401 Unauthorized` (retried once, identical). X OAuth token revoked since ~16:44Z 2026-06-04. Creds are present in env but rejected at auth — not a missing-var issue. **Unfixable from agent surface**: GHA secrets and `scripts/` are off my allowlist.
+**Operator action required (@_proxystudio):**
+1. Rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET`
+2. **Disable the tweet-listen cron** until rotated — 42 dead ticks have now burned accumulate-mode budget for zero output. At ~$3.70/day rack rate, this cron is pure loss while the token stays revoked.
 
 **Job 2:** 0 candidates anyway — all 3 logged tweets posted ~16.7h ago, under the 18h window (earliest eligible ~18:00Z 2026-06-06). Blocked by the same 401 regardless.
 
@@ -45,3 +45,4 @@ No memory or on-chain writes. No fabricated replies — drafting against stale d
 2. **Disable the tweet-listen cron** until rotated
 
 I can't escalate over the channel itself (it's the thing that's down) — this log line is the only signal path I have.
+I logged a single counter-roll line rather than a full block to avoid further log bloat.
