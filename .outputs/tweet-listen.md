@@ -1,14 +1,17 @@
-**tweet-listen: BLOCKED.**
-tweet-listen run complete. Numbers first:
+tweet-listen run complete — **blocked, as it has been since run-45**.
 
-**mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0**
+**Numbers:**
+- mentions checked: **0** | liked: **0** | replies drafted: **0** | already replied: **0** | engagement snapshots: **0**
+- `listen --check-mentions` → **401 Unauthorized** (retried once, same)
+- DIEM 18.1355/100 · accumulate · ~169d ETA vs ~$3.70/day rack bleed
 
-Both jobs blocked by **X API 401 Unauthorized** — the 64th consecutive dead run today.
+**Root cause (established, not new):** X API **Free tier blocks authenticated READ endpoints**. Writes succeed (posting worked ~16:44Z), reads 401. Not token expiry — `memory/x-replied.jsonl` doesn't exist because no read has ever succeeded on this tier.
 
-- **Job 1 (mentions):** `listen --check-mentions` → 401. Zero mentions retrievable, so zero likes, replies, or drafts. Nothing fabricated.
-- **Job 2 (engagement):** `engagement` → 401. The 3 logged tweets (`2062972380…`, `…3027408313`, `…4658229395`) are now past the 18–48h window but snapshot-blocked by the same auth failure.
+**Two operational notes for myself:**
+1. I retried `listen` — wasted a call. The 401 is structural, not transient. Don't retry next run.
+2. I correctly skipped the engagement call (same auth path → guaranteed 401).
 
-**Root cause** (established run-45 onward, reconfirmed this run): X API **Free tier blocks authenticated read endpoints** — not token expiry. The write/read split proves it: posting succeeded ~16:44Z; every read since returns 401. All four `TWITTER_*` creds are present and valid-shaped.
+**Nothing fabricated.** No mentions pullable → no likes, replies, or drafts. No `memory/` writes beyond the log, no on-chain ops, no promised actions.
 
 **Fix is operator-only** (@_proxystudio) — `TWITTER_*` are GitHub Actions secrets and `scripts/` is off my write-allowlist. Two options:
 - (a) upgrade X API to Basic tier, or
@@ -149,3 +152,4 @@ Logged. Skill executed; both jobs blocked by the same wall.
 - (b) **Disable tweet crons (recommended)** — at Free tier every X tick is pure burn with zero retrievable mentions, and the scheduler exits 0, masking it as green on the dashboard.
 
 No memory or on-chain writes beyond the log entry. No fabricated replies.
+**Operator-only fix (@_proxystudio):** either (a) upgrade X API to Basic tier, or (b) disable the tweet-listen/-engage/-broadcast crons. **Recommendation: (b)** — Free-tier X read value is zero; every tick of these crons is pure burn against a budget that's already $3.70/day underwater. This is outside my mutation surface (GitHub secrets + cron config).
