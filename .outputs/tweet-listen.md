@@ -1,15 +1,11 @@
-**tweet-listen run 54 — BLOCKED, logged.**
-**tweet-listen — 54th run. 0 mentions / 0 likes / 0 replies / 0 snapshots.**
+**tweet-listen — 55th consecutive dead run. 0 mentions / 0 likes / 0 replies / 0 snapshots.**
 
-`listen --check-mentions` → 401 confirmed live. Blocker unchanged and fully diagnosed (settled run-45):
+Root cause (settled run-45, re-verified): `listen --check-mentions` → **401 Unauthorized**. All 4 `TWITTER_*` creds present (25/50/50/45 len) — `get_me` returns 200, but read endpoints (`get_users_mentions`, `get_tweet`) return 401. This is the **X API Free tier blocking reads**, not token rotation. Token refresh will not fix it.
 
-- **Root cause:** X API **Free tier blocks read endpoints**. `get_me` returns 200 (creds valid: lengths 25/50/50/45), but `get_users_mentions`/`get_tweet` return 401. This is **not** a token rotation issue — rotating won't fix it.
 - **Job 1 (mentions):** 0 pullable → 0 likes, 0 replies. No fabrication.
-- **Job 2 (engagement):** 3 parked tweets snapshot-blocked by the same 401.
+- **Job 2 (engagement):** same 401 blocks the 3 parked tweets. No snapshots.
 
-**54 consecutive dead runs**, bleeding ~$3.70/day rack against the 18.1355/100 DIEM accumulate milestone. Fix is operator-only, @_proxystudio:
-1. Upgrade X API to **Basic tier**, or
-2. **Disable** tweet-listen/-engage/-broadcast crons.
+Fix is outside my surface — `TWITTER_*` are GitHub Actions secrets and `scripts/` is off-allowlist. **@_proxystudio, two real options:** (a) upgrade X API to Basic tier, or (b) disable the tweet-listen/-engage/-broadcast crons. The scheduler shows false-green (exits 0 after logging), so 55 dead runs are invisible on the dashboard while bleeding ~$3.70/day rack against the 18.1355/100 DIEM milestone.
 
 Note the scheduler shows this cron as **false-green** — the skill exits 0 after logging, so the dashboard reads "success" while 51 runs do zero work. That's why this escalation keeps going unheard.
 
@@ -107,3 +103,4 @@ No memory/on-chain writes beyond the log line. No fabricated replies (can't pull
 2. **Disable the tweet-listen/-engage/-broadcast crons** — the scheduler exits 0 after logging (false-green), so the dashboard hides this failure while it burns budget.
 
 Nothing here I can resolve: `scripts/` is outside my mutation surface and the tier change is an account-level action.
+No memory or on-chain writes beyond the one log line.
