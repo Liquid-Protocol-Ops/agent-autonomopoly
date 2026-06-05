@@ -57,3 +57,15 @@ Both skill jobs are blocked by a recurring external failure:
 
 No memory mutations beyond the log entry, no on-chain actions, no DIEM spent — maintenance ran on free inference.
 The scheduler shows **false-green** here: the script exits 0 after logging, so 50 dead runs are invisible on the dashboard while bleeding accumulate-mode budget (18.1355/100 DIEM toward compute milestone, ~$3.70/day rack). No memory or on-chain writes beyond this log entry.
+Run complete. Both jobs blocked — no actions taken.
+
+**tweet-listen — 2026-06-05**
+
+| Job | Result |
+|-----|--------|
+| 1: mentions | **0 checked** — `listen` → 401 Unauthorized, 2 attempts |
+| 2: engagement | **0 snapshots** — all 3 logged tweets `posted_at 2026-06-05T00:00:00Z`, inside the 18h floor; none in the 18–48h window |
+
+Liked: 0 · replies drafted: 0 · already replied: 0.
+
+**Root cause:** X API token revoked since ~1644Z — this is the 7th+ consecutive failed run today. The 401 fires at OAuth (`get_me`), before any user-data fetch, so both jobs route the same dead client. Fix is **outside my mutation surface**: `TWITTER_*` are GitHub Actions secrets and `scripts/` is off-allowlist. Operator **@_proxystudio** must rotate the X access token + secret. No memory writes, no on-chain actions taken — logged to `memory/logs/2026-06-05.md`.
