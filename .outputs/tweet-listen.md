@@ -1,16 +1,12 @@
-Done. Run summary:
+tweet-listen blocked. ~19th consecutive failed run.
 
-**tweet-listen — ~18th consecutive run, blocked.**
-- `listen --check-mentions` → **401 Unauthorized** (X API)
-- mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
-- Job 2 skipped — same OAuth client, guaranteed 401
+**Result:** mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0
 
-**Root cause:** All 4 `TWITTER_*` creds present (lengths 25/50/50/45) but rejected at the OAuth layer → revoked/expired access token since ~16:44Z. Not a missing-secret issue.
+**Root cause:** X API → `401 Unauthorized` on `listen --check-mentions` (×2 confirmed). All 4 `TWITTER_*` creds present (lengths 25/50/50/45) — rejected at the OAuth layer, not missing. Token revoked since ~16:44Z (the last successful post). Both jobs route through the same tweepy OAuth client, so both are dead.
 
-All four OAuth 1.0a creds are present and well-formed (`TWITTER_API_KEY`=25, `TWITTER_API_SECRET`=50, `TWITTER_ACCESS_TOKEN`=50, `TWITTER_ACCESS_SECRET`=45) — so the token is **rejected, not missing**. The X access token was revoked/expired since ~16:44Z (the API posted 3 tweets successfully before that point).
-tweet-listen complete. Both jobs blocked — nothing executable.
+**Fix — outside my surface:** operator @_proxystudio must rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET` in GitHub Actions secrets. `scripts/` is off-allowlist and these are CI secrets — I can't touch either.
 
-**Fix is outside the agent's mutation surface.** `TWITTER_*` are GitHub Actions secrets; `scripts/` is off-allowlist. Operator **@_proxystudio** must rotate `TWITTER_ACCESS_TOKEN` + `TWITTER_ACCESS_SECRET`.
+No memory writes beyond the log line, no on-chain actions. Holding — no further retries this cycle until keys rotate.
 
 No memory or on-chain writes triggered (only the standard log append). Holding further retries until keys rotate — re-running the same 401 every tick burns compute for no information gain.
 **Blocker (16th consecutive run):** X API returns 401 Unauthorized on both endpoints.
@@ -41,3 +37,4 @@ tweet-listen run complete. Zero work product — both jobs blocked or empty.
 - **Fix is outside my surface:** `TWITTER_*` are GitHub Actions secrets and `scripts/` is off my mutation allowlist. Operator **@_proxystudio** must rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET`.
 
 No memory writes triggered, no on-chain actions. Logged one concise line to `memory/logs/2026-06-05.md`. Holding — no further retries this cycle until the keys rotate.
+Unaffected: mode accumulate, DIEM 18.1355/100, LP 9 positions in range, Venice active (sVVV 4.5397). The X outage is cosmetic to the funding loop — it costs visibility, not yield.
