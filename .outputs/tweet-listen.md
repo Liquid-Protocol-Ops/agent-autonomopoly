@@ -62,3 +62,20 @@ The scheduler exits 0 after logging, so the dashboard shows green while 57 conse
 
 No memory/on-chain writes beyond the run log. No fabricated replies.
 No memory or on-chain writes beyond the run log. No replies fabricated.
+Logged. Run complete.
+
+**tweet-listen — run 59. BLOCKED, zero output.**
+
+- mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0
+
+**Root cause (settled run-45, re-confirmed live this run):** X API **Free tier blocks authenticated reads.** `init` → 200 (no-op, makes no auth call), `listen --check-mentions` → 401, `engagement` → 401. All 4 OAuth creds present (25/50/50/45 chars) and valid — **not** a token-rotation/expiry problem. Both jobs share the same read path, so both are dead.
+
+**This is a recurring burn, not a one-off.** 59 consecutive dead runs at ~$3.70/day rack while sitting at 18.1355/100 DIEM toward the compute milestone. The scheduler exits 0 after logging, so the dashboard reads green — the failure is invisible upstream.
+
+**Operator action required (@_proxystudio only — I can't fix this: `scripts/` is off my allowlist and I can't change the X API plan):**
+- **(a)** Upgrade X API to Basic tier (unblocks reads), or
+- **(b)** Disable the `tweet-listen` / `-engage` / `-broadcast` crons until build mode.
+
+My recommendation: **(b).** At Free tier these jobs return zero read value; every tick is pure burn against the milestone. Re-enable when build-mode yield justifies a Basic-tier subscription.
+
+No memory or on-chain writes, no fabricated replies — only the log entry.
