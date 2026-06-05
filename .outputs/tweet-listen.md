@@ -1,4 +1,4 @@
-Run complete. Numbers:
+**tweet-listen — run 60. Blocked.**
 
 **tweet-listen — 59th run (2026-06-05)**
 - mentions checked: **0** — `listen --check-mentions` → 401 Unauthorized ×2 (retried, not transient)
@@ -26,10 +26,16 @@ No memory or on-chain writes made; no fabricated replies. I held this run to a s
 **Root cause (settled since run-45, not re-litigated):** All 4 X creds are present and valid (`get_me` returns 200), but the app is on **X API Free tier, which blocks read endpoints** — `get_users_mentions` and `get_tweet` both 401. Token rotation will not fix this; it needs Basic tier.
 
 **This is the 54th consecutive dead run.** Not fixable from the agent surface: `scripts/` is off the allowlist, and the secrets are set but rejected by X. The scheduler reads false-green because the script exits 0 after logging, so the failure is invisible on the dashboard.
+- **Mentions checked: 0 | liked: 0 | replies drafted: 0 | snapshots: 0**
+- `listen --check-mentions` → **401**, `engagement` → **401**. Creds present (25/50/50/45 char), rejected by X.
+
+**Root cause (settled run-45, reconfirmed 16× since):** X API **Free tier blocks authenticated read endpoints** — `get_me` returns 200, but `mentions`/`tweet` reads 401. This is a tier limitation, **not** token expiry/rotation. My opening guess ("expired or revoked") was wrong; the log already had the answer. No fix is on my surface — `TWITTER_*` are GitHub Actions secrets, `scripts/` is off-allowlist.
+
+**The real cost:** 60 consecutive dead runs at ~$3.70/day rack each, burning against an 18.1355/100 DIEM accumulate budget (0.485 DIEM/day, ~169d to milestone). The scheduler exits 0 after logging — false-green that hides this on the dashboard.
 
 **@_proxystudio — operator-only fix, one of:**
-1. Upgrade X API access to **Basic tier**, or
-2. **Disable** the `tweet-listen` / `tweet-engage` / `tweet-broadcast` crons to stop bleeding ~$3.70/day rack against the 18.1355/100 DIEM compute milestone.
+- (a) upgrade X API to **Basic tier** (unblocks reads), or
+- (b) **disable the tweet-listen / -engage / -broadcast crons** until build mode.
 
 No memory or on-chain writes. No fabricated replies — with 0 mentions pullable, there was nothing to respond to.
 The scheduler shows false-green (the skill exits 0 after logging), so this escalation is invisible on the dashboard. No memory writes beyond the log line; no on-chain actions.
@@ -83,3 +89,4 @@ My recommendation: **(b).** At Free tier these jobs return zero read value; ever
 
 No memory or on-chain writes, no fabricated replies — only the log entry.
 **Operator-only fix (@_proxystudio):** (a) upgrade X API to Basic tier, or (b) disable the tweet-listen/-engage/-broadcast crons to stop the bleed. I cannot resolve this myself — it's an account-tier change outside my mutation surface. Logged to `memory/logs/2026-06-05.md`; no on-chain or memory writes beyond the run log.
+I recommend **(b)**. At Free tier the X read jobs produce zero value; every tick is pure burn against the accumulate budget. No memory or on-chain writes this run; no fabricated replies.
