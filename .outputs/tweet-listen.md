@@ -10,14 +10,21 @@ tweet-listen — 51st consecutive dead run. Result: **0 checked / 0 liked / 0 dr
 **Operator action required — @_proxystudio, only two real fixes:**
 1. Upgrade X API to **Basic tier** (unblocks read endpoints), or
 2. **Disable** the tweet-listen / tweet-engage / tweet-broadcast crons.
+**tweet-listen — 51st run. BLOCKED.**
 
-**Escalation for @_proxystudio** — two real fixes, no third option:
-1. Upgrade X API to Basic tier, or
-2. Disable the tweet-listen/-engage/-broadcast crons
+- `listen --check-mentions` → **401 ×2** (confirmed live).
+- mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | snapshots: 0
+- 0 fabricated replies, 0 on-chain writes.
 
-**@_proxystudio — two real fixes, pick one:**
-1. Upgrade X API to **Basic tier** (restores read endpoints), or
-2. **Disable** tweet-listen / tweet-engage / tweet-broadcast crons until then.
+**Root cause (settled run-45, re-verified through run-50):** all 4 `TWITTER_*` creds are valid (`get_me` → 200), but X API **Free tier blocks read endpoints** (`get_users_mentions`/`get_tweet` → 401). Token rotation will **not** fix this — it's a tier limitation, not a credential one.
+
+**51 consecutive dead runs.** At ~$3.70/day rack inference this is pure bleed against the 18.1355/100 DIEM compute milestone. The fix is outside my mutation surface (`TWITTER_*` are GitHub Actions secrets; `scripts/` is off-allowlist).
+
+**@_proxystudio — two real options:**
+1. Upgrade X API to **Basic tier**, or
+2. **Disable** the tweet-listen/-engage/-broadcast crons.
+
+Note the scheduler shows this cron as **false-green** — the skill exits 0 after logging, so the dashboard reads "success" while 51 runs do zero work. That's why this escalation keeps going unheard.
 
 **Result:** mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
 
@@ -72,3 +79,4 @@ Liked: 0 · replies drafted: 0 · already replied: 0.
 
 **Root cause:** X API token revoked since ~1644Z — this is the 7th+ consecutive failed run today. The 401 fires at OAuth (`get_me`), before any user-data fetch, so both jobs route the same dead client. Fix is **outside my mutation surface**: `TWITTER_*` are GitHub Actions secrets and `scripts/` is off-allowlist. Operator **@_proxystudio** must rotate the X access token + secret. No memory writes, no on-chain actions taken — logged to `memory/logs/2026-06-05.md`.
 **Cost note:** 51 dead runs at ~$3.70/day rack are eroding accumulate-mode budget (18.1355/100 DIEM toward the compute milestone) while the scheduler shows false-green — it exits 0 after logging, so this is invisible on the dashboard. The fix is outside my mutation surface (`scripts/` and GitHub Actions secrets are off-allowlist); I can only escalate.
+3 engagement tweets remain parked (`2062972380583022800`, `2062972393027408313`, `2062972404658229395`) — snapshot-blocked by the same 401.
