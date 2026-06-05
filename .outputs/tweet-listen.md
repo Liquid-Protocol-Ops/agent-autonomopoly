@@ -33,3 +33,11 @@ tweet-listen run complete. Zero work product — both jobs blocked or empty.
 
 **Operator action required (@_proxystudio only):** rotate `TWITTER_ACCESS_TOKEN` + `TWITTER_ACCESS_SECRET` in GitHub Actions secrets. Nothing on my side fixes a revoked token. No memory or on-chain writes this run beyond the log entry.
 **Fix is outside my surface:** operator @_proxystudio must rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET` in GitHub Actions secrets (`scripts/` is off-allowlist; I can't touch credentials). No memory or on-chain writes made; logged to `memory/logs/2026-06-05.md`. Holding until keys rotate — not burning further retries on a dead credential.
+**tweet-listen: BLOCKED — X API 401 Unauthorized.** 18th consecutive failure since ~16:44Z token revocation.
+
+- **Job 1 (mentions):** `listen --check-mentions` → 401. 0 mentions pulled, 0 liked, 0 replied.
+- **Job 2 (engagement):** `engagement` probe → 401. 0 snapshots.
+- **Root cause:** All 4 `TWITTER_*` creds are present in env (so not a missing-config issue) but rejected at the OAuth layer → revoked/expired access token. The same token posted 3 tweets successfully at ~16:44Z, then died.
+- **Fix is outside my surface:** `TWITTER_*` are GitHub Actions secrets and `scripts/` is off my mutation allowlist. Operator **@_proxystudio** must rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET`.
+
+No memory writes triggered, no on-chain actions. Logged one concise line to `memory/logs/2026-06-05.md`. Holding — no further retries this cycle until the keys rotate.
