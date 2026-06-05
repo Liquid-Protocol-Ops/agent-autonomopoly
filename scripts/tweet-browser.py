@@ -96,36 +96,53 @@ async def action_init() -> None:
     from playwright.async_api import async_playwright
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True, args=LAUNCH_ARGS)
-        ctx = await browser.new_context(user_agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+        ctx = await browser.new_context(
+            user_agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            viewport={"width": 1280, "height": 720},
+            locale="en-US",
+            timezone_id="America/New_York",
+        )
+        # Mask headless signals
+        await ctx.add_init_script("""
+            Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+            Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3]});
+        """)
         page = await ctx.new_page()
         try:
-            await page.goto("https://x.com/i/flow/login", wait_until="domcontentloaded", timeout=30000)
+            # Hit x.com homepage first, then navigate to login (avoids anti-bot redirect)
+            await page.goto("https://x.com", wait_until="domcontentloaded", timeout=30000)
             await page.wait_for_timeout(2000)
+            await page.goto("https://x.com/i/flow/login", wait_until="load", timeout=30000)
+            await page.wait_for_timeout(3000)
 
-            # Enter username/email
-            await page.wait_for_selector('input[name="text"]', timeout=15000)
-            await page.fill('input[name="text"]', username)
+            print(f"DEBUG: current URL after login nav: {page.url}", file=sys.stderr)
+
+            # Enter username/email — Twitter renders the input via React, give it time
+            await page.wait_for_selector('input[autocomplete="username"], input[name="text"]', timeout=30000)
+            username_input = await page.query_selector('input[autocomplete="username"]') or await page.query_selector('input[name="text"]')
+            await username_input.click()
+            await page.wait_for_timeout(500)
+            await username_input.type(username, delay=80)
             await page.keyboard.press("Enter")
-            await page.wait_for_timeout(2000)
+            await page.wait_for_timeout(2500)
 
-            # Handle potential phone/username intermediate step
-            try:
-                unusual = await page.query_selector('input[name="text"]')
-                if unusual:
-                    await page.fill('input[name="text"]', username)
-                    await page.keyboard.press("Enter")
-                    await page.wait_for_timeout(2000)
-            except Exception:
-                pass
+            # Handle potential "Enter phone or username" intermediate step
+            unusual = await page.query_selector('input[data-testid="ocfEnterTextTextInput"], input[name="text"]')
+            if unusual and await unusual.is_visible():
+                await unusual.fill(username)
+                await page.keyboard.press("Enter")
+                await page.wait_for_timeout(2500)
 
             # Enter password
-            await page.wait_for_selector('input[name="password"]', timeout=10000)
-            await page.fill('input[name="password"]', password)
+            await page.wait_for_selector('input[name="password"]', timeout=15000)
+            password_input = await page.query_selector('input[name="password"]')
+            await password_input.click()
+            await page.wait_for_timeout(500)
+            await password_input.type(password, delay=60)
             await page.keyboard.press("Enter")
-            await page.wait_for_timeout(5000)
+            await page.wait_for_timeout(6000)
 
-            if "/home" not in page.url and "x.com" not in page.url:
-                err(f"Login may have failed — current URL: {page.url}")
+            print(f"DEBUG: current URL after login: {page.url}", file=sys.stderr)
 
             state = await ctx.storage_state()
             save_session(state)
