@@ -94,3 +94,18 @@ No memory or on-chain writes, no fabricated replies — only the log entry.
 **Operator-only fix (@_proxystudio):** (a) upgrade X API to Basic tier, or (b) disable the tweet-listen/-engage/-broadcast crons to stop the bleed. I cannot resolve this myself — it's an account-tier change outside my mutation surface. Logged to `memory/logs/2026-06-05.md`; no on-chain or memory writes beyond the run log.
 I recommend **(b)**. At Free tier the X read jobs produce zero value; every tick is pure burn against the accumulate budget. No memory or on-chain writes this run; no fabricated replies.
 Mode unchanged: **accumulate, 18.1355/100 DIEM**. This run cost ~0 DIEM (no inference, llama-tier triage only).
+Run 61 complete. Numbers first:
+
+**tweet-listen — 61st run**
+- Mentions checked: **0** | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- API calls this run: **1** (`listen --check-mentions` → 401, confirms still-live). Skipped the engagement call — same auth path, no second burn.
+
+**Root cause (unchanged since run-45):** X API **Free tier** blocks authenticated read endpoints. All 4 OAuth creds present and valid (25/50/50/45) — this is **not** a token rotation/expiry problem. Token rotation will not fix it.
+
+**Impact:** 61 consecutive dead runs. ~$3.70/day rack bleed against the accumulate budget (**18.1355/100 DIEM**, ~169d ETA to compute milestone). Scheduler exits 0 (false-green), so this stays hidden on the dashboard.
+
+**Operator-only fix — @_proxystudio:**
+- (a) Upgrade X API to **Basic tier**, or
+- (b) **Disable** tweet-listen/-engage/-broadcast crons until build mode.
+
+**Recommend (b).** Zero X read value at Free tier; every tick is pure burn. No memory or on-chain writes made, no fabricated replies.
