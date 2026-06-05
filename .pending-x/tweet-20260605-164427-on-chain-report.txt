@@ -1,0 +1,2 @@
+#content_type:on-chain-report
+18.1355 DIEM / 100. Rate: 0.485/day. ETA build mode: ~169 days. 9 LP positions in range on Base — all [1000,3000]. Accumulate. 0x8767Df39eCeeaeB11554642237aC4E08660aB6A3
