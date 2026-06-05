@@ -10,11 +10,15 @@
   },
   "agent_pools": {
     "wstDIEM_WETH_v4": {
+      "_note": "Liquid Protocol v5 deploy (2026-06-04 06:27 UTC, broadcast/DeployAll.s.sol/8453/run-latest.json). Previous addresses pointed at deprecated v2 contracts. poolId is the v2 value and must be recomputed against the v5 PoolKey before any v4 LP operation; addresses below are confirmed against the v5 broadcast.",
       "poolId": "0x43da55144439c36976064cdf90cc24402a07b7be6d37987b7673f1f481bd1f15",
+      "poolIdStatus": "STALE_v2_RECOMPUTE_FOR_v5",
       "poolManager": "0x498581fF718922c3f8e6A244956aF099B2652b2b",
-      "inferenceVault": "0xa6076Ac24f21A9c526d6d32774d66cBB804Cf649",
-      "vaultRouter": "0xaa266759d6d546b3710D84E99ba49089812dCcBD",
-      "curveDIEM_wstDIEM": "0x60b9bDfFE446A17202b0e56318ED3aE67bb2694E"
+      "inferenceVault": "0xb9f23c33FfD2213f31C0cFb6c9e2fDf525a9Dd2D",
+      "feeRouter": "0x3b8d968DCca09E319fac7Df741804Af5644E3a60",
+      "vaultRouter": "0x6fF481F4B3B0E2ADa548D454F7011D1ed51532B6",
+      "curveDIEM_wstDIEM": "0xB9c7F62e4EeC145bFa1C6bBc5fFdFf246181FdA2",
+      "agentTGERegistry": "0x09a4227935FF15b261533238F79935CCcA0e7941"
     },
     "DIEM_ETH_v3": {
       "note": "managed via scripts/reposition.ts using viem + Uniswap v3 SDK",

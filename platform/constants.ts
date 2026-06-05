@@ -48,11 +48,16 @@ export const ADDRESSES = {
   POSITION_MANAGER_V4: '0x7C5f5A4bBd8fD63184577525326123B519429bDc' as Address,
   POOL_MANAGER_V4:     '0x498581fF718922c3f8e6A244956aF099B2652b2b' as Address,
 
-  // ── Liquid Protocol v0 ───────────────────────────────────────────────
-  // Source: docs/uniswap-v4-lp-reference.json (agent_pools.wstDIEM_WETH_v4)
-  INFERENCE_VAULT:    '0xa6076Ac24f21A9c526d6d32774d66cBB804Cf649' as Address,
-  VAULT_ROUTER:       '0xaa266759d6d546b3710D84E99ba49089812dCcBD' as Address,
-  CURVE_DIEM_WSTDIEM: '0x60b9bDfFE446A17202b0e56318ED3aE67bb2694E' as Address,
+  // ── Liquid Protocol v0 — wstDIEM Inference Vault (v5) ────────────────
+  // Source: liquid-protocol-v0 broadcast/DeployAll.s.sol/8453/run-latest.json
+  // (deployed 2026-06-04 06:27 UTC; addresses pending docs PR #11 merge).
+  // Previous values pointed at deprecated v2 contracts — see commit message.
+  // Liquid Protocol redeploys periodically; cross-check on a new rev before reliance.
+  INFERENCE_VAULT:    '0xb9f23c33FfD2213f31C0cFb6c9e2fDf525a9Dd2D' as Address,
+  FEE_ROUTER:         '0x3b8d968DCca09E319fac7Df741804Af5644E3a60' as Address,
+  VAULT_ROUTER:       '0x6fF481F4B3B0E2ADa548D454F7011D1ed51532B6' as Address,
+  CURVE_DIEM_WSTDIEM: '0xB9c7F62e4EeC145bFa1C6bBc5fFdFf246181FdA2' as Address,
+  AGENT_TGE_REGISTRY: '0x09a4227935FF15b261533238F79935CCcA0e7941' as Address,
 } as const;
 
 // Uniswap v3 pool parameters for ETH/DIEM 1% pool.
