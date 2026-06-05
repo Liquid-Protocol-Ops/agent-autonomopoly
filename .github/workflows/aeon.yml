@@ -205,30 +205,9 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_GLOBAL || secrets.GITHUB_TOKEN }}
         run: node --import tsx scripts/refresh-venice-key.ts || echo "::warning::venice key refresh failed (non-fatal)"
 
-      - name: Install Python browser-use dependencies
+      - name: Install Python Twitter dependencies
         if: steps.skill.outputs.name == 'tweet-broadcast' || steps.skill.outputs.name == 'tweet-listen'
-        run: |
-          pip install -r scripts/requirements-twitter.txt
-          playwright install chromium --with-deps
-
-      - name: Initialize Twitter session if missing
-        if: (steps.skill.outputs.name == 'tweet-broadcast' || steps.skill.outputs.name == 'tweet-listen') && hashFiles('memory/x-session.json') == ''
-        env:
-          VENICE_API_KEY: ${{ secrets.VENICE_API_KEY }}
-          TWITTER_USERNAME: ${{ secrets.TWITTER_USERNAME }}
-          TWITTER_PASSWORD: ${{ secrets.TWITTER_PASSWORD }}
-        run: |
-          echo "No session file found — running init..."
-          python scripts/tweet-browser.py --action init || true
-          if [ -f memory/x-session.json ]; then
-            git add memory/x-session.json
-            git commit -m "chore(twitter): initialize browser session"
-            git push origin HEAD
-            echo "Session committed."
-          else
-            echo "::warning::Init failed — no session file. Generate one locally: python3 scripts/generate-session.py"
-            echo "Continuing without session — tweet-broadcast will skip posting until session is available."
-          fi
+        run: pip install -r scripts/requirements-twitter.txt
 
       - name: Run
         id: run
@@ -264,8 +243,10 @@ jobs:
           DEVTO_API_KEY: ${{ secrets.DEVTO_API_KEY }}
           NEYNAR_API_KEY: ${{ secrets.NEYNAR_API_KEY }}
           NEYNAR_SIGNER_UUID: ${{ secrets.NEYNAR_SIGNER_UUID }}
-          TWITTER_USERNAME: ${{ secrets.TWITTER_USERNAME }}
-          TWITTER_PASSWORD: ${{ secrets.TWITTER_PASSWORD }}
+          TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
+          TWITTER_API_SECRET: ${{ secrets.TWITTER_API_SECRET }}
+          TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          TWITTER_ACCESS_SECRET: ${{ secrets.TWITTER_ACCESS_SECRET }}
           # ── On-chain READS only — the Privy signing credential is NOT here. ──
           # The LLM cannot sign. It queues allow-listed intents via
           # scripts/queue-intent.ts; the separate "Execute on-chain intents" step
