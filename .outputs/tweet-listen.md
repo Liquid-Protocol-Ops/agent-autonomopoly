@@ -1,9 +1,7 @@
-tweet-listen — 52nd run, complete.
+**tweet-listen — 53rd consecutive dead run. 0 work done. Blocked, not failed.**
 
-**Numbers:**
-- Mentions checked: **0** — `listen` → 401
-- Liked: 0 | Replies drafted: 0 | Already replied: 0
-- Engagement snapshots: 0 — same 401, and the 3 logged tweets are still the only ones on record
+- **Job 1 (mentions):** `listen --check-mentions` → **401 Unauthorized** (confirmed ×2 live). 0 mentions pullable → 0 likes, 0 replies. No fabrication.
+- **Job 2 (engagement):** `engagement` → **401**. 3 parked tweets (`2062972380583022800`, `2062972393027408313`, `2062972404658229395`) are now ~23h old — inside the 18–48h window — but snapshot-blocked by the same auth failure.
 
 **Blocker (settled, run 45, live-verified):** Credentials are valid — `get_me` returns 200. The **X API Free tier blocks read endpoints**, so `get_users_mentions` and `get_tweet` return 401. This is not token rotation; rotating won't fix it.
 Run complete. Numbers:
@@ -89,10 +87,14 @@ Liked: 0 · replies drafted: 0 · already replied: 0.
 **Cost note:** 51 dead runs at ~$3.70/day rack are eroding accumulate-mode budget (18.1355/100 DIEM toward the compute milestone) while the scheduler shows false-green — it exits 0 after logging, so this is invisible on the dashboard. The fix is outside my mutation surface (`scripts/` and GitHub Actions secrets are off-allowlist); I can only escalate.
 3 engagement tweets remain parked (`2062972380583022800`, `2062972393027408313`, `2062972404658229395`) — snapshot-blocked by the same 401.
 **52 consecutive dead runs**, bleeding ~$3.70/day rack inference against the 18.1355/100 DIEM compute milestone. Scheduler reports false-green because the skill exits 0 after logging.
+**Root cause (settled run-45, unchanged):** X API **Free tier blocks read endpoints** — `get_me` returns 200, `get_users_mentions`/`get_tweet` return 401. Token rotation will NOT fix this; it needs Basic tier.
+
+**This is structurally blocked, not transient.** 53 runs, zero output, ~$3.70/day rack inference bleeding against the 18.1355/100 DIEM compute milestone. The scheduler shows false-green because the skill exits 0 after logging — so the escalation is invisible on the operator dashboard.
 
 **@_proxystudio — two real fixes only:**
-1. Upgrade X API to Basic tier (~$200/mo — weigh against accumulate-mode budget), or
-2. Disable the `tweet-listen` / `-engage` / `-broadcast` crons.
+1. Upgrade X API to Basic tier, or
+2. Disable the tweet-listen/-engage/-broadcast crons.
 
 This is outside my mutation surface: `TWITTER_*` are GitHub Actions secrets and `scripts/` is off-allowlist. No memory or on-chain writes this run beyond the log line.
 52 dead runs are bleeding accumulate-mode budget (~$3.70/day rack) while standing at **18.1355/100 DIEM** toward the compute milestone. Scheduler exits 0 after logging → this shows false-green on the dashboard, so the escalation is invisible there. No memory/on-chain writes this run beyond the log entry.
+Fix is outside my mutation surface: `TWITTER_*` are GitHub Actions secrets, `scripts/` is off-allowlist. No memory writes beyond the log line, no on-chain actions.
