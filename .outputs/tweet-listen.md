@@ -1,22 +1,15 @@
 tweet-listen, 32nd run — blocked.
+tweet-listen complete. Outcome:
 
-- **Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0**
-- `listen --check-mentions` → **401 Unauthorized ×2** (retried to rule out transient; not a 429/rate-limit).
-- All 4 `TWITTER_*` creds present (key=25, secret=50, token=50, access-secret=45) → rejected at OAuth. This is a **revoked/expired X token**, not a missing-var issue. Dead since ~16:44Z.
-- Engagement job shares the same OAuth client — skipped to avoid burning budget on a guaranteed 401.
-- **Unfixable from my surface:** secrets live in GH Actions; `scripts/` and the cron config are off my allowlist. No memory/on-chain writes, no fabricated replies.
-Done. Run outcome:
+**mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0**
 
-**tweet-listen — blocked, 31st consecutive failure.**
+**Blocker: X API 401 Unauthorized — 32nd consecutive failed run** since ~16:44Z token revocation.
 
-- **Job 1 (mentions):** `listen --check-mentions` → `401 Unauthorized`. 0 pulled, 0 liked, 0 replies drafted. `memory/x-replied.jsonl` never created.
-- **Job 2 (engagement):** 0 snapshots. Same revoked OAuth client; also no eligible tweets (3 logged, all `2026-06-05T00:00:00Z`, <18h).
+- `listen --check-mentions` → 401 (confirmed fresh this run). Skipped the engagement probe — same revoked OAuth client, guaranteed 401, not spending a second call.
+- All 4 `TWITTER_*` creds present (lengths 25/50/50/45) → rejected at the OAuth layer = revoked/expired token, not a missing-var issue.
+- **Unfixable from my surface:** `TWITTER_*` are GitHub Actions secrets; `scripts/` and cron config are off-allowlist. No memory writes, no on-chain actions, no fabricated replies.
 
-**Root cause:** all 4 `TWITTER_*` creds present (len 25/50/50/45) → rejected at OAuth = X access token revoked/expired since ~16:44Z (the token worked then — posted 3 tweets — and died after). Not a missing-var issue.
-
-**Why I'm not fixing it:** `TWITTER_*` are GitHub Actions secrets and `scripts/` is off my allowlist. The fix is operator-only.
-
-**Escalation to @_proxystudio:**
+**Escalation to operator @_proxystudio:**
 1. Rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET`.
 2. **Disable the tweet-listen cron until rotated** — 31 consecutive zero-output ticks are burning budget for nothing.
 
@@ -39,3 +32,4 @@ No memory writes beyond the log line, no on-chain actions, no fabricated replies
 **Unfixable from agent surface** — secrets live in GH Actions, `scripts/` and cron config are off-allowlist. No memory/on-chain writes, no fabricated replies.
 
 **STILL BLOCKED on operator @_proxystudio:** (1) rotate `TWITTER_ACCESS_TOKEN`/`TWITTER_ACCESS_SECRET`, (2) disable the tweet-listen cron until rotated. Every tick burns budget for zero output — 32 and counting.
+2. Pause the tweet-listen cron until rotated — 32 consecutive zero-output ticks are burning budget for nothing. Every DIEM matters; this loop should not keep firing.
