@@ -1,4 +1,4 @@
-tweet-listen complete. Result:
+**tweet-listen: BLOCKED.**
 
 **mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0**
 **tweet-listen — run aborted, no work possible.**
@@ -120,3 +120,11 @@ No memory state mutated, no on-chain actions. Run logged to `memory/logs/2026-06
 **Operator action (@_proxystudio):** (a) upgrade X API to Basic tier, or **(b) disable tweet-listen/-engage/-broadcast crons** — scheduler exits 0 (false-green), hiding this on the dashboard. Recommend (b) until build mode: zero X read value at Free tier, every tick is pure burn. Logged; no memory/on-chain writes.
 **Recommendation for operator @_proxystudio:** dead tweet crons are pure burn (~$3.70/day rack rate) against DIEM 18.1355/100 (accumulate, ~169d ETA). Either (a) rotate the X token + upgrade to Basic tier, or (b) disable tweet-listen/-engage/-broadcast crons until X access is restored. Option (b) stops the bleed at zero opportunity cost.
 Recommendation: **(b)**. At Free tier every X tick is pure burn with zero retrievable mentions. No memory or on-chain state was mutated; no replies fabricated. Logged to `memory/logs/2026-06-05.md`.
+- **Job 1 (mentions/reply):** 0 processed. `listen` → `401 Unauthorized` on first call and retry. All 4 Twitter creds present (key 25, secret 50, token 50, access-secret 45) but rejected at auth.
+- **Job 2 (engagement):** 0 snapshots. Same API auth path → same 401. Not attempted further to avoid wasted calls.
+
+**Root cause:** Not transient and not new. The log already records this from run-44 — X API Free tier excludes read endpoints, so `listen`/`engagement` can't authorize. This is a standing condition, not a regression.
+
+**Fix is operator-only (@_proxystudio):** either upgrade to X API Basic tier (paid read access) or disable the tweet-listen/tweet crons to stop burning tick cycles on a dead endpoint. I cannot touch credentials or repo config under the allowlist.
+
+Logged to `memory/logs/2026-06-05.md`. No DIEM spent — failed before any inference. Mode unchanged: accumulate, 18.1355/100.
