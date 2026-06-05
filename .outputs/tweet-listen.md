@@ -1,9 +1,8 @@
-**tweet-listen — 0 actionable. 23rd consecutive failed run.**
+tweet-listen aborted. **0 mentions | 0 liked | 0 replies | 0 snapshots.**
 
-- `listen --check-mentions` → **401 Unauthorized**. `engagement` → **401**. Both verified this run.
-- Root cause: X access token revoked ~16:44Z (~3h after it last posted 3 tweets successfully). All 4 `TWITTER_*` creds present but rejected at the OAuth layer — revoked, not missing.
-- Job 1: 0 mentions pulled, 0 liked, 0 replies drafted. `memory/x-replied.jsonl` still absent.
-- Job 2: 3 tweets in the 18–48h window but unreachable through the same dead OAuth client.
+**Blocker:** X API **401 Unauthorized** — 24th consecutive dead run since ~16:44Z token revocation. Verified both code paths this run:
+- `listen --check-mentions` → 401
+- `engagement` (probe `2062972404658229395`) → 401
 
 **Outside my mutation surface** — `TWITTER_*` are GitHub Actions secrets, `scripts/` is off-allowlist. I cannot self-heal this.
 Done. Logged.
@@ -16,8 +15,13 @@ Numbers:
 - All 4 `TWITTER_*` creds present (25/50/50/45 chars) → rejected at OAuth = **revoked/expired X access token**, not a missing-var problem.
 
 Root cause stable since ~16:44Z. **Unfixable from my surface** — Twitter secrets live in GitHub Actions and `scripts/` is off-allowlist. I did not fabricate replies and made no memory or on-chain writes beyond the log entry.
+All 4 `TWITTER_*` creds are present (len 25/50/50/45) — the script clears its missing-var check, so X is **rejecting** the OAuth 1.0a token, not finding it absent. The access token/secret are revoked or expired.
 
-**Root cause:** All 4 `TWITTER_*` creds are present (lengths 25/50/50/45) — they clear the missing-var check but X rejects them at the OAuth layer = revoked/expired access token. The X API was working at 16:44Z (3 tweets posted successfully), so the token died after that.
+**Not fixable from my surface.** `TWITTER_*` are GitHub Actions secrets; `scripts/` is off-allowlist. I cannot rotate keys, and I will not fabricate replies to mentions I can't read.
+
+**Operator action — @_proxystudio:**
+1. Rotate `TWITTER_ACCESS_TOKEN` + `TWITTER_ACCESS_SECRET` in GitHub Actions secrets (re-mint in X developer portal).
+2. Pause the `tweet-listen` cron until rotated — 24 ticks burned on an unfixable-from-here blocker.
 
 No memory writes (no mentions to track), no on-chain actions. Logged to `memory/logs/2026-06-05.md`.
 **Blocked — X API 401 Unauthorized. 22nd consecutive failure since ~16:44Z.**
@@ -104,3 +108,4 @@ No mentions pulled → no replies fabricated. No memory writes beyond the one-li
 2. **Pause the tweet-listen cron until then** — 23 dead runs are burning ticks for zero output.
 **Operator @_proxystudio:** (1) rotate `TWITTER_ACCESS_TOKEN`/`TWITTER_ACCESS_TOKEN_SECRET`, (2) pause the tweet-listen cron until rotation — **23 ticks now burned** on a blocker that's unfixable from here. No fabricated replies, no memory or on-chain writes.
 **ESCALATION (24 ticks burned):** operator @_proxystudio must (1) rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET` in GH Actions secrets, and (2) pause the tweet-listen cron until rotated — every tick against a revoked token is wasted compute against the 18.1355/100 DIEM accumulate milestone.
+No memory writes beyond the log line. No on-chain actions.
