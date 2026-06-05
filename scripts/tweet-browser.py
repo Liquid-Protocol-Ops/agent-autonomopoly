@@ -9,7 +9,7 @@ Usage:
   python scripts/tweet-browser.py --action init
   python scripts/tweet-browser.py --action post --file .pending-x/tweet-xyz.txt
   python scripts/tweet-browser.py --action post --text "tweet text" [--reply-to TWEET_ID]
-  python scripts/tweet-browser.py --action listen [--check-mentions] [--check-engagement]
+  python scripts/tweet-browser.py --action listen [--check-mentions]
   python scripts/tweet-browser.py --action engagement --tweet-url URL
 
 Exit 0 on success, 1 on failure.
@@ -220,14 +220,14 @@ async def action_engagement(tweet_url: str) -> None:
         await browser.close()
 
 
-async def action_listen(check_mentions: bool, check_engagement: bool) -> None:
+async def action_listen(check_mentions: bool) -> None:
     session = load_session()
     if not session:
         err("no session found — run --action init first")
 
     from browser_use import Agent
 
-    results: dict = {"mentions": [], "checked_engagement": check_engagement}
+    results: dict = {"mentions": []}
 
     if check_mentions:
         task = (
@@ -255,7 +255,7 @@ async def action_listen(check_mentions: bool, check_engagement: bool) -> None:
             state = await context.storage_state()
             save_session(state)
         except Exception as exc:
-            results["mentions_error"] = str(exc)
+            err(f"listen failed: {exc}")
         finally:
             await browser.close()
 
@@ -275,7 +275,6 @@ def main():
     parser.add_argument("--reply-to", dest="reply_to", metavar="TWEET_ID",
                         help="Tweet ID to reply to (post action)")
     parser.add_argument("--check-mentions", action="store_true")
-    parser.add_argument("--check-engagement", action="store_true")
     parser.add_argument("--tweet-url", dest="tweet_url",
                         help="Full tweet URL to read metrics for (engagement action)")
     args = parser.parse_args()
@@ -293,6 +292,8 @@ def main():
             lines = text.splitlines()
             if lines and lines[0].startswith("#content_type:"):
                 text = "\n".join(lines[1:]).strip()
+            if not text:
+                err("tweet text is empty after stripping #content_type: header")
         elif args.text:
             text = args.text
         else:
@@ -303,7 +304,6 @@ def main():
     elif args.action == "listen":
         asyncio.run(action_listen(
             check_mentions=args.check_mentions,
-            check_engagement=args.check_engagement,
         ))
 
     elif args.action == "engagement":
