@@ -32,6 +32,8 @@ import sys
 from pathlib import Path
 
 PENDING_DIR = Path(".pending-x")
+MEMORY_DIR = Path("memory")
+CACHED_USER_ID_FILE = MEMORY_DIR / "x-user-id.txt"
 
 
 def ok(data: dict) -> None:
@@ -79,6 +81,9 @@ def action_init() -> None:
 
 
 def action_post(text: str, reply_to: str | None = None) -> None:
+    # URLs cost $0.200/tweet vs $0.015 — log a warning if detected
+    if re.search(r'https?://', text):
+        print("WARNING: tweet contains URL — costs $0.200 instead of $0.015", file=sys.stderr)
     client = get_client()
     kwargs: dict = {"text": text}
     if reply_to:
@@ -122,11 +127,16 @@ def action_listen(check_mentions: bool) -> None:
 
     client = get_client()
     try:
-        # Look up authenticated user ID
-        me = client.get_me()
-        if not me.data:
-            err("could not retrieve authenticated user")
-        user_id = me.data.id
+        # Cache user ID to avoid $0.010 get_me call on every run
+        if CACHED_USER_ID_FILE.exists():
+            user_id = int(CACHED_USER_ID_FILE.read_text().strip())
+        else:
+            me = client.get_me()
+            if not me.data:
+                err("could not retrieve authenticated user")
+            user_id = me.data.id
+            MEMORY_DIR.mkdir(exist_ok=True)
+            CACHED_USER_ID_FILE.write_text(str(user_id))
 
         response = client.get_users_mentions(
             id=user_id,
