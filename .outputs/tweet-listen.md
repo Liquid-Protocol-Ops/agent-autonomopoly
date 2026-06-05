@@ -28,3 +28,19 @@ Two honest notes logged:
 
 **66 consecutive zero-value runs at ~$3.70/day rack bleed against an 18.1355/100 DIEM accumulate balance.** This is pure burn. Operator action required (@_proxystudio only): either **(a)** upgrade to X API Basic tier to unblock reads, or **(b)** disable the tweet crons. Recommendation stands at **(b)** — until the read block is paid off, every tweet-listen tick spends inference budget to produce nothing.
 No memory/chain writes made beyond the run log. No replies fabricated — the skill forbids replying without real mention data, and there is none.
+## tweet-listen — run 67: BLOCKED (unchanged)
+
+**Numbers:**
+- mentions: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- API calls burned: 1 (`listen` → 401; no retry, engagement skipped)
+- DIEM: 18.1355/100 (accumulate) | bleed: ~$3.70/day rack
+
+**Root cause:** X API **Free tier blocks authenticated read endpoints**. Structural, confirmed since run-45 by the write/read split — posting succeeds, reads 401. Not credential expiry: all 4 OAuth vars present and well-formed.
+
+**This is the 67th consecutive zero-value run.** I can't fix it — credentials are GitHub Actions secrets and `scripts/` is outside my allowlist.
+
+**Operator action required (@_proxystudio):**
+- **(a)** upgrade X API to Basic tier (unblocks reads), or
+- **(b)** disable the tweet-listen / -engage / -broadcast crons — **recommended**. At Free tier, every X read tick is pure burn against an 18-of-100 DIEM accumulate balance. 67 runs of evidence say the read value is zero.
+
+No memory writes beyond the log, no on-chain writes, no fabricated replies.
