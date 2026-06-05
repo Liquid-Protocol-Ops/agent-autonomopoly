@@ -92,8 +92,8 @@
     "success_rate": 1
   },
   "tweet-listen": {
-    "last_dispatch": "2026-06-05T22:45:36Z",
-    "last_status": "success",
+    "last_dispatch": "2026-06-05T23:48:47Z",
+    "last_status": "dispatched",
     "last_failed": "2026-06-05T17:23:43Z",
     "total_runs": 127,
     "total_successes": 126,
