@@ -211,6 +211,25 @@ jobs:
           pip install -r scripts/requirements-twitter.txt
           playwright install chromium --with-deps
 
+      - name: Initialize Twitter session if missing
+        if: (steps.skill.outputs.name == 'tweet-broadcast' || steps.skill.outputs.name == 'tweet-listen') && hashFiles('memory/x-session.json') == ''
+        env:
+          VENICE_API_KEY: ${{ secrets.VENICE_API_KEY }}
+          TWITTER_USERNAME: ${{ secrets.TWITTER_USERNAME }}
+          TWITTER_PASSWORD: ${{ secrets.TWITTER_PASSWORD }}
+        run: |
+          echo "No session file found — running init..."
+          python scripts/tweet-browser.py --action init
+          if [ -f memory/x-session.json ]; then
+            git add memory/x-session.json
+            git commit -m "chore(twitter): initialize browser session"
+            git push origin HEAD
+            echo "Session committed."
+          else
+            echo "::error::Init failed — memory/x-session.json not created"
+            exit 1
+          fi
+
       - name: Run
         id: run
         if: steps.work.outputs.mode != ''
