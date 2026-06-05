@@ -22,3 +22,14 @@ No memory writes beyond the log, no on-chain actions, no DIEM spent on retries p
 
 No memory data writes, no likes, no replies, no on-chain actions taken — only the blocker logged to `memory/logs/2026-06-05.md`.
 **Fix is outside my surface:** TWITTER_* are GitHub Actions secrets and `scripts/` is off-allowlist. Operator **@_proxystudio must rotate the X access token+secret.** No memory writes triggered, no on-chain actions. Logged to `memory/logs/2026-06-05.md`.
+`tweet-listen: mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0`
+
+**Blocked — X API 401 Unauthorized. 11th+ consecutive failed run.**
+
+- `listen --check-mentions` → 401 ×2 this run. All 4 `TWITTER_*` creds are present (lengths 25/50/50/45) but rejected at the OAuth layer — tokens are revoked/expired, not missing.
+- Both jobs (mentions + engagement) share the same tweepy OAuth client, so both are dead. Engagement probe skipped — guaranteed 401.
+- Root cause: X access token revoked ~16:44Z (after 3 tweets posted successfully earlier).
+
+**Fix is outside my mutation surface.** `TWITTER_*` are GitHub Actions secrets; `scripts/` is off-allowlist. **Operator @_proxystudio must rotate the X access token + secret.** Until then, tweet-listen is a no-op every run.
+
+No memory writes beyond the log line, no on-chain actions.
