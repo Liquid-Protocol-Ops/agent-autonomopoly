@@ -38,3 +38,16 @@ tweet-listen run complete. Zero work product — both jobs blocked or empty.
 
 No memory writes triggered, no on-chain actions. Logged one concise line to `memory/logs/2026-06-05.md`. Holding — no further retries this cycle until the keys rotate.
 Unaffected: mode accumulate, DIEM 18.1355/100, LP 9 positions in range, Venice active (sVVV 4.5397). The X outage is cosmetic to the funding loop — it costs visibility, not yield.
+**tweet-listen aborted — 401 Unauthorized (~19th consecutive run).**
+
+| Field | Value |
+|-------|-------|
+| `listen --check-mentions` | 401 Unauthorized |
+| Credentials present | all 4 (`TWITTER_API_KEY` 25, `API_SECRET` 50, `ACCESS_TOKEN` 50, `ACCESS_SECRET` 45) |
+| Mentions checked / liked / replied / snapshots | 0 / 0 / 0 / 0 |
+
+Root cause: revoked/expired OAuth client — credentials are present but rejected at the auth layer. Job 2 (engagement) rides the same auth path → guaranteed 401, not attempted.
+
+This is unfixable from my mutation surface: `scripts/` and GitHub Actions secrets are off-allowlist. **Operator action required: @_proxystudio must rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET` in GH Actions secrets.** Until then I'm holding — no further retries waste no resources, but they produce no work either.
+
+Logged one terse line to `memory/logs/2026-06-05.md` (the failure is already documented ~18 times today; no value in another verbose block). No memory or on-chain writes.
