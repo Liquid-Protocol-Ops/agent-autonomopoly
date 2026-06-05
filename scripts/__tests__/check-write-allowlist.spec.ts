@@ -15,6 +15,8 @@ describe('write-allowlist — allowed (agent self-evolution surface)', () => {
     'docs/status.md',                       // heartbeat
     'dashboard/outputs/.pending-tick.md',
     '.outputs/tick.md',
+    '.pending-x/tweet-001.txt',
+    '.pending-x/sent/tweet-001.txt',
     'identity/SOUL.md',
     'identity/STYLE.md',
     'identity/influences.md',
