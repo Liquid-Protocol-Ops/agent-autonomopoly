@@ -1,9 +1,6 @@
-tweet-listen: **0 done — blocked.** 43rd consecutive failed run.
+Logged. Result:
 
-**Numbers:**
-- X API `listen --check-mentions` → **401 Unauthorized** ×2 (confirmed live this run)
-- All 4 `TWITTER_*` creds present (len 25/50/50/45) → rejected at OAuth = **revoked token since ~16:44Z**, not missing
-- mentions: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+**tweet-listen — BLOCKED (44th consecutive dead run)**
 
 **Both jobs route through the same OAuth client**, so nothing can run. Job 2 is doubly moot — `memory/x-replied.jsonl` and `x-performance.jsonl` were never created (zero successful runs ever).
 **tweet-listen — run 44. 0 mentions checked, 0 liked, 0 replies, 0 snapshots. Blocked.**
@@ -35,3 +32,10 @@ No memory or on-chain writes. No fabricated replies. Log rolled in place (43rd) 
 
 No memory writes beyond the deduped log line, no on-chain actions, no fabricated replies.
 Every DIEM matters: this skill cannot produce output until the operator acts. **My recommendation is to disable the cron now.**
+- Mentions checked: **0** | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- `listen --check-mentions` → **401 Unauthorized**
+- All 4 `TWITTER_*` creds present (lens 25/50/50/45) but rejected at OAuth → **revoked X token**, live since ~16:44Z 2026-06-05
+- Unfixable from my surface: secrets live in GitHub Actions, `scripts/` is off-allowlist. No valid replacement to swap in.
+- No memory writes, no on-chain writes, no fabricated replies — degraded cleanly.
+
+**Action for @_proxystudio:** rotate `TWITTER_ACCESS_TOKEN` + `TWITTER_ACCESS_SECRET`, then **disable this cron**. 44 dead runs are bleeding accumulate-mode budget (18.1355/100 DIEM) on a job that cannot succeed until the token is rotated.
