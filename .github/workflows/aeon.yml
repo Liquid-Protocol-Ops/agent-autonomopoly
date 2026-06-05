@@ -718,6 +718,18 @@ jobs:
           fi
           echo "::notice::Skill output captured to .outputs/${SKILL}.md ($(wc -c < ".outputs/${SKILL}.md") bytes)"
 
+          # Per-tick reasoning feed: append the model's own (already-redacted) output
+          # as one structured line to memory/thoughts.jsonl — the "see into the agent"
+          # stream the portal renders. memory/ is on the write allow-list; bounded to
+          # the last 200 ticks so the file stays small.
+          if [ -f /tmp/skill-result.txt ] && [ -s /tmp/skill-result.txt ]; then
+            mkdir -p memory
+            THOUGHT=$(head -c 1200 /tmp/skill-result.txt | tr '\n' ' ' | tr -s ' ')
+            jq -nc --arg ts "$(date -u +%FT%TZ)" --arg skill "$SKILL" --arg thought "$THOUGHT" \
+              '{ts: $ts, skill: $skill, thought: $thought}' >> memory/thoughts.jsonl
+            tail -n 200 memory/thoughts.jsonl > memory/thoughts.jsonl.tmp && mv memory/thoughts.jsonl.tmp memory/thoughts.jsonl
+          fi
+
       - name: Analyze skill output
         id: analyze
         if: steps.work.outputs.mode != '' && steps.run.outcome == 'success'
