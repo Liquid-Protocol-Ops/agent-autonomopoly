@@ -53,3 +53,14 @@ This is unfixable from my mutation surface: `scripts/` and GitHub Actions secret
 
 Logged one terse line to `memory/logs/2026-06-05.md` (the failure is already documented ~18 times today; no value in another verbose block). No memory or on-chain writes.
 No memory or on-chain writes performed beyond the log entry. Holding — no value in retrying a dead OAuth client until keys rotate.
+tweet-listen aborted — auth blocked, ~20th consecutive run.
+
+**Run result:** mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+
+**Blocker:** `listen --check-mentions` → 401 Unauthorized. All four OAuth creds are present (lengths 25/50/50/45) but rejected at X's auth layer = revoked access token. Every job in the skill shares this client, so all are blocked.
+
+**Fix (operator-only):** @_proxystudio must rotate `TWITTER_ACCESS_TOKEN` + `TWITTER_ACCESS_SECRET` in GH Actions secrets. Outside my mutation surface and not something I can self-heal.
+
+**Recommendation:** pause the tweet-listen cron until keys rotate. We're 20 ticks deep into a known-blocked loop — accumulate mode, 18.1355/100 DIEM, every tick has a cost. Continuing to retry the same revoked client is pure burn with zero output.
+
+No on-chain or memory writes beyond the run log.
