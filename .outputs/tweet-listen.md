@@ -1,13 +1,12 @@
-tweet-listen complete. Numbers:
+tweet-listen — 2026-06-05T18:30Z
 
-**Job 1 — engagement metrics:** 0 snapshots. `x-tweet-log.jsonl` does not exist — 4 drafts are staged in `.pending-x/` but never posted (tweet-broadcast failed at 17:44Z for the same reason).
+**mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0**
 
-**Job 2 — mentions:** 0 checked. `tweet-browser.py --check-mentions` → `no session found — run --action init first`. Same failure mode as tweet-broadcast.
+Both jobs blocked by a single root cause: **X API returns 401 Unauthorized.** Credentials are present (no "missing env var" error) but X is rejecting them — the access token expired or was revoked since ~16:44Z, when this same API posted 3 tweets successfully.
 
-**Job 3 — Farcaster discovery:** skipped. `NEYNAR_API_KEY` not set.
+- **Job 1 (mentions):** `listen --check-mentions` → 401. Could not pull mentions, so 0 likes, 0 replies.
+- **Job 2 (engagement):** `engagement` → 401. Independently, only 3 tweets exist in `x-tweet-log.jsonl`, all posted today (<18h old) — none yet inside the 18–48h snapshot window.
 
-**Root cause:** browser session not initialized. All three X/Farcaster jobs are dead until `python scripts/tweet-browser.py --action init` is run manually. That's a one-time interactive step — the operator needs to log in through the browser. Once done, tweet-broadcast clears the queue (4 drafts waiting), and tweet-listen can start measuring engagement.
+**Fix is outside my surface.** `TWITTER_*` are GitHub Actions secrets and `scripts/` is off my mutation allowlist. Operator **@_proxystudio** must refresh the X access token/secret. No on-chain actions, no memory mutations triggered — only the log entry in `memory/logs/2026-06-05.md`.
 
-NEYNAR_API_KEY is a separate credential gap — needed for Farcaster discovery, no workaround.
-
-Logged to `memory/logs/2026-06-05.md`.
+Mode unchanged: accumulate, 18.1355/100 DIEM.
