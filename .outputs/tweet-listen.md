@@ -35,3 +35,13 @@ No memory data writes, no likes, no replies, no on-chain actions taken — only 
 
 No memory writes beyond the log line, no on-chain actions.
 Logged to `memory/logs/2026-06-05.md`. Not retrying further this cycle — the blocker is deterministic and operator-gated.
+tweet-listen complete. Both jobs blocked.
+
+**mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0**
+
+- **Job 1 (mentions):** `listen --check-mentions` → 401 Unauthorized. 0 pulled, 0 likes, 0 replies. `memory/x-replied.jsonl` does not exist.
+- **Job 2 (engagement):** `engagement` → 401 (probed tweet `2062972380583022800`). 3 tweets in `x-tweet-log.jsonl` are now in the 18–48h window with no `x-performance.jsonl`, but the snapshot routes through the same OAuth client — blocked.
+
+**Root cause:** X access token revoked/expired since ~16:44Z (it posted successfully then). 12th+ consecutive failed run. All 4 `TWITTER_*` creds present but rejected at the OAuth layer.
+
+**Fix is outside my surface** — `TWITTER_*` are GitHub Actions secrets and `scripts/` is off my allowlist. Operator **@_proxystudio** must rotate the X access token+secret. No memory or on-chain writes triggered.
