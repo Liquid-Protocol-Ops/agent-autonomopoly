@@ -1,14 +1,13 @@
-Run 56 complete. Numbers:
+**tweet-listen — 57th run. 0 mentions, 0 likes, 0 replies, 0 snapshots.**
 
-- **Mentions checked: 0** — `listen --check-mentions` → `401 Unauthorized`. Confirmed live once, no re-probe.
-- **Liked: 0 | Replies drafted: 0 | Already-replied: 0**
-- **Engagement snapshots: 0** — 3 logged tweets posted `2026-06-05T00:00Z` sit under the 18h snapshot floor; ineligible regardless of auth.
+Both jobs blocked by the same wall they've hit for 13 straight runs:
 
-**Root cause (settled run-45):** X API Free tier blocks read endpoints (`get_me` 200, `mentions`/`tweet` 401). Not token rotation — credentials are present and well-formed. This is **operator-only**: `scripts/` and GH Actions secrets are outside my write allowlist, so I cannot fix it.
+- **Job 1 (mentions):** `listen --check-mentions` → 401 Unauthorized.
+- **Job 2 (engagement):** `engagement` → 401 Unauthorized. The 3 parked tweets are now ~23h old (inside the 18–48h window) but unfetchable.
 
-**Cost reality:** 56 consecutive dead runs. The scheduler exits 0 after logging, so this shows false-green on the dashboard while bleeding ~$3.70/day rack against the 18.1355/100 DIEM compute milestone.
+**Root cause (settled run-45):** X API Free tier rejects all read endpoints. Not a token-rotation problem — needs a paid tier. Fix is outside my surface: `TWITTER_*` are GitHub Actions secrets, `scripts/` is off-allowlist.
 
-**@_proxystudio — operator action required:** (a) upgrade X API to Basic tier, or (b) disable the tweet-listen/-engage/-broadcast crons until then. Every dead run is pure burn.
+**My error this run:** I burned 2 probe calls re-confirming a failure run-56 already verified live. The log told me; I should have trusted it. Logged honestly.
 
 **Result:** mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
 
@@ -78,8 +77,9 @@ Liked: 0 · replies drafted: 0 · already replied: 0.
 **This is structurally blocked, not transient.** 53 runs, zero output, ~$3.70/day rack inference bleeding against the 18.1355/100 DIEM compute milestone. The scheduler shows false-green because the skill exits 0 after logging — so the escalation is invisible on the operator dashboard.
 
 **@_proxystudio — two real fixes only:**
+**@_proxystudio — operator action, take one:**
 1. Upgrade X API to Basic tier, or
-2. Disable the tweet-listen/-engage/-broadcast crons.
+2. Disable `tweet-listen`/`-engage`/`-broadcast` crons.
 
 This is outside my mutation surface: `TWITTER_*` are GitHub Actions secrets and `scripts/` is off-allowlist. No memory or on-chain writes this run beyond the log line.
 52 dead runs are bleeding accumulate-mode budget (~$3.70/day rack) while standing at **18.1355/100 DIEM** toward the compute milestone. Scheduler exits 0 after logging → this shows false-green on the dashboard, so the escalation is invisible there. No memory/on-chain writes this run beyond the log entry.
@@ -116,3 +116,4 @@ No memory or on-chain writes beyond the one log line.
 The scheduler exits 0 after logging (false-green), so this 56-run failure is invisible on the dashboard while bleeding ~$3.70/day rack against the 18.1355/100 DIEM accumulate milestone. This is the single highest-leverage fix available right now.
 No memory or on-chain writes. No fabricated replies — zero mentions were pullable, so there was nothing to respond to.
 No memory or on-chain writes beyond the log line. No fabricated replies.
+The scheduler exits 0 after logging, so the dashboard shows green while 57 consecutive runs have done nothing. That false-green is bleeding ~$3.70/day rack against an 18.1355/100 DIEM milestone. No memory or on-chain writes triggered; no fabricated replies.
