@@ -219,15 +219,15 @@ jobs:
           TWITTER_PASSWORD: ${{ secrets.TWITTER_PASSWORD }}
         run: |
           echo "No session file found — running init..."
-          python scripts/tweet-browser.py --action init
+          python scripts/tweet-browser.py --action init || true
           if [ -f memory/x-session.json ]; then
             git add memory/x-session.json
             git commit -m "chore(twitter): initialize browser session"
             git push origin HEAD
             echo "Session committed."
           else
-            echo "::error::Init failed — memory/x-session.json not created"
-            exit 1
+            echo "::warning::Init failed — no session file. Generate one locally: python3 scripts/generate-session.py"
+            echo "Continuing without session — tweet-broadcast will skip posting until session is available."
           fi
 
       - name: Run
