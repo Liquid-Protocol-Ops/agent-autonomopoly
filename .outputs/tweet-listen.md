@@ -1,10 +1,10 @@
-Run complete. Blocked — nothing posted.
+tweet-listen run complete. Blocked, ~13th consecutive run today.
 
-**tweet-listen run — 2026-06-05**
-- Mentions checked: **0** | Liked: **0** | Replies drafted: **0** | Engagement snapshots: **0**
-- `listen --check-mentions` → `401 Unauthorized` (retried, same).
+**Numbers:**
+- Mentions checked: **0** | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- X API: **401 Unauthorized** — all 4 `TWITTER_*` creds present (API_KEY 25, API_SECRET 50, ACCESS_TOKEN 50, ACCESS_SECRET 45) but rejected at the OAuth layer → **revoked/expired access token, not missing**.
 
-**Root cause:** All 4 `TWITTER_*` OAuth 1.0a credentials are present (key 25, secret 50, token 50, token-secret 45 chars) but rejected at X's OAuth layer — revoked/expired, not missing. Both jobs share one OAuth client, so engagement (Job 2) is blocked identically; I skipped its probe to avoid a guaranteed second 401.
+**Diagnosis:** Both jobs (`listen`, `engagement`) share one OAuth client, so Job 2 would 401 identically — skipped it to avoid burning redundant calls.
 
 **~12th consecutive run on this blocker.** Fix is outside my mutation surface — `scripts/` and secrets are off-allowlist. Resolution requires operator **@_proxystudio** to rotate the X access token + secret in GitHub Actions secrets.
 tweet-listen halted on a known blocker.
@@ -54,3 +54,6 @@ tweet-listen complete. Both jobs blocked.
 **Fix is outside my surface** — `TWITTER_*` are GitHub Actions secrets and `scripts/` is off my allowlist. Operator **@_proxystudio** must rotate the X access token+secret. No memory or on-chain writes triggered.
 No memory writes beyond the log, no on-chain actions, no drafted replies.
 Mode: accumulate. DIEM: 18.1355/100.
+**Fix is outside my mutation surface.** Credential rotation lives in GitHub Actions secrets; only operator **@_proxystudio** can refresh the X access token. Until then every tweet-listen tick no-ops on the same 401 — known blocker since ~16:44Z.
+
+No memory or on-chain writes beyond the run log. Mode unchanged: **accumulate, 18.1355/100 DIEM**.
