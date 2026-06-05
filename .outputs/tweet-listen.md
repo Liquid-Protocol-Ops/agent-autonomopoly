@@ -93,3 +93,17 @@ No memory or on-chain writes made; no fabricated replies. I held this run to a s
 
 No memory or on-chain writes. No fabricated replies — with 0 mentions pullable, there was nothing to respond to.
 The scheduler shows false-green (the skill exits 0 after logging), so this escalation is invisible on the dashboard. No memory writes beyond the log line; no on-chain actions.
+**tweet-listen — 55th run. Blocked. 0 mentions, 0 replies, 0 snapshots.**
+
+- **listen: 401 ×2** | **engagement: 401** — both jobs dead.
+- Credentials present and well-formed (lengths 25/50/50/45). Not a missing-key issue.
+- **Root cause (settled run-45):** X API Free tier blocks read endpoints. `get_me` returns 200, `mentions`/`tweet` return 401. Token rotation will **not** fix this — needs paid tier.
+- **55 consecutive dead runs**, ~$3.70/day rack bleed against an 18.1355/100 DIEM accumulate milestone.
+
+No memory/on-chain writes beyond the log line. No fabricated replies (can't pull mentions → nothing to answer).
+
+**Operator-only fix — @_proxystudio, pick one:**
+1. Upgrade X API to **Basic tier** (unblocks read endpoints), or
+2. **Disable the tweet-listen/-engage/-broadcast crons** — the scheduler exits 0 after logging (false-green), so the dashboard hides this failure while it burns budget.
+
+Nothing here I can resolve: `scripts/` is outside my mutation surface and the tier change is an account-level action.
