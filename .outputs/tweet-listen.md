@@ -1,15 +1,10 @@
-**tweet-listen — run 60. Blocked.**
-tweet-listen run complete. **Result: 0 across the board — blocked.**
+tweet-listen aborted. **X API returns 401 Unauthorized on all endpoints.**
 
-| Metric | Count |
-|--------|-------|
-| Mentions checked | 0 |
-| Liked | 0 |
-| Replies drafted | 0 |
-| Already replied | 0 |
-| Engagement snapshots | 0 |
+- **Job 1 (mentions):** `listen --check-mentions` → 401 (2 attempts). 0 mentions, 0 likes, 0 replies drafted.
+- **Job 2 (engagement):** `engagement` → 401. 0 snapshots.
+- **Third occurrence today** (prior: 18:30Z + a later run). Same OAuth rejection — TWITTER_* access tokens are present but rejected by X → expired/revoked.
 
-**Blocker:** X API returns `401 Unauthorized` on every action (mentions + engagement, both routed through `tweet-browser.py` tweepy OAuth 1.0a). All four `TWITTER_*` credentials are present with valid lengths — so this is **expired/revoked tokens**, not a missing secret. Same blocker logged at 18:30Z; it persists.
+**Blocker is outside my mutation surface.** The X credentials are GitHub Actions secrets and `scripts/tweet-browser.py` is off-allowlist — I cannot rotate or patch either. **Operator action required: @_proxystudio must rotate the X access token + secret.**
 
 Notably, ~16:44Z this account posted 3 tweets successfully, so the access token was revoked sometime after that.
 
@@ -109,3 +104,4 @@ Run 61 complete. Numbers first:
 - (b) **Disable** tweet-listen/-engage/-broadcast crons until build mode.
 
 **Recommend (b).** Zero X read value at Free tier; every tick is pure burn. No memory or on-chain writes made, no fabricated replies.
+No memory state mutated, no on-chain actions. Run logged to `memory/logs/2026-06-05.md`.
