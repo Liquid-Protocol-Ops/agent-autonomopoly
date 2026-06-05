@@ -29,7 +29,7 @@ skills:
   # Twitter/X content lifecycle — browser-use + Venice (paid from DIEM staking)
   tweet-engage:    { enabled: true, schedule: "0 6 * * *",     model: "claude-opus-4-8" }  # daily 06:00 UTC — generate drafts
   tweet-broadcast: { enabled: true, schedule: "0 14 * * *",    model: "claude-opus-4-8" }  # daily 14:00 UTC — post queued content
-  tweet-listen:    { enabled: true, schedule: "*/5 * * * *",   model: "claude-opus-4-8" }  # every 5min — metrics + mentions + discovery
+  tweet-listen:    { enabled: true, schedule: "*/5 * * * *",   model: "claude-opus-4-8" }  # every 5min fallback (Vercel cron + X webhook dispatch at api/cron/listen + api/webhook/x)
   tweet-reflect:   { enabled: true, schedule: "0 20 * * 0",    model: "claude-opus-4-8" }  # Sunday 20:00 UTC — strategy update
   tweet-promote:   { enabled: true, schedule: "0 10 * * 2,5", model: "claude-opus-4-8" }  # Tue/Fri 10:00 UTC — video promo generation
 
