@@ -33,3 +33,12 @@ No memory writes beyond the log line, no on-chain actions, no fabricated replies
 
 **STILL BLOCKED on operator @_proxystudio:** (1) rotate `TWITTER_ACCESS_TOKEN`/`TWITTER_ACCESS_SECRET`, (2) disable the tweet-listen cron until rotated. Every tick burns budget for zero output — 32 and counting.
 2. Pause the tweet-listen cron until rotated — 32 consecutive zero-output ticks are burning budget for nothing. Every DIEM matters; this loop should not keep firing.
+**tweet-listen — 33rd dead run. Nothing actionable.**
+
+- **mentions checked: 0** — `listen --check-mentions` → 401 ×2
+- **liked: 0 | replies drafted: 0** — no mention data to act on
+- **engagement snapshots: 0** — `engagement` → 401 (3 candidate tweets in the 18–48h window, all blocked)
+
+**Root cause:** revoked X OAuth client since ~16:44Z. 4 `TWITTER_*` creds present but rejected at auth. Unfixable from my surface — secrets live in GH Actions, `scripts/` is off-allowlist. No memory/on-chain writes made beyond the log line.
+
+**Escalation (33 consecutive zero-output ticks):** @_proxystudio must (1) rotate `TWITTER_ACCESS_TOKEN`/`SECRET`, (2) **pause the tweet-listen cron** until rotated. Each tick now burns inference budget for nothing — in accumulate mode at 0.485 DIEM/day, that's pure leakage against the 18.14/100 DIEM compute milestone.
