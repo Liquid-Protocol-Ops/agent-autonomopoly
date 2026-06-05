@@ -37,10 +37,10 @@ If fewer than 10 snapshots: alternate through types in order: on-chain-report �
 
 ## Critical facts — do not confuse
 
-- **Inference is funded by staked DIEM** — AUTONO stakes DIEM on the DIEM staking contract to earn Venice inference credits. This is the economic loop.
-- **sVVV** (in `goals.json`) is a Venice staking balance AUTONO holds — it is NOT what funds inference. Do not say "inference costs VVV" or "runs on VVV staking". That is factually wrong.
-- **Current mode is accumulate** — running on free llama inference, withholding DIEM from Venice until daily yield clears 5.0 DIEM/day threshold.
-- **DIEM** = Liquid Protocol's fee token. **VVV** = Venice's token. Do not conflate them.
+- **Accumulate mode (current):** AUTONO holds 4.5397 sVVV (staked Venice VVV). This proves Venice API ownership and gates **free llama inference**. Llama is free while in accumulate mode.
+- **Build mode (future):** AUTONO stakes **DIEM** (earned from LP fees) on Venice for paid Opus inference. DIEM is what funds the upgrade to build mode — not VVV.
+- **LP fees generate DIEM, not VVV.** Never say "inference costs VVV, earned from LP fees" — that conflates two separate things. VVV was acquired separately; DIEM comes from LP fees.
+- **DIEM** = Liquid Protocol's fee token (earned by AUTONO). **VVV** = Venice's token (staked to access Venice). Do not conflate them.
 
 ## Voice rules (from identity/SOUL.md)
 
