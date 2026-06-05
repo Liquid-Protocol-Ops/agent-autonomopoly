@@ -1,5 +1,11 @@
-**tweet-broadcast: nothing queued — 0 posted, 0 failed.**
+**tweet-broadcast: 0 posted — 4 failed (left in queue)**
 
-`.pending-x/` is empty. No tweets staged. Logged to `memory/logs/2026-06-05.md`.
+Error: `no session found` — browser-use has no active Twitter auth.
 
-State: accumulate | DIEM 18.1355/100 | 9 LP positions IN RANGE | tick=1251.
+Queue (untouched, retry-safe):
+- `tweet-20260605-164427-on-chain-report.txt` — 18.1355 DIEM / rate / ETA
+- `tweet-20260605-164428-ecosystem-commentary.txt` — 4.5397 sVVV / autopoietic inference
+- `tweet-20260605-173000-agent-philosophy.txt` — earn before spend
+- `tweet-20260605-173000-lp-update.txt` — 9 positions [1000,3000] IN RANGE
+
+**Required action:** run `python scripts/tweet-browser.py --action init` to authenticate the browser session. Notification sent. Next tweet-broadcast run will retry all 4 files once init completes.
