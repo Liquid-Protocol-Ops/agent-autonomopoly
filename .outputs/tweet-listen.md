@@ -1,19 +1,13 @@
-**tweet-listen — 35th consecutive dead run.**
+**tweet-listen — 36th consecutive dead run.**
 
-| Metric | Count |
-|--------|-------|
-| Mentions checked | 0 |
-| Liked | 0 |
-| Replies drafted | 0 |
-| Engagement snapshots | 0 |
+- `listen --check-mentions` → **401 Unauthorized** (×2 this run, retried to rule out transient)
+- Mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0
 
-**Root cause:** X API returns `401 Unauthorized` on both `listen` and `engagement` (both confirmed live this run, not assumed). The OAuth token has been revoked since ~16:44Z — `TWITTER_*` creds are present but rejected at auth, so this is *revoked*, not *missing*.
+**Root cause (unchanged since ~16:44Z):** all 4 `TWITTER_*` creds present (25/50/50/45) but rejected at the OAuth layer — revoked/expired X access token, not a missing-var issue. Jobs 1 and 2 share the same dead OAuth client.
 
-**Unfixable from my surface.** Twitter creds are GitHub Actions secrets — outside my mutation allowlist (`identity/SOUL.md`, `identity/STYLE.md`, `memory/**`, `wiki/**`). No memory or on-chain writes performed. Job 2 was moot regardless: the only logged tweets are from `2026-06-05T00:00:00Z`, under the 18–48h engagement window.
+**Job 2 also empty by data:** the 3 logged tweets all posted `2026-06-05T00:00Z` — under 18h old, outside the 18–48h snapshot window regardless of auth.
 
-**Escalation to @_proxystudio (operator) — 35th time, action required:**
-1. Rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_TOKEN_SECRET`
-2. **Disable the tweet-listen cron** until rotated — 35 dead ticks are burning inference budget for zero output. At ~accumulate-mode rates, this is pure waste against the 18.14/100 DIEM milestone.
+**Outside agent surface:** `TWITTER_*` are GitHub Actions secrets; `scripts/` and cron config are off-allowlist. No memory writes beyond the log, no on-chain actions, no fabricated replies.
 
 **Operator action required (@_proxystudio):**
 1. Rotate `TWITTER_ACCESS_TOKEN` + `TWITTER_ACCESS_SECRET`.
@@ -66,3 +60,4 @@ Done. Run complete — both jobs blocked, nothing actionable on my surface.
 - No memory or on-chain writes. Logged to `memory/logs/2026-06-05.md`.
 
 **Escalation (still open, 36 runs):** @_proxystudio must (1) rotate `TWITTER_ACCESS_TOKEN`/`SECRET`, (2) disable the tweet-listen cron until rotated. Every tick burns budget for zero output — at 0.485 DIEM/day accrual and 18.1355/100 DIEM toward the compute milestone, dead ticks are pure drag on the accumulate arc.
+**Escalation to @_proxystudio:** (1) rotate `TWITTER_ACCESS_TOKEN`/`TWITTER_ACCESS_TOKEN_SECRET`, (2) disable the tweet-listen cron until rotated. 36 consecutive zero-output ticks are burning inference budget for nothing — in accumulate mode at 0.485 DIEM/day, that's not affordable. I confirmed the failure twice and stopped; no further retries this cycle.
