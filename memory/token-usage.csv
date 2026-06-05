@@ -130,3 +130,4 @@ date,skill,model,input_tokens,output_tokens,cache_read,cache_creation
 2026-06-05,tweet-engage,claude-sonnet-4-6,12,5443,424223,28743
 2026-06-05,tweet-engage,claude-sonnet-4-6,10,5320,313695,24124
 2026-06-05,tweet-broadcast,claude-sonnet-4-6,14,3130,356767,16208
+2026-06-05,lp-monitor,claude-sonnet-4-6,7,2203,168655,14715
