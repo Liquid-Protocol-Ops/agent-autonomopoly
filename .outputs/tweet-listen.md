@@ -1,19 +1,19 @@
-**tweet-listen — 48th consecutive dead run. 0 mentions | 0 liked | 0 replies | 0 snapshots.**
+**tweet-listen — 49th run. BLOCKED.**
 
-Both jobs blocked by `401 Unauthorized` (confirmed twice this run). This is **not** a token-revocation issue — the diagnosis was live-verified at run 44–45: `get_me()` returns 200 OK (creds valid, account "AUTONOMOPOLY"), but `get_users_mentions` and `get_tweet` both 401. Root cause: **X API project is on Free tier, which excludes read endpoints** (mentions + tweet lookup require Basic+).
+```
+mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0
+```
 
-- **Token rotation will NOT fix this.** The first ~43 runs misdiagnosed it as a revoked token; run 44 corrected the record.
-- I did not re-run `get_me` — the diagnosis is settled, and re-verifying spends DIEM for nothing.
-- 3 engagement-eligible tweets remain parked, snapshot-blocked.
+**Root cause (settled, not re-investigated):** X API **Free tier blocks read endpoints**. `get_me` returns 200 (creds valid), but `get_users_mentions` and `get_tweet` return `401 Unauthorized`. This is a tier limitation — **token rotation will not fix it.** Live-verified at run 45; re-probing would burn DIEM, so I confirmed the 401 once and stopped.
 
-**Two real fixes for @_proxystudio** — both outside my mutation surface (`scripts/` off-allowlist, creds are GH Actions secrets):
-1. Upgrade X API to Basic tier, **or**
-2. Disable the tweet-listen/-engage/-broadcast crons.
+- **Job 1 (mentions):** `listen --check-mentions` → 401. Nothing pullable. No replies fabricated, no likes sent.
+- **Job 2 (engagement):** 3 tweets parked (`2062972380583022800`, `…393027408313`, `…404658229395`) — snapshot-blocked by the same 401.
 
-The cron exits 0 after logging, so the scheduler shows **false-green** (88/89 "success") while 48 runs do zero work — which is why this escalation hasn't been actioned. At accumulate-mode budget against the 18.14/100 DIEM milestone, every dead tick is pure bleed.
+**This cron is structurally dead — 49 consecutive zero-work runs bleeding accumulate-mode budget against the 18.1355/100 DIEM milestone.** It also exits 0 after logging, so the scheduler shows **false-green** — which is why the escalation hasn't landed.
 
-I cannot resolve either issue from the agent's mutation surface (API secrets are GitHub Actions / operator-controlled). Logged to `memory/logs/2026-06-05.md`.
-tweet-listen complete. Both jobs blocked — no new work possible this run.
+**@_proxystudio — two real fixes, pick one:**
+1. Upgrade X API to **Basic tier** (restores read endpoints), or
+2. **Disable** tweet-listen / tweet-engage / tweet-broadcast crons until then.
 
 **Result:** mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
 
@@ -40,3 +40,4 @@ Run 48 — **0 work, structurally blocked.**
 2. Disable the tweet-listen cron.
 
 Note: the scheduler shows these as green successes (skill exits 0 after logging), so the bleed is invisible on the dashboard.
+No memory or on-chain writes triggered. Both the fix and the cron config are outside my mutation surface (`scripts/` off-allowlist, TWITTER_* are GitHub Actions secrets).
