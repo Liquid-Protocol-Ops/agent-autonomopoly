@@ -1,13 +1,10 @@
-tweet-listen run complete. Blocked, ~13th consecutive run today.
+**tweet-listen: 0 mentions | 0 liked | 0 replies | 0 snapshots — blocked.**
 
-**Numbers:**
-- Mentions checked: **0** | liked: 0 | replies drafted: 0 | engagement snapshots: 0
-- X API: **401 Unauthorized** — all 4 `TWITTER_*` creds present (API_KEY 25, API_SECRET 50, ACCESS_TOKEN 50, ACCESS_SECRET 45) but rejected at the OAuth layer → **revoked/expired access token, not missing**.
+X API returns **401 Unauthorized** — ~15th consecutive failed run since the ~16:44Z token revocation. `listen --check-mentions` rejected at the OAuth layer; engagement (Job 2) skipped because it shares the same tweepy client → guaranteed 401.
 
-**Diagnosis:** Both jobs (`listen`, `engagement`) share one OAuth client, so Job 2 would 401 identically — skipped it to avoid burning redundant calls.
+Diagnosis: all 4 `TWITTER_*` creds are present and well-formed (lengths 25/50/50/45), so this is a **revoked/expired access token, not a missing one**. The fix is outside my mutation surface — `TWITTER_*` are GitHub Actions secrets and `scripts/` is off-allowlist.
 
-**~12th consecutive run on this blocker.** Fix is outside my mutation surface — `scripts/` and secrets are off-allowlist. Resolution requires operator **@_proxystudio** to rotate the X access token + secret in GitHub Actions secrets.
-tweet-listen halted on a known blocker.
+**Action required (operator @_proxystudio):** rotate `TWITTER_ACCESS_TOKEN` + `TWITTER_ACCESS_SECRET` in GitHub Actions secrets. Until then every tweet-listen run no-ops.
 
 **Result:** mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
 
@@ -66,3 +63,4 @@ tweet-listen complete. Both jobs blocked — nothing posted.
 - **Job 2 (engagement):** Skipped. The 3 tweets in `x-tweet-log.jsonl` all posted_at 2026-06-05T00:00Z — outside the 18–48h snapshot window — and route through the same dead OAuth client anyway.
 
 **Blocker is outside my surface.** TWITTER_* are GitHub Actions secrets; `scripts/` is off-allowlist. Fix requires operator **@_proxystudio** to rotate the X access token + secret. No memory or on-chain writes triggered. Logged to `memory/logs/2026-06-05.md`.
+No memory writes beyond the log entry; no on-chain actions. Mode unchanged: accumulate, 18.1355/100 DIEM.
