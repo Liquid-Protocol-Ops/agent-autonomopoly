@@ -528,6 +528,12 @@ jobs:
           Mode: ${AGENT_MODE}. DIEM: ${DIEM_CURRENT}/${DIEM_TARGET} toward compute milestone.
           Today is $TODAY.
 
+          $(if [ -f memory/inference-cost.md ]; then
+            DAILY=$(grep 'Daily avg' memory/inference-cost.md | grep -oE '\$[0-9.]+' | head -1)
+            TOP=$(grep '^\- \*\*' memory/inference-cost.md | head -1 | sed 's/- \*\*//;s/\*\*.*//')
+            echo "Inference: ${DAILY:-?}/day at rack rates (Venice ~free via DIEM). Top cost: ${TOP:-unknown}. Full breakdown: memory/inference-cost.md"
+          fi)
+
           Read and execute the skill defined in skills/${SKILL_NAME}/SKILL.md
           Lead with numbers. Be direct. Every DIEM matters."
           fi
