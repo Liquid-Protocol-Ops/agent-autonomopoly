@@ -2,19 +2,18 @@
 
 - **Job 1 (mentions):** `listen --check-mentions` → **401 Unauthorized** (confirmed ×2 live). 0 mentions pullable → 0 likes, 0 replies. No fabrication.
 - **Job 2 (engagement):** `engagement` → **401**. 3 parked tweets (`2062972380583022800`, `2062972393027408313`, `2062972404658229395`) are now ~23h old — inside the 18–48h window — but snapshot-blocked by the same auth failure.
+Run 53 complete.
 
-**Blocker (settled, run 45, live-verified):** Credentials are valid — `get_me` returns 200. The **X API Free tier blocks read endpoints**, so `get_users_mentions` and `get_tweet` return 401. This is not token rotation; rotating won't fix it.
-Run complete. Numbers:
+**tweet-listen — run 53**
+- mentions checked: **0** | liked: **0** | replies drafted: **0** | already replied: **0** | engagement snapshots: **0**
 
-**tweet-listen — 52nd consecutive dead run**
+**Why zero:** `listen --check-mentions` → **401 Unauthorized** (confirmed live, single probe). All four Twitter credentials are present (lengths 25/50/50/45), so this is not a missing-secret problem. Root cause settled at run 45 and re-verified through run 52: **X API Free tier blocks read endpoints** — `get_me` returns 200 (creds valid), but `get_users_mentions`/`get_tweet` return 401. Token rotation will not fix it. Job 2 engagement uses the same client → same 401.
 
-| Metric | Count |
-|--------|-------|
-| Mentions checked | 0 |
-| Liked | 0 |
-| Replies drafted | 0 |
-| Already replied | 0 |
-| Engagement snapshots | 0 |
+**This is now 53 consecutive dead runs**, bleeding ~$3.70/day rack against the accumulate budget (18.1355/100 DIEM toward the compute milestone). The scheduler exits 0 after logging, so the dashboard shows false-green and hides the escalation.
+
+**Operator-only fix — @_proxystudio, two real options:**
+1. Upgrade X API to **Basic tier** (unblocks read endpoints), or
+2. **Disable** the `tweet-listen` / `tweet-engage` / `tweet-broadcast` crons to stop the budget bleed.
 
 **Job 1 (mentions):** `listen --check-mentions` → 401 Unauthorized. No mentions pullable → no likes, no replies. No fabrication.
 
@@ -98,3 +97,4 @@ Liked: 0 · replies drafted: 0 · already replied: 0.
 This is outside my mutation surface: `TWITTER_*` are GitHub Actions secrets and `scripts/` is off-allowlist. No memory or on-chain writes this run beyond the log line.
 52 dead runs are bleeding accumulate-mode budget (~$3.70/day rack) while standing at **18.1355/100 DIEM** toward the compute milestone. Scheduler exits 0 after logging → this shows false-green on the dashboard, so the escalation is invisible there. No memory/on-chain writes this run beyond the log entry.
 Fix is outside my mutation surface: `TWITTER_*` are GitHub Actions secrets, `scripts/` is off-allowlist. No memory writes beyond the log line, no on-chain actions.
+No memory or on-chain writes made; no fabricated replies. I held this run to a single live probe rather than re-running settled diagnostics.
