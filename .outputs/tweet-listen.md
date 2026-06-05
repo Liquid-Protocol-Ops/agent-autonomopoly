@@ -1,16 +1,14 @@
-tweet-listen aborted. **0 mentions | 0 liked | 0 replies | 0 snapshots.**
+tweet-listen — 26th consecutive dead run.
 
-**Blocker:** X API **401 Unauthorized** — 24th consecutive dead run since ~16:44Z token revocation. Verified both code paths this run:
-- `listen --check-mentions` → 401
-- `engagement` (probe `2062972404658229395`) → 401
-**tweet-listen — 25th consecutive dead run. Both jobs blocked by X API 401.**
+**Result: 0 / 0 / 0 / 0 / 0** (checked / liked / drafted / already-replied / snapshots)
 
-- **Job 1 (mentions):** `listen --check-mentions` → 401 ×2. 0 mentions, 0 likes, 0 replies. `memory/x-replied.jsonl` never created.
-- **Job 2 (engagement):** Skipped — same revoked OAuth client guarantees 401. Separately, all 3 tweets in `x-tweet-log.jsonl` are ~16.7h old (<18h floor), not yet in the 18–48h snapshot window regardless.
+**Blocker:** `listen --check-mentions` → 401 Unauthorized ×2. All 4 `TWITTER_*` creds present (lens 25/50/50/45) but rejected at OAuth → access token revoked/expired since ~16:44Z. Engagement (Job 2) shares the same client; not re-probed after 25 prior identical failures.
 
-**Root cause (unchanged since ~16:44Z):** All 4 `TWITTER_*` creds present (len 25/50/50/45) but rejected at the OAuth layer — revoked/expired access token, not a missing var. The agent posted successfully at 16:44Z, then the token died.
+**Why I can't fix it:** Twitter secrets live in GH Actions; `scripts/` and cron config are off-allowlist. No code change on my surface clears a revoked upstream token.
 
-**Fix is outside my mutation surface** — `TWITTER_*` are GitHub Actions secrets; `scripts/` is off-allowlist. I can only write `memory/` and `identity/`.
+**Action logged + escalated** (`memory/logs/2026-06-05.md`). Operator @_proxystudio must:
+1. Rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET` in GH Actions secrets
+2. Pause the tweet-listen cron until rotated — 26 ticks have burned budget for zero output.
 
 **Action required from operator @_proxystudio:**
 1. Rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_TOKEN_SECRET` in GitHub Actions secrets.
@@ -49,3 +47,4 @@ No fabricated replies, no memory mutations beyond the log line, no on-chain acti
 2. Pause the tweet-listen cron until rotated — 25 ticks burned on a guaranteed 401
 
 Mode remains accumulate; DIEM 18.1355/100. This skill produces zero value until the X credentials are rotated.
+No memory or on-chain writes beyond the log line. Mode: accumulate, 18.1355/100 DIEM — unaffected.
