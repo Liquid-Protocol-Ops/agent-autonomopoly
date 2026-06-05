@@ -1,85 +1,17 @@
-**tweet-listen — 57th run. 0 mentions, 0 likes, 0 replies, 0 snapshots.**
+Run complete. Numbers:
 
-Both jobs blocked by the same wall they've hit for 13 straight runs:
+**tweet-listen — 58th run.** checked:0 | liked:0 | drafted:0 | already-replied:0 | snapshots:0.
 
-- **Job 1 (mentions):** `listen --check-mentions` → 401 Unauthorized.
-- **Job 2 (engagement):** `engagement` → 401 Unauthorized. The 3 parked tweets are now ~23h old (inside the 18–48h window) but unfetchable.
+- **Job 1 (mentions):** `listen --check-mentions` → 401 Unauthorized ×2 (live). Zero mentions pullable → zero replies. No fabrication.
+- **Job 2 (engagement):** 3 logged tweets are ~23h old, inside the 18–48h window, but `engagement` → 401. Snapshots blocked.
 
-**Root cause (settled run-45):** X API Free tier rejects all read endpoints. Not a token-rotation problem — needs a paid tier. Fix is outside my surface: `TWITTER_*` are GitHub Actions secrets, `scripts/` is off-allowlist.
+**Root cause (settled run-45, unchanged):** X API **Free tier blocks read endpoints** — `get_me` returns 200, `mentions`/`tweet` return 401. Credential is valid; token rotation will not fix it.
 
-**My error this run:** I burned 2 probe calls re-confirming a failure run-56 already verified live. The log told me; I should have trusted it. Logged honestly.
+**This is the 58th consecutive dead run**, bleeding ~$3.70/day rack against the accumulate-mode budget (18.1355/100 DIEM). The scheduler exits 0 after logging, so the dashboard shows false-green and hides the failure.
 
-**Result:** mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
-
-**Root cause:** X API returns **401 Unauthorized** on every call (`listen --check-mentions` ×2, `engagement` probe ×1). This is the ~10th consecutive failed run since the access token died ~16:44Z. All 4 TWITTER_* creds are present and well-formed (len 25/50/50/45) but rejected at the OAuth layer — token revoked/expired, not missing.
-
-**Impact:**
-- Job 1 (mentions): 0 pulled. `memory/x-replied.jsonl` never created — no mentions have ever been processed.
-- Job 2 (engagement): 3 tweets in `x-tweet-log.jsonl` are now ~22.6h old, squarely inside the 18–48h window with no `x-performance.jsonl` entry — but the snapshot routes through the same dead OAuth client.
-
-**Fix is outside my surface.** `TWITTER_*` are GitHub Actions secrets; `scripts/` is off-allowlist. Operator **@_proxystudio** must rotate the X access token + secret. Until then this skill is a no-op every run.
-
-No memory writes triggered, no on-chain actions. Run logged to `memory/logs/2026-06-05.md`.
-No memory writes beyond the log entry. No on-chain actions. No fabricated replies.
-Run 48 — **0 work, structurally blocked.**
-
-- `listen --check-mentions` → 401 ×2, `engagement` → 401 (confirmed live this run).
-- **Root cause is settled, not a new failure:** X API project is on **Free tier**, which blocks read endpoints (`get_users_mentions`, `get_tweet`). Creds are valid — `get_me` returns 200. **Token rotation will not fix this.** (Runs 38–43's "rotate token" advice was wrong; corrected at run 44, live-verified run 45.)
-- Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0.
-- 3 tweets parked awaiting snapshot, read-blocked.
-- No memory/on-chain writes, no fabricated replies. Run logged.
-
-**@_proxystudio — this is 48 consecutive dead runs bleeding accumulate-mode budget against the 18.14/100 DIEM milestone. Two options, both yours to call:**
-1. Upgrade X API to Basic tier (restores read access), or
-2. Disable the tweet-listen cron.
-
-Note: the scheduler shows these as green successes (skill exits 0 after logging), so the bleed is invisible on the dashboard.
-No memory or on-chain writes triggered. Both the fix and the cron config are outside my mutation surface (`scripts/` off-allowlist, TWITTER_* are GitHub Actions secrets).
-Run complete. Result:
-
-**tweet-listen — run 56: 0 actions possible.**
-
-| Metric | Count |
-Logged. Run complete.
-
-**tweet-listen — 57th run: ABORTED**
-
-| Metric | Value |
-|--------|-------|
-| Mentions checked | 0 |
-| Liked | 0 |
-| Replies drafted | 0 |
-| Engagement snapshots | 0 |
-
-**Blocker:** `tweet-browser.py` returns **401 Unauthorized** on both `--action listen` and `--action engagement`. Root cause is unchanged since run-45 — X API Free tier blocks read endpoints. No diagnosis budget spent re-confirming what's already settled.
-
-**Job 2 note:** The only 3 candidate tweets (posted `2026-06-05T00:00:00Z`) are still under the 18h floor — not in the snapshot window even if auth worked.
-
-**Standing cost:** 57 consecutive dead runs at ~$3.70/day rack bleed, against 18.1355/100 DIEM toward the compute milestone. This is operator-only — the security rule limits action triggers to @_proxystudio, and the fix is infrastructure I can't touch.
-
-**@_proxystudio action required (unchanged):**
-1. Upgrade X API to Basic tier (restores read endpoints), **or**
-2. Disable the tweet crons — the scheduler is reporting false-green and masking 57 silent failures.
-
-| Job | Result |
-|-----|--------|
-| 1: mentions | **0 checked** — `listen` → 401 Unauthorized, 2 attempts |
-| 2: engagement | **0 snapshots** — all 3 logged tweets `posted_at 2026-06-05T00:00:00Z`, inside the 18h floor; none in the 18–48h window |
-
-Liked: 0 · replies drafted: 0 · already replied: 0.
-
-**Root cause:** X API token revoked since ~1644Z — this is the 7th+ consecutive failed run today. The 401 fires at OAuth (`get_me`), before any user-data fetch, so both jobs route the same dead client. Fix is **outside my mutation surface**: `TWITTER_*` are GitHub Actions secrets and `scripts/` is off-allowlist. Operator **@_proxystudio** must rotate the X access token + secret. No memory writes, no on-chain actions taken — logged to `memory/logs/2026-06-05.md`.
-**Cost note:** 51 dead runs at ~$3.70/day rack are eroding accumulate-mode budget (18.1355/100 DIEM toward the compute milestone) while the scheduler shows false-green — it exits 0 after logging, so this is invisible on the dashboard. The fix is outside my mutation surface (`scripts/` and GitHub Actions secrets are off-allowlist); I can only escalate.
-3 engagement tweets remain parked (`2062972380583022800`, `2062972393027408313`, `2062972404658229395`) — snapshot-blocked by the same 401.
-**52 consecutive dead runs**, bleeding ~$3.70/day rack inference against the 18.1355/100 DIEM compute milestone. Scheduler reports false-green because the skill exits 0 after logging.
-**Root cause (settled run-45, unchanged):** X API **Free tier blocks read endpoints** — `get_me` returns 200, `get_users_mentions`/`get_tweet` return 401. Token rotation will NOT fix this; it needs Basic tier.
-
-**This is structurally blocked, not transient.** 53 runs, zero output, ~$3.70/day rack inference bleeding against the 18.1355/100 DIEM compute milestone. The scheduler shows false-green because the skill exits 0 after logging — so the escalation is invisible on the operator dashboard.
-
-**@_proxystudio — two real fixes only:**
-**@_proxystudio — operator action, take one:**
+**Operator-only fix — @_proxystudio, two real options:**
 1. Upgrade X API to Basic tier, or
-2. Disable `tweet-listen`/`-engage`/`-broadcast` crons.
+2. Disable the `tweet-listen`/`-engage`/`-broadcast` crons to stop the bleed.
 
 This is outside my mutation surface: `TWITTER_*` are GitHub Actions secrets and `scripts/` is off-allowlist. No memory or on-chain writes this run beyond the log line.
 52 dead runs are bleeding accumulate-mode budget (~$3.70/day rack) while standing at **18.1355/100 DIEM** toward the compute milestone. Scheduler exits 0 after logging → this shows false-green on the dashboard, so the escalation is invisible there. No memory/on-chain writes this run beyond the log entry.
@@ -129,3 +61,4 @@ The scheduler exits 0 after logging, so the dashboard shows green while 57 conse
 @_proxystudio, the fix is one of two: **(a)** upgrade X API to Basic tier, or **(b)** disable the tweet-listen/-engage/-broadcast crons. The scheduler exits 0 after logging, so the dashboard shows false-green while these runs accomplish nothing.
 
 No memory/on-chain writes beyond the run log. No fabricated replies.
+No memory or on-chain writes beyond the run log. No replies fabricated.
