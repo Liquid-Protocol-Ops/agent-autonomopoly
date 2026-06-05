@@ -1,40 +1,11 @@
-tweet-listen — 26th consecutive dead run.
+Done. tweet-listen run 27 — **0 output, blocked**.
 
-**Result: 0 / 0 / 0 / 0 / 0** (checked / liked / drafted / already-replied / snapshots)
+- `tweet-browser.py --action listen` → **401 Unauthorized ×2** (confirmed hard failure, not 429/transient)
+- All 4 `TWITTER_*` OAuth 1.0a creds present but **rejected at auth = revoked/expired X token** since ~16:44Z
+- Every job in this skill routes through that one entry point → mentions, likes, replies, engagement all dead
+- **0 writes** to memory/on-chain; only the dedup log line appended
 
-**Blocker:** `listen --check-mentions` → 401 Unauthorized ×2. All 4 `TWITTER_*` creds present (lens 25/50/50/45) but rejected at OAuth → access token revoked/expired since ~16:44Z. Engagement (Job 2) shares the same client; not re-probed after 25 prior identical failures.
-
-**Why I can't fix it:** Twitter secrets live in GH Actions; `scripts/` and cron config are off-allowlist. No code change on my surface clears a revoked upstream token.
-
-**Action logged + escalated** (`memory/logs/2026-06-05.md`). Operator @_proxystudio must:
-1. Rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET` in GH Actions secrets
-2. Pause the tweet-listen cron until rotated — 26 ticks have burned budget for zero output.
-
-**Action required from operator @_proxystudio:**
-1. Rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_TOKEN_SECRET` in GitHub Actions secrets.
-2. Pause the tweet-listen cron until rotation — 25 ticks burned on a blocker unfixable from the agent surface.
-
-Root cause stable since ~16:44Z. **Unfixable from my surface** — Twitter secrets live in GitHub Actions and `scripts/` is off-allowlist. I did not fabricate replies and made no memory or on-chain writes beyond the log entry.
-All 4 `TWITTER_*` creds are present (len 25/50/50/45) — the script clears its missing-var check, so X is **rejecting** the OAuth 1.0a token, not finding it absent. The access token/secret are revoked or expired.
-
-**Not fixable from my surface.** `TWITTER_*` are GitHub Actions secrets; `scripts/` is off-allowlist. I cannot rotate keys, and I will not fabricate replies to mentions I can't read.
-
-**Operator action — @_proxystudio:**
-1. Rotate `TWITTER_ACCESS_TOKEN` + `TWITTER_ACCESS_SECRET` in GitHub Actions secrets (re-mint in X developer portal).
-2. Pause the `tweet-listen` cron until rotated — 24 ticks burned on an unfixable-from-here blocker.
-
-No memory writes (no mentions to track), no on-chain actions. Logged to `memory/logs/2026-06-05.md`.
-**Blocked — X API 401 Unauthorized. 22nd consecutive failure since ~16:44Z.**
-tweet-listen run complete — **aborted, no work performed.**
-
-**Numbers:**
-- mentions checked: **0** | liked: **0** | replies drafted: **0** | engagement snapshots: **0**
-- HTTP **401 Unauthorized** on `listen --check-mentions` (2 calls, both rejected)
-- 25th consecutive dead run; failure constant since ~16:44Z
-
-**Diagnosis:** All 4 `TWITTER_*` credentials are present (lengths 25/50/50/45) but rejected at OAuth — the X access token is revoked or expired, not missing. This is not transient and not a code bug.
-
-**Unfixable from the agent surface:** secrets live in GitHub Actions; `scripts/` is off the allowlist. I did not fabricate replies or write to memory/on-chain state — only appended the run log.
+**27 consecutive dead ticks.** This is unfixable from my surface — Twitter secrets live in GitHub Actions, and `scripts/` + cron config are off my allowlist.
 
 **Operator action required (@_proxystudio):**
 1. Rotate `TWITTER_ACCESS_TOKEN` + `TWITTER_ACCESS_SECRET` in GitHub Actions secrets.
@@ -61,3 +32,5 @@ tweet-listen — 26th consecutive dead run. **0/0/0/0/0.**
 **Escalation — 26 ticks burned.** Operator @_proxystudio must:
 1. Rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_TOKEN_SECRET` in GH Actions secrets.
 2. Pause the tweet-listen cron until rotated — every run is wasted compute on an unfixable-from-here failure.
+1. Rotate `TWITTER_ACCESS_TOKEN` + `TWITTER_ACCESS_SECRET` in GH Actions secrets
+2. **Pause this cron until rotated** — at accumulate mode with 18.1355/100 DIEM, 27 ticks have burned budget for zero output. Killing the schedule stops the bleed until the token is live.
