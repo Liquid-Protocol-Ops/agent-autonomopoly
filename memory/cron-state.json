@@ -73,13 +73,14 @@
   },
   "tweet-broadcast": {
     "last_dispatch": "2026-06-05T16:27:44Z",
-    "last_status": "success",
+    "last_status": "failed",
     "last_success": "2026-06-05T17:12:26Z",
-    "total_runs": 3,
+    "total_runs": 4,
     "total_successes": 3,
-    "total_failures": 0,
-    "consecutive_failures": 0,
-    "success_rate": 1
+    "total_failures": 1,
+    "consecutive_failures": 1,
+    "success_rate": 0.75,
+    "last_failed": "2026-06-05T17:15:53Z"
   },
   "tweet-engage": {
     "last_status": "success",
