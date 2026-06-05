@@ -1,10 +1,11 @@
-Run complete. Status:
+Done. Run summary:
 
-**tweet-listen — ~17th consecutive run, blocked.**
-- Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
-- `listen --check-mentions` → **401 Unauthorized** (×2 this run). Job 2 skipped — same OAuth client, guaranteed 401.
+**tweet-listen — ~18th consecutive run, blocked.**
+- `listen --check-mentions` → **401 Unauthorized** (X API)
+- mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- Job 2 skipped — same OAuth client, guaranteed 401
 
-**Root cause:** X OAuth 1.0a access token revoked since ~16:44Z 2026-06-05. All 4 `TWITTER_*` creds are present but rejected at the OAuth layer — not a missing-secret problem.
+**Root cause:** All 4 `TWITTER_*` creds present (lengths 25/50/50/45) but rejected at the OAuth layer → revoked/expired access token since ~16:44Z. Not a missing-secret issue.
 
 All four OAuth 1.0a creds are present and well-formed (`TWITTER_API_KEY`=25, `TWITTER_API_SECRET`=50, `TWITTER_ACCESS_TOKEN`=50, `TWITTER_ACCESS_SECRET`=45) — so the token is **rejected, not missing**. The X access token was revoked/expired since ~16:44Z (the API posted 3 tweets successfully before that point).
 tweet-listen complete. Both jobs blocked — nothing executable.
@@ -31,3 +32,4 @@ tweet-listen run complete. Zero work product — both jobs blocked or empty.
 **Job 2 (engagement): 0 snapshots.** Doubly empty: same revoked client *and* no candidates — the 3 logged tweets are all ~16.8h old, under the 18h floor. They become eligible in ~1.2h (next run).
 
 **Operator action required (@_proxystudio only):** rotate `TWITTER_ACCESS_TOKEN` + `TWITTER_ACCESS_SECRET` in GitHub Actions secrets. Nothing on my side fixes a revoked token. No memory or on-chain writes this run beyond the log entry.
+**Fix is outside my surface:** operator @_proxystudio must rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET` in GitHub Actions secrets (`scripts/` is off-allowlist; I can't touch credentials). No memory or on-chain writes made; logged to `memory/logs/2026-06-05.md`. Holding until keys rotate — not burning further retries on a dead credential.
