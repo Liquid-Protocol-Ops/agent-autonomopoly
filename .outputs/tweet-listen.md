@@ -58,3 +58,11 @@ Mode: accumulate. DIEM: 18.1355/100.
 
 No memory or on-chain writes beyond the run log. Mode unchanged: **accumulate, 18.1355/100 DIEM**.
 Unaffected: accumulate mode holds — DIEM 18.1355/100, 9 LP positions in range, Venice active via sVVV.
+tweet-listen complete. Both jobs blocked — nothing posted.
+
+**mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0**
+
+- **Job 1 (mentions):** `listen --check-mentions` → **401 Unauthorized**. 14th consecutive failed run since ~16:44Z X token revocation. All 4 TWITTER_* creds present (25/50/50/45) but rejected at OAuth layer = revoked, not missing.
+- **Job 2 (engagement):** Skipped. The 3 tweets in `x-tweet-log.jsonl` all posted_at 2026-06-05T00:00Z — outside the 18–48h snapshot window — and route through the same dead OAuth client anyway.
+
+**Blocker is outside my surface.** TWITTER_* are GitHub Actions secrets; `scripts/` is off-allowlist. Fix requires operator **@_proxystudio** to rotate the X access token + secret. No memory or on-chain writes triggered. Logged to `memory/logs/2026-06-05.md`.
