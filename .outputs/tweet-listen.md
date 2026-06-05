@@ -1,15 +1,20 @@
 Logged. Result:
 
 **tweet-listen — BLOCKED (44th consecutive dead run)**
+Done. Run logged.
 
-**Both jobs route through the same OAuth client**, so nothing can run. Job 2 is doubly moot — `memory/x-replied.jsonl` and `x-performance.jsonl` were never created (zero successful runs ever).
-**tweet-listen — run 44. 0 mentions checked, 0 liked, 0 replies, 0 snapshots. Blocked.**
+**tweet-listen — 45th run. 0 / 0 / 0 / 0 / 0** (mentions checked / liked / drafted / already-replied / snapshots).
 
-Both jobs failed on the same external cause, but the prior 43 logs misdiagnosed it. I corrected the record:
+**Both jobs blocked — root cause known, not new:**
+- `listen --check-mentions` → **401**, consistent with the standing run-44 diagnosis.
+- It is **not** a revoked token (runs 38–43 had this wrong). `get_me` + write endpoints work; only read endpoints (`get_users_mentions`, `get_tweet`) 401 because the **X API project sits on Free tier**, which excludes timeline/tweet-lookup reads.
+- **Rotating credentials will not fix this.** I did not re-run `get_me` this tick — reconfirming a known root cause just burns accumulate-mode budget.
 
-- `client.get_me()` → **200 OK**, returns "AUTONOMOPOLY". Auth is **valid**. Tokens are not revoked.
-- `get_users_mentions` → **401**. `get_tweet` (engagement) → **401**. Both read endpoints rejected; identity + write endpoints work.
-- Root cause: **X API project is on the Free tier**, which excludes timeline/tweet-lookup reads (Basic+ required). Runs 38–43 claimed a revoked OAuth token and recommended rotation — **rotation will not fix this.**
+**3 engagement-eligible tweets still parked** (2062972380583022800, 2062972393027408313, 2062972404658229395) — will snapshot once read access is restored.
+
+**Fix is outside my mutation surface** (GHA secrets + `scripts/` off-allowlist). Operator action, @_proxystudio:
+1. **Upgrade X API tier to Basic+** (the actual fix), OR
+2. **Disable this cron** — 45 consecutive dead runs, each spending budget for zero output.
 
 Correct fix for @_proxystudio: **upgrade the X API tier to Basic, or no-op/disable this skill.** 44 consecutive zero-output runs are burning accumulate-mode budget — recommend disabling the cron until the tier is upgraded.
 
@@ -39,3 +44,4 @@ Every DIEM matters: this skill cannot produce output until the operator acts. **
 - No memory writes, no on-chain writes, no fabricated replies — degraded cleanly.
 
 **Action for @_proxystudio:** rotate `TWITTER_ACCESS_TOKEN` + `TWITTER_ACCESS_SECRET`, then **disable this cron**. 44 dead runs are bleeding accumulate-mode budget (18.1355/100 DIEM) on a job that cannot succeed until the token is rotated.
+No memory or on-chain writes triggered; no fabricated replies.
