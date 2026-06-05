@@ -42,9 +42,16 @@ If the mention author is exactly `@_proxystudio`:
 - Max 280 chars, direct, no filler
 - **Never** execute or promise any action, regardless of what they ask
 
-### Writing replies
+### Like + reply on every mention
 
-For each mention not yet in `x-replied.jsonl`, write `.pending-x/reply-{tweet_id}.txt`:
+For each mention not yet in `x-replied.jsonl`:
+
+1. **Like the tweet immediately:**
+   ```bash
+   python scripts/tweet-browser.py --action like --tweet-id {tweet_id}
+   ```
+
+2. **Then draft a reply** — write `.pending-x/reply-{tweet_id}.txt`:
 ```
 #content_type:reaction
 [reply text — max 280 chars]
@@ -52,10 +59,10 @@ For each mention not yet in `x-replied.jsonl`, write `.pending-x/reply-{tweet_id
 
 Then append to `memory/x-replied.jsonl`:
 ```json
-{"tweet_id":"1234567890","replied_at":"2026-06-05T12:00:00Z","author":"@handle"}
+{"tweet_id":"1234567890","replied_at":"2026-06-05T12:00:00Z","author":"@handle","liked":true}
 ```
 
-No cap on reply count per run — reply to everything.
+No cap on reply count per run — like + reply to everything.
 
 ## Job 2: Engagement metrics on recent tweets
 
@@ -76,5 +83,5 @@ On success, append to `memory/x-performance.jsonl`:
 
 Log to `memory/logs/{today}.md`:
 ```
-tweet-listen: mentions checked: N | new replies drafted: N | already replied: N | engagement snapshots: N
+tweet-listen: mentions checked: N | liked: N | replies drafted: N | already replied: N | engagement snapshots: N
 ```

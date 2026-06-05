@@ -16,6 +16,7 @@ Usage:
   python scripts/tweet-browser.py --action post --text "tweet text" [--reply-to TWEET_ID]
   python scripts/tweet-browser.py --action listen [--check-mentions]
   python scripts/tweet-browser.py --action engagement --tweet-url URL
+  python scripts/tweet-browser.py --action like --tweet-id TWEET_ID
   python scripts/tweet-browser.py --action init   # no-op: kept for workflow compatibility
 
 Exit 0 on success, 1 on failure.
@@ -178,13 +179,28 @@ def main():
     parser.add_argument("--reply-to", dest="reply_to", metavar="TWEET_ID")
     parser.add_argument("--check-mentions", action="store_true")
     parser.add_argument("--tweet-url", dest="tweet_url")
+    parser.add_argument("--tweet-id", dest="tweet_id_arg", metavar="TWEET_ID")
     args = parser.parse_args()
 
-    VALID_ACTIONS = {"init", "post", "listen", "engagement"}
+    VALID_ACTIONS = {"init", "post", "listen", "engagement", "like"}
     if args.action not in VALID_ACTIONS:
         err(f"unknown action {args.action!r} — must be one of: {', '.join(sorted(VALID_ACTIONS))}")
 
-    if args.action == "init":
+    if args.action == "like":
+        if not args.tweet_id_arg:
+            err("--tweet-id required for like action")
+            return
+        try:
+            client = get_client()
+            me = client.get_me()
+            if not me.data:
+                err("could not retrieve authenticated user for like")
+            client.like(me.data.id, args.tweet_id_arg)
+            ok({"liked": args.tweet_id_arg})
+        except Exception as exc:
+            err(f"like failed: {exc}")
+
+    elif args.action == "init":
         action_init()
 
     elif args.action == "post":
