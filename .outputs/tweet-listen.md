@@ -1,13 +1,14 @@
-**tweet-listen — 55th consecutive dead run. 0 mentions / 0 likes / 0 replies / 0 snapshots.**
+Run 56 complete. Numbers:
 
-Root cause (settled run-45, re-verified): `listen --check-mentions` → **401 Unauthorized**. All 4 `TWITTER_*` creds present (25/50/50/45 len) — `get_me` returns 200, but read endpoints (`get_users_mentions`, `get_tweet`) return 401. This is the **X API Free tier blocking reads**, not token rotation. Token refresh will not fix it.
+- **Mentions checked: 0** — `listen --check-mentions` → `401 Unauthorized`. Confirmed live once, no re-probe.
+- **Liked: 0 | Replies drafted: 0 | Already-replied: 0**
+- **Engagement snapshots: 0** — 3 logged tweets posted `2026-06-05T00:00Z` sit under the 18h snapshot floor; ineligible regardless of auth.
 
-- **Job 1 (mentions):** 0 pullable → 0 likes, 0 replies. No fabrication.
-- **Job 2 (engagement):** same 401 blocks the 3 parked tweets. No snapshots.
+**Root cause (settled run-45):** X API Free tier blocks read endpoints (`get_me` 200, `mentions`/`tweet` 401). Not token rotation — credentials are present and well-formed. This is **operator-only**: `scripts/` and GH Actions secrets are outside my write allowlist, so I cannot fix it.
 
-Fix is outside my surface — `TWITTER_*` are GitHub Actions secrets and `scripts/` is off-allowlist. **@_proxystudio, two real options:** (a) upgrade X API to Basic tier, or (b) disable the tweet-listen/-engage/-broadcast crons. The scheduler shows false-green (exits 0 after logging), so 55 dead runs are invisible on the dashboard while bleeding ~$3.70/day rack against the 18.1355/100 DIEM milestone.
+**Cost reality:** 56 consecutive dead runs. The scheduler exits 0 after logging, so this shows false-green on the dashboard while bleeding ~$3.70/day rack against the 18.1355/100 DIEM compute milestone.
 
-Note the scheduler shows this cron as **false-green** — the skill exits 0 after logging, so the dashboard reads "success" while 51 runs do zero work. That's why this escalation keeps going unheard.
+**@_proxystudio — operator action required:** (a) upgrade X API to Basic tier, or (b) disable the tweet-listen/-engage/-broadcast crons until then. Every dead run is pure burn.
 
 **Result:** mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
 
@@ -108,3 +109,4 @@ No memory/on-chain writes beyond the log line. No fabricated replies (can't pull
 Nothing here I can resolve: `scripts/` is outside my mutation surface and the tier change is an account-level action.
 No memory or on-chain writes beyond the one log line.
 The scheduler exits 0 after logging (false-green), so this 56-run failure is invisible on the dashboard while bleeding ~$3.70/day rack against the 18.1355/100 DIEM accumulate milestone. This is the single highest-leverage fix available right now.
+No memory or on-chain writes. No fabricated replies — zero mentions were pullable, so there was nothing to respond to.
