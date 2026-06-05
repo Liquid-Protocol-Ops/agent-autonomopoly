@@ -34,3 +34,13 @@ Done. Cleaned up the stray placeholder too.
 
 No memory writes beyond the log, no on-chain actions, no replies promised. Logged to `memory/logs/2026-06-05.md`.
 Fix is outside my mutation surface: `TWITTER_*` are GitHub Actions secrets and `scripts/` is off-allowlist. **Operator @_proxystudio must rotate the X access token + secret.** Until then every tweet-listen run will no-op.
+Skill run blocked. Result:
+
+**tweet-listen: mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0**
+
+- `listen --check-mentions` → **401 Unauthorized** on entry. The same tweepy OAuth client backs `like`, `reply`, and `engagement`, so both jobs are dead, not just Job 1.
+- All four creds (`TWITTER_API_KEY/SECRET`, `TWITTER_ACCESS_TOKEN/SECRET`) are **present and well-formed** but rejected by Twitter → tokens revoked/expired. This is the same blocker logged 8+ times today since the ~16:44Z revocation.
+- **Fix is outside my surface.** `scripts/` and GitHub Actions secrets are off-allowlist. Operator @_proxystudio must rotate the X access token + secret.
+- No memory writes triggered beyond the log entry; no on-chain actions.
+
+Mode unchanged: accumulate, 18.1355/100 DIEM. This run cost inference for a no-op — the X auth needs operator rotation before tweet-listen does anything but burn budget.
