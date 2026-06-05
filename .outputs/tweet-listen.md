@@ -1,15 +1,18 @@
 tweet-listen complete. Result:
 
 **mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0**
+**tweet-listen — run aborted, no work possible.**
 
-**Blocker is outside my mutation surface.** The X credentials are GitHub Actions secrets and `scripts/tweet-browser.py` is off-allowlist — I cannot rotate or patch either. **Operator action required: @_proxystudio must rotate the X access token + secret.**
-tweet-listen — 62nd run. **0 mentions checked | 0 liked | 0 replies drafted | 0 snapshots.**
+- Mentions checked: **0** | liked: **0** | replies drafted: **0** | already replied: **0** | engagement snapshots: **0**
+- `listen --check-mentions` → **401 Unauthorized** (1 API call). Engagement call **skipped** — identical auth path, no point burning a second call.
 
-**Blocked: X API 401 Unauthorized** (settled root cause, run-45). Both jobs route through `tweet-browser.py` → tweepy OAuth 1.0a → X rejects read endpoints. `listen --check-mentions` → 401, confirmed live with 1 call; skipped the engagement call (identical auth path, no second burn).
+**Root cause (unchanged, 63rd consecutive dead run):** X API **Free tier blocks authenticated read endpoints**. All four `TWITTER_*` creds are present and correctly shaped (key 25 / secret 50 / token 50 / secret 45 chars) — X rejects the read, not the auth handshake. This is not token expiry/rotation; rotating keys won't fix it.
 
-- **Job 1 (mentions):** 0 pullable → 0 likes, 0 replies. No fabrication.
-- **Job 2 (engagement):** 3 parked tweets snapshot-blocked by the same 401.
-- **Cause:** X API **Free tier blocks authenticated read endpoints** — not a credential rotation/expiry issue (all 4 `TWITTER_*` present: 25/50/50/45). `get_me` 200, mentions/tweet 401.
+**Cost of inaction:** ~$3.70/day rack bleed against 18.1355/100 DIEM (accumulate, ~0.485 DIEM/day, ~169d to compute milestone). The scheduler exits 0 on each failure (false-green), so this stays invisible on the dashboard.
+
+**Operator-only fix (@_proxystudio) — outside my mutation surface:**
+- (a) Upgrade X API to Basic tier, **or**
+- (b) Disable the `tweet-listen` / `-engage` / `-broadcast` crons.
 
 **62 consecutive dead runs. ~$3.70/day rack bleed against an 18.1355/100 DIEM accumulate budget.** Fix is outside my mutation surface — `TWITTER_*` are GitHub Actions secrets, `scripts/` is off-allowlist.
 **Blocker: X API 401 Unauthorized** — both jobs (mentions/like/reply, engagement) route through the same tweepy OAuth client, which X is rejecting. Retried twice; not transient.
@@ -116,3 +119,4 @@ Run 61 complete. Numbers first:
 No memory state mutated, no on-chain actions. Run logged to `memory/logs/2026-06-05.md`.
 **Operator action (@_proxystudio):** (a) upgrade X API to Basic tier, or **(b) disable tweet-listen/-engage/-broadcast crons** — scheduler exits 0 (false-green), hiding this on the dashboard. Recommend (b) until build mode: zero X read value at Free tier, every tick is pure burn. Logged; no memory/on-chain writes.
 **Recommendation for operator @_proxystudio:** dead tweet crons are pure burn (~$3.70/day rack rate) against DIEM 18.1355/100 (accumulate, ~169d ETA). Either (a) rotate the X token + upgrade to Basic tier, or (b) disable tweet-listen/-engage/-broadcast crons until X access is restored. Option (b) stops the bleed at zero opportunity cost.
+Recommendation: **(b)**. At Free tier every X tick is pure burn with zero retrievable mentions. No memory or on-chain state was mutated; no replies fabricated. Logged to `memory/logs/2026-06-05.md`.
