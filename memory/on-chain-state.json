@@ -1,8 +1,19 @@
 {
   "AUTONOMOPOLY agent wallet": {
-    "last_block": 46883916,
-    "last_run": "2026-06-04T07:30:00Z",
+    "last_block": 46929135,
+    "last_run": "2026-06-05T12:00:00Z",
     "alerted_tx": [
+      "0x36b28c1be427c2de18602055e0e8901b7f65b633918f1996bfec832e0a6f4109",
+      "0xf601b02bbc5a25a707e62d9ae73ab3df0d91a61934940a1a3b5e41a897a088e5",
+      "0x8a490b8086ce86d4ae8fa3bbc6658f5aed6070fa22cd0cc35e412d9db5c43663",
+      "0x29d2b2168e79769064b165c863ea3d2d4eb5cfdbfefb5ededd7bd872a6f19655",
+      "0x0321d4e413d0dfaaeac58dafa6840fa4f77610bf47563e73c7e02bfb1fc60bc7",
+      "0xad8967fef308721487433d69e9accdedbc95f68589fb46c0e7272919a7e74ac1",
+      "0xd102c441f40c8defa07ba9d6f20cf1ea1af00102ca606d724a44049dc1449e0f",
+      "0x1d91b8ca1524658310fdc1a241593dd05f638db520fc9284eb46c987eae89963",
+      "0xbe79238fdaddc4d3033d8e99e86a18a00667fb2c43bc81308fd31478c08148d3",
+      "0x937f6d611615a6bc7bbe9d5479b55a6e61a356ca5a8981be983fe9ffb450ed02",
+      "0x7a6d581a86c041b44982d31e7e9619bf78667b54171c92e8ae521efb4c21de10",
       "0xe5a64320e39906e22baa21d71b806a348967af523002995feec62481d325ea19",
       "0x135e583276d48fcf0cfb0193cc7bce3dfeffe112c0fccc40cbcb5a587bbecbd6",
       "0x00bf9370381c73064bf3ebda9ac15cc90603f5b6cb38c51b8b15458fb7515ced",
@@ -69,8 +80,8 @@
     "median_usd_30d": 1704
   },
   "ETH/DIEM Uniswap v3 1% pool": {
-    "last_block": 46883916,
-    "last_run": "2026-06-04T07:30:00Z",
+    "last_block": 46929135,
+    "last_run": "2026-06-05T12:00:00Z",
     "alerted_tx": [
       "0xe5a64320e39906e22baa21d71b806a348967af523002995feec62481d325ea19",
       "0xd7263c1a10cec3ff415658aecef63e925351aee2fc76106d8d7d0a580baa3839",
@@ -79,15 +90,15 @@
     "median_usd_30d": 138
   },
   "AUTONO token contract": {
-    "last_block": 46883916,
-    "last_run": "2026-06-04T07:30:00Z",
+    "last_block": 46929135,
+    "last_run": "2026-06-05T12:00:00Z",
     "alerted_tx": [],
     "median_usd_30d": null
   },
   "AUTONO FeeLocker DIEM claimable": {
-    "last_block": 46842195,
-    "last_run": "2026-06-03T06:00:00Z",
-    "last_value": "66814964834922274",
+    "last_block": 46929135,
+    "last_run": "2026-06-05T12:00:00Z",
+    "last_value": "207735076935428957",
     "last_alerted_value": "0"
   }
 }
