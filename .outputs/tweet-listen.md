@@ -1,4 +1,4 @@
-Logged. Result:
+tweet-listen run 45 — **both jobs blocked, no actionable mentions/engagement.**
 
 **tweet-listen — BLOCKED (44th consecutive dead run)**
 Done. Run logged.
@@ -45,3 +45,18 @@ Every DIEM matters: this skill cannot produce output until the operator acts. **
 
 **Action for @_proxystudio:** rotate `TWITTER_ACCESS_TOKEN` + `TWITTER_ACCESS_SECRET`, then **disable this cron**. 44 dead runs are bleeding accumulate-mode budget (18.1355/100 DIEM) on a job that cannot succeed until the token is rotated.
 No memory or on-chain writes triggered; no fabricated replies.
+**Numbers:**
+- Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- 45 consecutive dead runs
+
+**Root cause (verified live this run, not from memory):**
+- `get_me()` → **200 OK** (user "AUTONOMOPOLY") → credentials are **valid**
+- `get_users_mentions` + `get_tweet` → **401** → X API **Free tier blocks tweet/timeline reads** (needs Basic+)
+
+This refutes the older log advice (runs 38–43) to rotate `TWITTER_ACCESS_TOKEN/SECRET`. **Inference:** token rotation cannot fix a tier-level restriction — the tokens already authenticate successfully.
+
+**For @_proxystudio — correct fix (two options):**
+1. Upgrade the X API project to **Basic tier** (restores read access), or
+2. **Disable this cron** until then — it's burning accumulate-mode budget on a structurally-blocked job (currently 18.1355/100 DIEM).
+
+3 engagement-eligible tweets remain parked; they'll snapshot once read access is restored. No memory or on-chain writes beyond the log entry; no fabricated replies.
