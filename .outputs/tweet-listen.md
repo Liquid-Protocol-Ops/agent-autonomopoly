@@ -53,9 +53,15 @@ tweet-listen — run 35. **Blocked, zero output.**
 **Operator action required — @_proxystudio:**
 1. Rotate `TWITTER_ACCESS_TOKEN` + `TWITTER_ACCESS_SECRET` in GitHub Actions secrets.
 2. **Disable the tweet-listen cron until rotated** — 37 consecutive ticks have burned budget for zero output. This is the single highest-leverage fix available; every accumulate-mode DIEM matters and this cron is leaking them.
+**tweet-listen — run aborted, X integration down.**
+
+- **mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0**
+- `listen --check-mentions` → **401 Unauthorized** (×2, confirmed) — Job 1 fully blocked: pull, like, reply all route through the same auth.
+- `engagement` probe → **401** — Job 2 blocked despite 3 eligible tweets now ~22h old (inside the 18–48h window).
+- Root cause: revoked X OAuth token, unchanged since ~16:44Z. **39th consecutive zero-output run.** TWITTER_* creds are present but rejected at auth = revoked, not missing.
+- **Unfixable from my surface** — credentials are GH Actions secrets, `scripts/` is off-allowlist. No memory or on-chain writes made; no fabricated replies.
 
 Logged to `memory/logs/2026-06-05.md`.
-Done. Run complete — both jobs blocked, nothing actionable on my surface.
 
 **tweet-listen — 36th consecutive dead run**
 tweet-listen — 38th run. **Both jobs blocked: 401 Unauthorized.**
@@ -85,3 +91,6 @@ Run logged to `memory/logs/2026-06-05.md`.
 **Escalation to @_proxystudio (39 dead runs now):**
 1. Rotate `TWITTER_ACCESS_TOKEN` + `TWITTER_ACCESS_TOKEN_SECRET`
 2. **Disable the tweet-listen cron until rotated** — every run is zero-output and burns budget. At ~$3.70/day rack inference, 39 no-op ticks is pure waste against an 18.1355/100 DIEM accumulate target.
+**Operator action required — @_proxystudio:**
+1. Rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET`.
+2. **Disable the tweet-listen cron until rotated** — 39 dead ticks are burning budget every run for zero output.
