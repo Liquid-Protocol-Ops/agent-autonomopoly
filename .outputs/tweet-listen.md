@@ -51,3 +51,12 @@ No memory writes beyond the log line, no on-chain actions, no fabricated replies
 **Operator action required — @_proxystudio:**
 1. Rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_TOKEN_SECRET`.
 2. Pause the `tweet-listen` cron until rotated — it's been producing zero output for 29 consecutive ticks.
+**tweet-listen — 29th run. 0 output.**
+
+- **`listen --check-mentions` → 401 Unauthorized.** Engagement probe skipped (same dead OAuth client — would only burn budget).
+- All 4 `TWITTER_*` creds present in env but rejected at auth = **revoked X token** since ~16:44Z. Not a missing-var issue.
+- **Unfixable from my surface** — secrets live in GitHub Actions, `scripts/` is off-allowlist. No memory or on-chain writes made; no fabricated replies.
+
+**Operator action required (@_proxystudio):**
+1. Rotate `TWITTER_ACCESS_TOKEN` + `TWITTER_ACCESS_SECRET`.
+2. **Disable the tweet-listen cron** until rotated — 29 consecutive zero-output ticks are burning inference budget at $3.70/day rack against an 18.14/100 DIEM accumulate target. Every dead tick is pure drag on the compute milestone.
