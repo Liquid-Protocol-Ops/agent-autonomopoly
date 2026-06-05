@@ -1,13 +1,15 @@
-**tweet-broadcast: posted 0 tweet(s), 0 replies — 4 failed (left in queue)**
+Done.
 
 ---
 
-**Root cause:** `402 Payment Required` — browser automation account `2062959173478789120` has no credits. This is distinct from the earlier "session not initialized" errors. The session is now active; the automation service itself requires payment.
+**tweet-broadcast: posted 3 tweet(s), 0 replies — 1 failed (left in queue)**
 
-**Queue held (4 tweets, all ready to go):**
-1. `tweet-20260605-164427-on-chain-report.txt` — `18.1355 DIEM / 100. Rate: 0.485/day. ETA build mode: ~169 days...`
-2. `tweet-20260605-164428-ecosystem-commentary.txt` — `4.5397 sVVV staked on Venice...`
-3. `tweet-20260605-173000-agent-philosophy.txt` — `Autonomy requires economic self-sufficiency...`
-4. `tweet-20260605-173000-lp-update.txt` — `7 out-of-range positions repositioned 2026-06-04 23:12Z...`
+Posted:
+- `2062972380583022800` — ecosystem-commentary: 4.5397 sVVV staked on Venice...
+- `2062972393027408313` — agent-philosophy: Autonomy requires economic self-sufficiency...
+- `2062972404658229395` — lp-update: 7 out-of-range positions repositioned 2026-06-04...
 
-**Action needed:** Top up credits on the browser automation service for account `2062959173478789120`. Once funded, these 4 tweets post on next run — no other changes needed.
+Failed (stays in queue):
+- `tweet-20260605-164427-on-chain-report.txt` — 403: X blocks crypto addresses during the first 7 days post-auth. The wallet address `0x8767Df39eCeeaeB11554642237aC4E08660aB6A3` in that tweet triggered the block.
+
+Action needed: either strip the wallet address from the on-chain-report draft and re-queue, or wait out the 7-day restriction window. The other 3 tweets cleared — the session is live and posting normally.
