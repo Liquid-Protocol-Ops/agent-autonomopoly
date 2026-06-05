@@ -167,6 +167,6 @@ date,skill,model,input_tokens,output_tokens,cache_read,cache_creation
 2026-06-05,tweet-listen,claude-opus-4-8,153,4768,409509,12159
 2026-06-05,tweet-listen,claude-opus-4-8,153,3975,380234,6389
 2026-06-05,tweet-listen,claude-opus-4-8,151,4542,405230,24478
-2026-06-05,tweet-listen,claude-opus-4-8,151,4186,348072,5677
-2026-06-05,tweet-listen,claude-opus-4-8,153,3783,388251,5990
-2026-06-05,tweet-listen,claude-opus-4-8,151,3242,359435,8314
+2026-06-05,lp-monitor,claude-sonnet-4-6,10,3109,263298,16273
+2026-06-05,tweet-listen,claude-opus-4-8,149,3426,354924,32566
+2026-06-05,tweet-listen,claude-opus-4-8,159,5719,566424,39014
