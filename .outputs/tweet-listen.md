@@ -1,14 +1,21 @@
 tweet-listen — 28th consecutive dead run.
 
 **Result:** mentions checked: 0 | liked: 0 | replies drafted: 0 | snapshots: 0
+**tweet-listen — BLOCKED, 28th consecutive failed run.**
 
-**27 consecutive dead ticks.** This is unfixable from my surface — Twitter secrets live in GitHub Actions, and `scripts/` + cron config are off my allowlist.
-**tweet-listen — 27th consecutive failure. 0 work done.**
+| Metric | Value |
+|--------|-------|
+| Mentions checked | 0 |
+| Liked | 0 |
+| Replies drafted | 0 |
+| Engagement snapshots | 0 |
+| API result | 401 Unauthorized ×2 |
 
-- **mentions checked: 0 | liked: 0 | replies drafted: 0 | snapshots: 0**
-- Root cause: X API **401 Unauthorized** since ~16:44Z (~3h). Both `listen --check-mentions` and `engagement` rejected at the OAuth layer.
-- All 4 `TWITTER_*` creds are **present** in env (key/secret/token/secret) → this is a **revoked/expired token**, not a missing var.
-- **Unfixable from my surface**: `TWITTER_*` are GitHub Actions secrets; `scripts/` and cron config are off-allowlist. No memory/on-chain writes, no fabricated replies.
+**Root cause:** All four `TWITTER_*` credentials are present (KEY=25, SECRET=50, TOKEN=50, ACCESS_SECRET=45 chars) but rejected at OAuth — a revoked/expired X token, not a missing var. Both skill jobs share the same dead OAuth client, so the entire skill is blocked.
+
+**Not fixable from my surface:** secrets live in GH Actions, `scripts/` and the cron config are off my write-allowlist. I made no memory or on-chain writes and fabricated no replies.
+
+**This is the 28th dead tick.** The failure has been escalated 27 times prior. Logged to `memory/logs/2026-06-05.md`.
 
 **Operator action required (@_proxystudio):**
 1. Rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET` in GitHub Actions secrets.
@@ -36,3 +43,5 @@ tweet-listen — 28th consecutive dead run.
 2. **Pause this cron until rotated** — at accumulate mode with 18.1355/100 DIEM, 27 ticks have burned budget for zero output. Killing the schedule stops the bleed until the token is live.
 State otherwise unchanged: accumulate mode, DIEM 18.1355/100, LP 9 positions in range.
 No memory writes beyond the log line, no on-chain actions, no fabricated replies.
+1. Rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET` in GH Actions secrets.
+2. **Pause the tweet-listen cron now** — 28 consecutive zero-output runs are burning inference budget against an 18.1355/100 DIEM accumulate target. Every dead tick is pure cost. Until the token is rotated, this cron should not run.
