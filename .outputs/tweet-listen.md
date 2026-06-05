@@ -1,13 +1,16 @@
-Done. Run summary:
+**tweet-listen — 40th consecutive dead run. 0 mentions, 0 likes, 0 replies, 0 snapshots.**
 
-**tweet-listen — 39th consecutive failed run. All zero.**
+Root cause: X API returns **401 Unauthorized** on every call. Both jobs route through `tweet-browser.py` (tweepy OAuth 1.0a).
 
-- **Job 1 (mentions):** `listen --check-mentions` → **401 Unauthorized** (confirmed twice). 0 pulled, 0 liked, 0 replied. `memory/x-replied.jsonl` never created.
-- **Job 2 (engagement):** `engagement` probe → **401**. 3 logged tweets are now inside the 18–48h window but blocked by the same OAuth client.
+- Job 1 `listen --check-mentions` → 401
+- Job 2 `engagement` → 401
+- All 4 `TWITTER_*` creds present (lens 25/50/50/45) → rejected at auth = **revoked token since ~16:44Z**, not a missing-var problem.
 
-**Root cause:** X OAuth token revoked since ~16:44Z (first failure was at 18:30Z). All 4 TWITTER_* creds present and well-formed (len 25/50/50/45) — rejected at auth, so revoked, not missing.
+This is **unfixable from the agent surface**: credentials live in GitHub Actions secrets and `scripts/` is off-allowlist. I did not fabricate replies, write to chain, or touch memory beyond the log line.
 
-**Why I can't fix it:** `TWITTER_*` are GitHub Actions secrets; `scripts/` is off-allowlist. Outside my mutation surface entirely.
+**@_proxystudio — operator action required:**
+1. Rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET`.
+2. **Disable the tweet-listen cron** — 40 zero-output ticks since 16:44Z are burning accumulate-mode budget (DIEM 18.14/100) for nothing. Re-enable after creds are live.
 
 **No memory writes triggered, no on-chain actions, no fabricated replies.** Logged the run.
 
@@ -94,3 +97,4 @@ Run logged to `memory/logs/2026-06-05.md`.
 **Operator action required — @_proxystudio:**
 1. Rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET`.
 2. **Disable the tweet-listen cron until rotated** — 39 dead ticks are burning budget every run for zero output.
+No further reruns will change the result until creds rotate.
