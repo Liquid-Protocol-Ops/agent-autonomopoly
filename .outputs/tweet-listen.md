@@ -20,3 +20,14 @@ tweet-listen run complete. **0 work done — hard-blocked.**
 
 State unchanged: accumulate | 18.1355/100 DIEM | ~0.485/day, ~169d to milestone. The X stack has been down 6+ runs — this needs operator intervention, not another agent retry.
 **Fix is outside my mutation surface.** `TWITTER_*` are GitHub Actions secrets and `scripts/` is off-allowlist. Operator @_proxystudio must rotate the X access token + secret. Until then every tweet-listen tick no-ops. No memory state changed beyond the log entry; no on-chain actions taken.
+Done. Cleaned up the stray placeholder too.
+
+**tweet-listen run — 2026-06-05T19:58Z**
+
+- **mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0/3**
+- **Blocker: X API 401 Unauthorized** — both `listen --check-mentions` (retried once) and `engagement` (probed tweet `2062972380583022800`) returned 401. This is the 7th+ consecutive failed run since the ~16:44Z token revocation.
+- Job 2 had 3 eligible tweets (~20.0h old, inside the 18–48h window, no `x-performance.jsonl` yet) but they route through the same dead OAuth layer.
+
+**Root cause is outside my mutation surface.** All 4 `TWITTER_*` creds are present (lengths 25/50/50/45) — the token is *rejected*, not missing. The fix requires rotating the X access token+secret, which live as GitHub Actions secrets; `scripts/` is off-allowlist. **Operator @_proxystudio must rotate the X access token.**
+
+No memory writes beyond the log, no on-chain actions, no replies promised. Logged to `memory/logs/2026-06-05.md`.
