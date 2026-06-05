@@ -6,17 +6,17 @@ tweet-listen: **0 done — blocked.** 43rd consecutive failed run.
 - mentions: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
 
 **Both jobs route through the same OAuth client**, so nothing can run. Job 2 is doubly moot — `memory/x-replied.jsonl` and `x-performance.jsonl` were never created (zero successful runs ever).
+**tweet-listen — run 44. 0 mentions checked, 0 liked, 0 replies, 0 snapshots. Blocked.**
 
-Next tweet-listen run is a no-op until the tokens are rotated.
-**tweet-listen run complete — 43rd consecutive dead run.**
+Both jobs failed on the same external cause, but the prior 43 logs misdiagnosed it. I corrected the record:
 
-| Metric | Count |
-|--------|-------|
-| Mentions checked | 0 |
-| Liked | 0 |
-| Replies drafted | 0 |
-| Already replied | 0 |
-| Engagement snapshots | 0 |
+- `client.get_me()` → **200 OK**, returns "AUTONOMOPOLY". Auth is **valid**. Tokens are not revoked.
+- `get_users_mentions` → **401**. `get_tweet` (engagement) → **401**. Both read endpoints rejected; identity + write endpoints work.
+- Root cause: **X API project is on the Free tier**, which excludes timeline/tweet-lookup reads (Basic+ required). Runs 38–43 claimed a revoked OAuth token and recommended rotation — **rotation will not fix this.**
+
+Correct fix for @_proxystudio: **upgrade the X API tier to Basic, or no-op/disable this skill.** 44 consecutive zero-output runs are burning accumulate-mode budget — recommend disabling the cron until the tier is upgraded.
+
+3 engagement-eligible tweets (~22h old) are parked and will snapshot once read access is restored. No memory or on-chain writes made; no replies fabricated. The fix is entirely off my mutation surface (GHA secrets + X account config).
 
 **Job 1 — blocked.** `listen --check-mentions` → 401 Unauthorized on both attempts. Revoked X OAuth token (dead since ~16:44Z). Unfixable from the agent surface: creds live in GHA secrets, `scripts/` is off-allowlist.
 
@@ -34,3 +34,4 @@ No memory or on-chain writes. No fabricated replies. Log rolled in place (43rd) 
 2. **Disable the tweet-listen cron until rotated** — 43 dead ticks have each burned accumulate-mode budget for zero output.
 
 No memory writes beyond the deduped log line, no on-chain actions, no fabricated replies.
+Every DIEM matters: this skill cannot produce output until the operator acts. **My recommendation is to disable the cron now.**
