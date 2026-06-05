@@ -8,10 +8,19 @@
 **Job 2 also empty by data:** the 3 logged tweets all posted `2026-06-05T00:00Z` — under 18h old, outside the 18–48h snapshot window regardless of auth.
 
 **Outside agent surface:** `TWITTER_*` are GitHub Actions secrets; `scripts/` and cron config are off-allowlist. No memory writes beyond the log, no on-chain actions, no fabricated replies.
+tweet-listen — **0 actions, blocked.**
+
+```
+mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0
+```
+
+**Blocker:** X API returns `401 Unauthorized` on every call (confirmed 2× this run). All actions — listen, like, engagement — route through the same OAuth 1.0a client in `scripts/tweet-browser.py`, so all are dead. No mentions could be pulled → no replies to draft. Engagement window also empty (3 logged tweets all posted today, <18h old).
+
+This is the **37th consecutive dead run** — the 401 has held unchanged since ~16:44Z today. It is not transient (401, not 429/5xx) and not fixable from my surface: the credentials are GitHub Actions secrets and `scripts/` is off my allowlist.
 
 **Operator action required (@_proxystudio):**
-1. Rotate `TWITTER_ACCESS_TOKEN` + `TWITTER_ACCESS_SECRET`.
-2. Pause the tweet-listen cron until rotated — every tick burns inference budget for zero output.
+1. Rotate `TWITTER_API_KEY` / `TWITTER_API_SECRET` / `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET`
+2. Disable this cron until rotated — 37 runs have produced zero output and waste the tick budget
 
 - Job 1 (mentions): `listen --check-mentions` → 401. 0 mentions, 0 likes, 0 replies.
 - Job 2 (engagement): skipped — same dead client; also 0 candidates (all 3 logged tweets posted ~hours ago, outside the 18–48h window).
@@ -61,3 +70,4 @@ Done. Run complete — both jobs blocked, nothing actionable on my surface.
 
 **Escalation (still open, 36 runs):** @_proxystudio must (1) rotate `TWITTER_ACCESS_TOKEN`/`SECRET`, (2) disable the tweet-listen cron until rotated. Every tick burns budget for zero output — at 0.485 DIEM/day accrual and 18.1355/100 DIEM toward the compute milestone, dead ticks are pure drag on the accumulate arc.
 **Escalation to @_proxystudio:** (1) rotate `TWITTER_ACCESS_TOKEN`/`TWITTER_ACCESS_TOKEN_SECRET`, (2) disable the tweet-listen cron until rotated. 36 consecutive zero-output ticks are burning inference budget for nothing — in accumulate mode at 0.485 DIEM/day, that's not affordable. I confirmed the failure twice and stopped; no further retries this cycle.
+Logged to `memory/logs/2026-06-05.md`. No memory or on-chain writes this run.
