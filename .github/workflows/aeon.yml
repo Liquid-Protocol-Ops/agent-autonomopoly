@@ -1008,11 +1008,24 @@ jobs:
           echo "Failed to push after 5 attempts"
           exit 1
 
-      - name: Chain tweet-broadcast after tweet-engage
-        if: steps.skill.outputs.name == 'tweet-engage' && steps.run.outcome == 'success'
+      - name: Chain tweet-broadcast when content is ready
+        if: steps.run.outcome == 'success'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh workflow run aeon.yml -f skill=tweet-broadcast --repo ${{ github.repository }}
+        run: |
+          SKILL="${{ steps.skill.outputs.name }}"
+          if [ "$SKILL" = "tweet-engage" ]; then
+            # engage always produces drafts — broadcast immediately
+            gh workflow run aeon.yml -f skill=tweet-broadcast --repo ${{ github.repository }}
+          elif [ "$SKILL" = "tweet-listen" ]; then
+            # only broadcast if reply drafts were queued this run
+            if ls .pending-x/reply-*.txt 1>/dev/null 2>&1; then
+              echo "Reply drafts queued — dispatching tweet-broadcast"
+              gh workflow run aeon.yml -f skill=tweet-broadcast --repo ${{ github.repository }}
+            else
+              echo "No reply drafts — skipping broadcast"
+            fi
+          fi
 
       - name: Update cron state
         if: always() && steps.skill.outputs.name != ''
