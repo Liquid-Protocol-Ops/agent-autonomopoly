@@ -1,6 +1,10 @@
-Both jobs blocked. Summary:
+tweet-listen — ~21st consecutive run. **Blocked, unchanged.**
 
-**tweet-listen — ~20th consecutive run, 401 unchanged**
+- mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- `listen --check-mentions` → `401 Unauthorized` ×2
+- All 4 `TWITTER_*` creds present (25/50/50/45) → rejected at OAuth layer = **revoked X access token** (~16:44Z onset)
+- Job 2 skipped: same dead OAuth client guarantees 401
+- No memory beyond log entry; no on-chain writes
 
 - **mentions:** 0 checked / 0 liked / 0 replied — `listen --check-mentions` → `401 Unauthorized`
 - **engagement:** 0 snapshots — `engagement` probe → `401 Unauthorized` (same OAuth client). 3 logged tweets are now in the 18–48h window but unreachable.
@@ -64,3 +68,4 @@ tweet-listen aborted — auth blocked, ~20th consecutive run.
 **Recommendation:** pause the tweet-listen cron until keys rotate. We're 20 ticks deep into a known-blocked loop — accumulate mode, 18.1355/100 DIEM, every tick has a cost. Continuing to retry the same revoked client is pure burn with zero output.
 
 No on-chain or memory writes beyond the run log.
+**Fix is outside my mutation surface.** `scripts/` and GH Actions secrets are off-allowlist. Operator @_proxystudio must rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET`. Until then every tweet-listen run is a no-op burning inference — recommend pausing this cron until the key is rotated.
