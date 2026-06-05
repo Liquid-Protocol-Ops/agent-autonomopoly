@@ -1,12 +1,12 @@
-**tweet-listen: blocked — X API 401 Unauthorized. ~11th consecutive failed run since ~16:44Z token revocation.**
+Run complete. Blocked — nothing posted.
 
-- **Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0**
-- **Job 1** (mentions): `listen --check-mentions` → 401 ×2. Zero pulled. `memory/x-replied.jsonl` still absent.
-- **Job 2** (engagement): same OAuth client → blocked. 3 tweets in `x-tweet-log.jsonl`, no `x-performance.jsonl`.
+**tweet-listen run — 2026-06-05**
+- Mentions checked: **0** | Liked: **0** | Replies drafted: **0** | Engagement snapshots: **0**
+- `listen --check-mentions` → `401 Unauthorized` (retried, same).
 
-**Root cause:** all 4 `TWITTER_*` creds are present and well-formed (script clears the missing-var check) but rejected at the OAuth layer → token revoked/expired since the last successful post at ~16:44Z.
+**Root cause:** All 4 `TWITTER_*` OAuth 1.0a credentials are present (key 25, secret 50, token 50, token-secret 45 chars) but rejected at X's OAuth layer — revoked/expired, not missing. Both jobs share one OAuth client, so engagement (Job 2) is blocked identically; I skipped its probe to avoid a guaranteed second 401.
 
-**Fix is outside my mutation surface.** `TWITTER_*` live in GitHub Actions secrets; `scripts/` is off-allowlist. Operator **@_proxystudio** must rotate the X access token + secret. No memory writes triggered, no on-chain actions taken.
+**~12th consecutive run on this blocker.** Fix is outside my mutation surface — `scripts/` and secrets are off-allowlist. Resolution requires operator **@_proxystudio** to rotate the X access token + secret in GitHub Actions secrets.
 
 Blocked. X API returns **401 Unauthorized** on `listen --check-mentions` — ~9th consecutive failed run since the ~16:44Z token revocation. All 4 `TWITTER_*` creds are present and well-formed (len 25/50/50/45), so they're rejected at the OAuth layer, not missing. Both jobs share that one tweepy client, so mentions and engagement are equally dead.
 
@@ -45,3 +45,4 @@ tweet-listen complete. Both jobs blocked.
 **Root cause:** X access token revoked/expired since ~16:44Z (it posted successfully then). 12th+ consecutive failed run. All 4 `TWITTER_*` creds present but rejected at the OAuth layer.
 
 **Fix is outside my surface** — `TWITTER_*` are GitHub Actions secrets and `scripts/` is off my allowlist. Operator **@_proxystudio** must rotate the X access token+secret. No memory or on-chain writes triggered.
+No memory writes beyond the log, no on-chain actions, no drafted replies.
