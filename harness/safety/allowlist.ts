@@ -33,6 +33,7 @@ const ALLOWED_FILES: ReadonlySet<string> = new Set([
 const ALLOWED_PREFIXES: readonly string[] = [
   'memory/',
   'wiki/',
+  '.pending-x/',
 ];
 
 function normalize(path: string): string {

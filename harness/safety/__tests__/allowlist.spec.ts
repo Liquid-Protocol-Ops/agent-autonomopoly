@@ -24,6 +24,13 @@ describe('isAllowed — positive cases', () => {
     expect(isAllowed('./memory/foo.md')).toBe(true);
   });
 
+  it('.pending-x/ delivery queue — same pattern as .pending-notify/', () => {
+    // .pending-x/ delivery queue — same pattern as .pending-notify/
+    expect(isAllowed('.pending-x/tweet-001.txt')).toBe(true);
+    expect(isAllowed('.pending-x/reply-1234567890.txt')).toBe(true);
+    expect(isAllowed('.pending-x/sent/tweet-001.txt')).toBe(true);
+  });
+
   it('allows leading "/" prefixes', () => {
     expect(isAllowed('/identity/SOUL.md')).toBe(true);
   });
@@ -83,6 +90,7 @@ describe('isAllowed — rejection cases', () => {
     // Prefix not followed by content
     expect(isAllowed('memory/')).toBe(false);
     expect(isAllowed('wiki/')).toBe(false);
+    expect(isAllowed('.pending-x/')).toBe(false);  // root of dir must not be allowed (empty trailing segment)
     // Non-allowlisted identity .md files
     expect(isAllowed('identity/SOUL.md.bak')).toBe(false);
     expect(isAllowed('identity/SOULsomething.md')).toBe(false);

@@ -27,6 +27,7 @@ export const ALLOWED_PREFIXES = [
   'dashboard/outputs/',            // captured per-skill outputs
   '.outputs/',                     // chain artifacts
   '.pending-notify/',              // transient notify queue
+  '.pending-x/',                   // Twitter delivery queue
   'identity/examples/promoted/',   // promoted calibration corpus
 ];
 
