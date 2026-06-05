@@ -40,7 +40,7 @@ function constantTimeEqual(a: string, b: string): boolean {
   const bb = enc.encode(b);
   if (ab.length !== bb.length) return false;
   let diff = 0;
-  for (let i = 0; i < ab.length; i++) diff |= ab[i] ^ bb[i];
+  for (let i = 0; i < ab.length; i++) diff |= (ab[i] ?? 0) ^ (bb[i] ?? 0);
   return diff === 0;
 }
 
