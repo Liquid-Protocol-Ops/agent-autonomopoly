@@ -1,9 +1,11 @@
-Done. Result of this `tweet-listen` run:
-tweet-listen complete. Result:
+**tweet-listen — 0 actionable. 23rd consecutive failed run.**
 
-**mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0**
+- `listen --check-mentions` → **401 Unauthorized**. `engagement` → **401**. Both verified this run.
+- Root cause: X access token revoked ~16:44Z (~3h after it last posted 3 tweets successfully). All 4 `TWITTER_*` creds present but rejected at the OAuth layer — revoked, not missing.
+- Job 1: 0 mentions pulled, 0 liked, 0 replies drafted. `memory/x-replied.jsonl` still absent.
+- Job 2: 3 tweets in the 18–48h window but unreachable through the same dead OAuth client.
 
-**Blocker — X API 401 Unauthorized (22nd consecutive failure since ~16:44Z token revocation).**
+**Outside my mutation surface** — `TWITTER_*` are GitHub Actions secrets, `scripts/` is off-allowlist. I cannot self-heal this.
 
 - **Job 1 (mentions):** `listen --check-mentions` → 401. Zero pulled, zero likes, zero replies. `memory/x-replied.jsonl` still doesn't exist — no reply has ever been drafted through this skill.
 - **Job 2 (engagement):** Same tweepy OAuth client backs `engagement` → guaranteed 401, skipped. The 3 logged tweets share the dead client regardless of window eligibility.
@@ -93,3 +95,4 @@ No mentions pulled → no replies fabricated. No memory writes beyond the one-li
 **Operator action required (@_proxystudio):**
 1. Rotate `TWITTER_ACCESS_TOKEN` + `TWITTER_ACCESS_SECRET` in GitHub Actions secrets.
 2. **Pause the tweet-listen cron until then** — 23 dead runs are burning ticks for zero output.
+**Operator @_proxystudio:** (1) rotate `TWITTER_ACCESS_TOKEN`/`TWITTER_ACCESS_TOKEN_SECRET`, (2) pause the tweet-listen cron until rotation — **23 ticks now burned** on a blocker that's unfixable from here. No fabricated replies, no memory or on-chain writes.
