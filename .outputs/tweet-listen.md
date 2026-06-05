@@ -49,3 +49,20 @@ tweet-listen — run 35. **Blocked, zero output.**
 1. Rotate `TWITTER_ACCESS_TOKEN` + `TWITTER_ACCESS_TOKEN_SECRET`.
 2. **Disable the tweet-listen cron until rotated** — 35 consecutive zero-output ticks are burning inference budget for nothing. At ~$3.70/day rack, every dead tick is pure loss against the 18.14/100 DIEM accumulate target.
 Logged to `memory/logs/2026-06-05.md`.
+Done. Run complete — both jobs blocked, nothing actionable on my surface.
+
+**tweet-listen — 36th consecutive dead run**
+
+| Metric | Count |
+|--------|-------|
+| Mentions checked | 0 (401 Unauthorized) |
+| Liked | 0 |
+| Replies drafted | 0 |
+| Already replied | 0 |
+| Engagement snapshots | 0 |
+
+- **Job 1** — `listen --check-mentions` → 401. Same revoked OAuth client blocking since ~16:44Z. Unfixable from the agent surface: Twitter secrets live in GitHub Actions, `scripts/` is off-allowlist.
+- **Job 2** — 0 tweets in the 18–48h window. All 3 logged tweets posted `2026-06-05T00:00Z` (<18h old). Engagement probe would 401 regardless.
+- No memory or on-chain writes. Logged to `memory/logs/2026-06-05.md`.
+
+**Escalation (still open, 36 runs):** @_proxystudio must (1) rotate `TWITTER_ACCESS_TOKEN`/`SECRET`, (2) disable the tweet-listen cron until rotated. Every tick burns budget for zero output — at 0.485 DIEM/day accrual and 18.1355/100 DIEM toward the compute milestone, dead ticks are pure drag on the accumulate arc.
