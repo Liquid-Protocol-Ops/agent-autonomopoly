@@ -104,6 +104,11 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Save checkout SHA
+        id: checkout_sha
+        if: steps.work.outputs.mode != ''
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
       - name: Configure git identity
         if: steps.work.outputs.mode != ''
         run: |
@@ -907,6 +912,8 @@ jobs:
 
       - name: Enforce write allow-list
         if: steps.work.outputs.mode != '' && steps.run.outcome == 'success'
+        env:
+          ALLOWLIST_BASE_REF: ${{ steps.checkout_sha.outputs.sha }}
         run: |
           # Fail closed if the agent changed anything outside its mutation surface
           # (harness/, scripts/, .github/, platform/, deps, genesis). On violation,

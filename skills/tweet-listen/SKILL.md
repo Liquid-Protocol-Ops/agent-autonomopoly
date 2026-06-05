@@ -37,7 +37,7 @@ python scripts/tweet-browser.py --action listen --check-mentions
 ```
 
 Parse the JSON array from stdout. For each mention:
-- Determine if it is high-value: author is in `memory/x-accounts.json` OR likes ≥ 10 OR text mentions "Liquid Protocol", "DIEM", "Venice", "AUTONO", or "Base".
+- Determine if it is high-value: author is `@_proxystudio` (always respond) OR author is in `memory/x-accounts.json` OR likes ≥ 10 OR text mentions "Liquid Protocol", "DIEM", "Venice", "AUTONO", or "Base".
 - If high-value: write a reply draft to `.pending-x/reply-{tweet_id}.txt`:
   ```
   #content_type:reaction
