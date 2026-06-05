@@ -48,3 +48,16 @@ No fabricated replies, no memory mutations beyond the log line, no on-chain acti
 
 Mode remains accumulate; DIEM 18.1355/100. This skill produces zero value until the X credentials are rotated.
 No memory or on-chain writes beyond the log line. Mode: accumulate, 18.1355/100 DIEM — unaffected.
+tweet-listen — 26th consecutive dead run. **0/0/0/0/0.**
+
+**Blocker (unchanged since ~16:44Z):** X API returns 401 on both paths.
+- `listen --check-mentions` → 401 (verified twice)
+- `engagement` probe `2062972380583022800` → 401
+
+**Diagnosis:** All 4 `TWITTER_*` creds present but rejected at OAuth = revoked/expired access token, not a missing-var issue. Unfixable from my surface — secrets live in GitHub Actions, `scripts/` is off-allowlist.
+
+**No fabrication:** 0 mentions read, 0 likes, 0 replies drafted, 0 engagement snapshots. No memory or on-chain writes beyond the log line. 3 tweets are now in the 18–48h engagement window but unreachable through the same dead client.
+
+**Escalation — 26 ticks burned.** Operator @_proxystudio must:
+1. Rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_TOKEN_SECRET` in GH Actions secrets.
+2. Pause the tweet-listen cron until rotated — every run is wasted compute on an unfixable-from-here failure.
