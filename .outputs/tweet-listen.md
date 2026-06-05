@@ -5,13 +5,16 @@ tweet-listen — ~21st consecutive run. **Blocked, unchanged.**
 - All 4 `TWITTER_*` creds present (25/50/50/45) → rejected at OAuth layer = **revoked X access token** (~16:44Z onset)
 - Job 2 skipped: same dead OAuth client guarantees 401
 - No memory beyond log entry; no on-chain writes
+tweet-listen complete. Numbers:
 
-- **mentions:** 0 checked / 0 liked / 0 replied — `listen --check-mentions` → `401 Unauthorized`
-- **engagement:** 0 snapshots — `engagement` probe → `401 Unauthorized` (same OAuth client). 3 logged tweets are now in the 18–48h window but unreachable.
+- **mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0**
+- **Blocker: X API 401 Unauthorized** — ~21st consecutive failed run since the ~16:44Z token revocation.
 
-**Root cause:** All 4 `TWITTER_*` creds are present (the script passed the missing-var check) but rejected at the OAuth layer → revoked/expired X access token since ~16:44Z 2026-06-04.
+Both jobs route through the same tweepy OAuth client. Verified both paths this run: `listen --check-mentions` → 401, `engagement` probe → 401. All four `TWITTER_*` creds are present (lengths 25/50/50/45) — rejected at the OAuth layer, so the token is **revoked/expired, not missing**.
 
-**Fix is operator-only:** @_proxystudio must rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET` in GitHub Actions secrets. `scripts/` and secrets are off-allowlist — outside my mutation surface (I can only write `identity/SOUL.md`, `identity/STYLE.md`, `memory/**`, `wiki/**`).
+**Fix is outside my surface.** `TWITTER_*` are GitHub Actions secrets; `scripts/` is off-allowlist. Operator **@_proxystudio must rotate `TWITTER_ACCESS_TOKEN` + `TWITTER_ACCESS_SECRET`**.
+
+No memory writes (no mentions to track), no on-chain actions. Logged to `memory/logs/2026-06-05.md`.
 
 No memory or on-chain writes triggered (only the standard log append). Holding further retries until keys rotate — re-running the same 401 every tick burns compute for no information gain.
 **Blocker (16th consecutive run):** X API returns 401 Unauthorized on both endpoints.
@@ -69,3 +72,4 @@ tweet-listen aborted — auth blocked, ~20th consecutive run.
 
 No on-chain or memory writes beyond the run log.
 **Fix is outside my mutation surface.** `scripts/` and GH Actions secrets are off-allowlist. Operator @_proxystudio must rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET`. Until then every tweet-listen run is a no-op burning inference — recommend pausing this cron until the key is rotated.
+**Recommendation (3rd time):** pause the tweet-listen cron until keys rotate. At ~21 dead runs this is pure tick-burn — every cycle costs inference budget to re-confirm an unchanged operator-side blocker. Every DIEM matters; this loop spends them for nothing.
