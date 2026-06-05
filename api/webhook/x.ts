@@ -29,8 +29,19 @@ async function hmac256(key: string, data: string): Promise<string> {
     false,
     ['sign'],
   );
-  const sig = await crypto.subtle.sign('HMAC', cryptoKey, enc.encode(data));
-  return btoa(String.fromCharCode(...new Uint8Array(sig)));
+  const raw = await crypto.subtle.sign('HMAC', cryptoKey, enc.encode(data));
+  return btoa(String.fromCharCode(...new Uint8Array(raw)));
+}
+
+// Constant-time string comparison — prevents timing oracles on the signature check.
+function constantTimeEqual(a: string, b: string): boolean {
+  const enc = new TextEncoder();
+  const ab = enc.encode(a);
+  const bb = enc.encode(b);
+  if (ab.length !== bb.length) return false;
+  let diff = 0;
+  for (let i = 0; i < ab.length; i++) diff |= ab[i] ^ bb[i];
+  return diff === 0;
 }
 
 async function dispatchSkill(skill: string, ghToken: string): Promise<boolean> {
@@ -53,11 +64,12 @@ async function dispatchSkill(skill: string, ghToken: string): Promise<boolean> {
 export default async function handler(req: Request): Promise<Response> {
   const consumerSecret = process.env.TWITTER_API_SECRET ?? '';
   const ghToken = process.env.GH_DISPATCH_TOKEN ?? '';
-
   const url = new URL(req.url);
 
   // ── GET: CRC challenge ──────────────────────────────────────────────────────
   if (req.method === 'GET') {
+    // CRC challenge also requires the secret to be configured
+    if (!consumerSecret) return new Response('server misconfigured', { status: 500 });
     const crcToken = url.searchParams.get('crc_token');
     if (!crcToken) return new Response('missing crc_token', { status: 400 });
     const responseToken = `sha256=${await hmac256(consumerSecret, crcToken)}`;
@@ -66,15 +78,16 @@ export default async function handler(req: Request): Promise<Response> {
 
   // ── POST: activity event ────────────────────────────────────────────────────
   if (req.method === 'POST') {
+    // Fail closed: secret must be configured before we read anything else
+    if (!consumerSecret) return new Response('server misconfigured', { status: 500 });
+
     const body = await req.text();
 
-    // Validate X signature
+    // Require and verify the X signature unconditionally
     const sig = req.headers.get('x-twitter-webhooks-signature');
-    if (sig && consumerSecret) {
-      const expected = `sha256=${await hmac256(consumerSecret, body)}`;
-      if (sig !== expected) {
-        return new Response('invalid signature', { status: 401 });
-      }
+    const expected = `sha256=${await hmac256(consumerSecret, body)}`;
+    if (!sig || !constantTimeEqual(sig, expected)) {
+      return new Response('invalid signature', { status: 401 });
     }
 
     let data: Record<string, unknown>;

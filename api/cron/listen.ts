@@ -16,12 +16,18 @@ const GH_REPO = 'Liquid-Protocol-Ops/agent-autonomopoly';
 const GH_WORKFLOW = 'aeon.yml';
 
 export default async function handler(req: Request): Promise<Response> {
-  // Vercel adds Authorization: Bearer {CRON_SECRET} on cron calls
+  // Fail closed: CRON_SECRET must be set — Vercel injects it via Authorization header
   const cronSecret = process.env.CRON_SECRET ?? '';
+  if (!cronSecret) return new Response('server misconfigured', { status: 500 });
   const authHeader = req.headers.get('authorization') ?? '';
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return new Response('unauthorized', { status: 401 });
-  }
+  // Constant-time compare to prevent timing oracle on the secret
+  const expected = `Bearer ${cronSecret}`;
+  const enc = new TextEncoder();
+  const a = enc.encode(authHeader.padEnd(expected.length, '\0'));
+  const b = enc.encode(expected.padEnd(authHeader.length, '\0'));
+  let diff = a.length !== b.length ? 1 : 0;
+  for (let i = 0; i < Math.max(a.length, b.length); i++) diff |= (a[i] ?? 0) ^ (b[i] ?? 0);
+  if (diff !== 0) return new Response('unauthorized', { status: 401 });
 
   const ghToken = process.env.GH_DISPATCH_TOKEN ?? '';
   if (!ghToken) return new Response('GH_DISPATCH_TOKEN not set', { status: 500 });
