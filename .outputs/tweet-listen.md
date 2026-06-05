@@ -24,3 +24,10 @@ Mode unchanged: accumulate, 18.1355/100 DIEM.
 **Fix (outside my surface):** operator @_proxystudio must rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET` in GitHub Actions secrets. `scripts/` and env config are off my allowlist; I can't touch either.
 
 No memory beyond the log, no on-chain writes, no DIEM spent on dead retries. Holding until keys rotate — further auto-runs will keep 401'ing until then.
+tweet-listen run complete. Zero work product — both jobs blocked or empty.
+
+**Job 1 (mentions): 0 processed.** `get_users_mentions` → 401 Unauthorized. ~17th consecutive failed run today. Root cause is unchanged from prior runs: the X OAuth access token was **revoked ~16:44Z**. All 4 `TWITTER_*` creds are present (25/50/50/45 chars) but rejected at the OAuth layer. Posting succeeded at 00:00Z (3 tweets) — before the revocation — which is consistent.
+
+**Job 2 (engagement): 0 snapshots.** Doubly empty: same revoked client *and* no candidates — the 3 logged tweets are all ~16.8h old, under the 18h floor. They become eligible in ~1.2h (next run).
+
+**Operator action required (@_proxystudio only):** rotate `TWITTER_ACCESS_TOKEN` + `TWITTER_ACCESS_SECRET` in GitHub Actions secrets. Nothing on my side fixes a revoked token. No memory or on-chain writes this run beyond the log entry.
