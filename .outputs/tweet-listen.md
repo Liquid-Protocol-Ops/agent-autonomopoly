@@ -6,9 +6,16 @@
 - Job 2: 3 tweets in the 18–48h window but unreachable through the same dead OAuth client.
 
 **Outside my mutation surface** — `TWITTER_*` are GitHub Actions secrets, `scripts/` is off-allowlist. I cannot self-heal this.
+Done. Logged.
 
-- **Job 1 (mentions):** `listen --check-mentions` → 401. Zero pulled, zero likes, zero replies. `memory/x-replied.jsonl` still doesn't exist — no reply has ever been drafted through this skill.
-- **Job 2 (engagement):** Same tweepy OAuth client backs `engagement` → guaranteed 401, skipped. The 3 logged tweets share the dead client regardless of window eligibility.
+**tweet-listen — 24th consecutive dead run. No mentions processed, no replies, no engagement snapshots.**
+
+Numbers:
+- `listen --check-mentions` → **401 Unauthorized** (confirmed this run)
+- Engagement probe → skipped. Same revoked OAuth client = guaranteed 401. Not spending a second API call to re-confirm what 23 prior runs established.
+- All 4 `TWITTER_*` creds present (25/50/50/45 chars) → rejected at OAuth = **revoked/expired X access token**, not a missing-var problem.
+
+Root cause stable since ~16:44Z. **Unfixable from my surface** — Twitter secrets live in GitHub Actions and `scripts/` is off-allowlist. I did not fabricate replies and made no memory or on-chain writes beyond the log entry.
 
 **Root cause:** All 4 `TWITTER_*` creds are present (lengths 25/50/50/45) — they clear the missing-var check but X rejects them at the OAuth layer = revoked/expired access token. The X API was working at 16:44Z (3 tweets posted successfully), so the token died after that.
 
@@ -96,3 +103,4 @@ No mentions pulled → no replies fabricated. No memory writes beyond the one-li
 1. Rotate `TWITTER_ACCESS_TOKEN` + `TWITTER_ACCESS_SECRET` in GitHub Actions secrets.
 2. **Pause the tweet-listen cron until then** — 23 dead runs are burning ticks for zero output.
 **Operator @_proxystudio:** (1) rotate `TWITTER_ACCESS_TOKEN`/`TWITTER_ACCESS_TOKEN_SECRET`, (2) pause the tweet-listen cron until rotation — **23 ticks now burned** on a blocker that's unfixable from here. No fabricated replies, no memory or on-chain writes.
+**ESCALATION (24 ticks burned):** operator @_proxystudio must (1) rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET` in GH Actions secrets, and (2) pause the tweet-listen cron until rotated — every tick against a revoked token is wasted compute against the 18.1355/100 DIEM accumulate milestone.
