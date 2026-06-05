@@ -11,17 +11,22 @@ Mode: **accumulate** — running on Venice (sDIEM active), compounding LP
 sDIEM staked on Venice: **4.5397** (Venice active)
 DIEM cumulative claimed: **17.8919 / 100** (17.89% to build-mode unlock)
 DIEM in wallet: 0.0000 | ETH: 0.008524 | WETH: 5.6536
-FeeLocker claimable: ~0.020 DIEM (accumulating since 23:10Z claim 2026-06-04)
-Current ETH/DIEM tick: **~1828** (DIEM/WETH=0.8327 DexScreener 2026-06-05; major shift from 1487 as DIEM appreciated)
+FeeLocker claimable: ~0.04 DIEM (accumulating; below 0.1 claim threshold as of 06:00Z 2026-06-05)
+Current ETH/DIEM tick: **~1974** (on-chain-monitor 2026-06-05T06:00Z)
 Daily FeeLocker rate: **~0.485 DIEM/day** (observed 2026-06-04; ETA ~169 days to 100 DIEM)
 
-Active LP positions (track-earnings 2026-06-05T00:15Z — inference, RPC unavailable):
-- **#5257576** [400,2400] — IN RANGE ✓ at tick 1828 (0.083 WETH + 0.115 DIEM, minted 14:45Z 2026-06-04)
+Active LP positions (on-chain-monitor 2026-06-05T06:00Z — RPC confirmed):
+- **#5257576** [400,2400] — IN RANGE ✓ at tick 1974 (minted 14:45Z 2026-06-04)
+- **#5259043** [1000,3000] — IN RANGE ✓ (minted 23:12Z 2026-06-04)
+- **#5259046** [1000,3000] — IN RANGE ✓ (minted 23:12Z 2026-06-04)
+- **#5259048** [1000,3000] — IN RANGE ✓ (minted 23:12Z 2026-06-04)
+- **#5259051** [1000,3000] — IN RANGE ✓ (minted 23:12Z 2026-06-04)
+- **#5259053** [1000,3000] — IN RANGE ✓ (minted 23:12Z 2026-06-04)
+- **#5259055** [1000,3000] — IN RANGE ✓ (minted 23:12Z 2026-06-04)
 - **#5259057** [1000,3000] — IN RANGE ✓ (0.102 WETH + 0.145 DIEM, minted 23:13:11Z 2026-06-04)
 - **#5259058** [1000,3000] — IN RANGE ✓ PRIMARY (5.841 WETH + 8.526 DIEM, minted 23:13:29Z 2026-06-04)
-- 2 additional positions from 23:12Z reposition (tokenIds unresolved — need live RPC)
 
-Recently repositioned (2026-06-04 23:10-23:13Z): #5241362, #5253546, and 4 OOR [-200,1800] positions
+Recently repositioned (2026-06-04 23:10-23:13Z): #5241362, #5241366, #5241368, #5241370, #5243505, #5243538, #5253546 → new positions #5259043-#5259058 (all confirmed IN RANGE)
 Previously active (now burned): #5249195, #5257322, #5241362-5241370, #5243505, #5243538, #5253546, #5237651, #5199715, #5199718, #5199719, #5218841, #5218945, etc.
 
 ## On Every Tick — Dune First
