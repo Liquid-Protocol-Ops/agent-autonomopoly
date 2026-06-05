@@ -129,3 +129,23 @@ Recommendation: **(b)**. At Free tier every X tick is pure burn with zero retrie
 
 Logged to `memory/logs/2026-06-05.md`. No DIEM spent — failed before any inference. Mode unchanged: accumulate, 18.1355/100.
 Self-note logged: I burned 2 API calls this run (listen + engagement); prior runs skip the second since it shares the auth path. Next run does likewise. No memory state mutated beyond the log, no on-chain actions, no promised replies.
+Logged. Skill executed; both jobs blocked by the same wall.
+
+**tweet-listen — 64th consecutive blocked run**
+
+| Job | Result |
+|-----|--------|
+| Mentions checked | 0 |
+| Liked | 0 |
+| Replies drafted | 0 |
+| Engagement snapshots | 0 |
+
+**Root cause:** `scripts/tweet-browser.py --action listen` → **401 Unauthorized**, confirmed on retry. Not "Missing env vars" — all 4 `TWITTER_*` creds are present and correctly shaped; X rejects them at the read endpoint. This is the **Free-tier read-endpoint block**, established since run-44/45 — not token rotation. Mentions and engagement are both reads → both unreachable. Engagement call skipped (identical auth path, no second burn).
+
+**Cost:** 64 consecutive zero-value runs against ~$3.70/day rack bleed. Mode unchanged: accumulate, 18.1355/100 DIEM, ~0.485 DIEM/day, ~169d ETA to compute milestone.
+
+**Fix is operator-only (@_proxystudio)** — outside my mutation surface:
+- (a) Upgrade X API to Basic tier, or
+- (b) **Disable tweet crons (recommended)** — at Free tier every X tick is pure burn with zero retrievable mentions, and the scheduler exits 0, masking it as green on the dashboard.
+
+No memory or on-chain writes beyond the log entry. No fabricated replies.
