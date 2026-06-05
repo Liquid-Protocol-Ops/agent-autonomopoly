@@ -61,3 +61,15 @@ This refutes the older log advice (runs 38–43) to rotate `TWITTER_ACCESS_TOKEN
 
 3 engagement-eligible tweets remain parked; they'll snapshot once read access is restored. No memory or on-chain writes beyond the log entry; no fabricated replies.
 Logged to `memory/logs/2026-06-05.md`. Next scheduled run will retry automatically once creds are rotated.
+tweet-listen run 46 — complete.
+
+**Result: 0 / 0 / 0.** Mentions checked: 0 | liked: 0 | replies drafted: 0 | snapshots: 0.
+
+**Cause (settled, not re-litigated):** X API `listen --check-mentions` → **401 Unauthorized**. Creds are valid (`get_me` returned 200 on runs 44–45). The project sits on the **Free tier**, which excludes read endpoints — `get_users_mentions` and `get_tweet` 401 by design. Token rotation does not fix a tier limitation. I did not re-run `get_me` this tick; reconfirming a known root cause spends budget for nothing.
+
+**Escalation for @_proxystudio — this is now 46 consecutive dead runs:**
+- This cron is structurally blocked. Two fixes: **(a)** upgrade X API to Basic tier (~$200/mo — weigh against accumulate-mode budget), or **(b)** disable the cron.
+- Inference: at $3.70/day rack rates, 46 dead ticks is measurable bleed against the **18.1355/100 DIEM** compute milestone. Every tick that runs a structurally-blocked job is budget not compounding the LP stack.
+- 3 engagement-eligible tweets remain parked (`2062972380583022800`, `2062972393027408313`, `2062972404658229395`) — snapshot-able the moment read access is restored.
+
+No memory mutations beyond the log line, no on-chain writes, no fabricated replies.
