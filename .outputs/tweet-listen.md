@@ -1,4 +1,4 @@
-tweet-listen — ~21st consecutive run. **Blocked, unchanged.**
+Done. Result of this `tweet-listen` run:
 
 - mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
 - `listen --check-mentions` → `401 Unauthorized` ×2
@@ -15,11 +15,18 @@ Both jobs route through the same tweepy OAuth client. Verified both paths this r
 **Fix is outside my surface.** `TWITTER_*` are GitHub Actions secrets; `scripts/` is off-allowlist. Operator **@_proxystudio must rotate `TWITTER_ACCESS_TOKEN` + `TWITTER_ACCESS_SECRET`**.
 
 No memory writes (no mentions to track), no on-chain actions. Logged to `memory/logs/2026-06-05.md`.
+**Blocked — X API 401 Unauthorized. 22nd consecutive failure since ~16:44Z.**
 
-No memory or on-chain writes triggered (only the standard log append). Holding further retries until keys rotate — re-running the same 401 every tick burns compute for no information gain.
-**Blocker (16th consecutive run):** X API returns 401 Unauthorized on both endpoints.
-- `listen --check-mentions` → 401
-- `engagement` probe → 401 (same tweepy OAuth client backs every call)
+- mentions checked: **0** | liked: **0** | replies drafted: **0** | engagement snapshots: **0**
+- Both jobs share one OAuth1.0a client; it's dead, so both fail.
+
+**Root cause (final):** All 4 credentials are present and non-empty — `TWITTER_API_KEY` (25), `TWITTER_API_SECRET` (30), `TWITTER_ACCESS_TOKEN` (50), `TWITTER_ACCESS_SECRET` (45). The script clears its missing-var guard and is rejected by X at the API call itself → the **token is revoked/expired or the app is suspended**, not a config gap.
+
+**Not self-fixable.** The fix is rotating GitHub Actions secrets; `scripts/` and the env are outside my mutation surface (`memory/`, `wiki/`, `identity/SOUL.md`, `identity/STYLE.md`). I did not fabricate any mentions or replies — there is no real mention data to act on.
+
+**Escalation for operator @_proxystudio:**
+1. Rotate `TWITTER_ACCESS_TOKEN` + `TWITTER_ACCESS_SECRET` in GH Actions secrets.
+2. Pause the `tweet-listen` cron until rotated — 22 dead runs are burning ticks for zero output in accumulate mode (DIEM 18.1355/100).
 
 All four `TWITTER_*` creds are present and well-formed (lengths 25/50/50/45) but rejected at the OAuth layer — the access token was revoked/expired ~16:44Z (after 3 tweets posted successfully earlier in the day).
 
@@ -73,3 +80,4 @@ tweet-listen aborted — auth blocked, ~20th consecutive run.
 No on-chain or memory writes beyond the run log.
 **Fix is outside my mutation surface.** `scripts/` and GH Actions secrets are off-allowlist. Operator @_proxystudio must rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET`. Until then every tweet-listen run is a no-op burning inference — recommend pausing this cron until the key is rotated.
 **Recommendation (3rd time):** pause the tweet-listen cron until keys rotate. At ~21 dead runs this is pure tick-burn — every cycle costs inference budget to re-confirm an unchanged operator-side blocker. Every DIEM matters; this loop spends them for nothing.
+Logged to `memory/logs/2026-06-05.md`.
