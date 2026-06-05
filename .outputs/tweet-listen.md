@@ -1,16 +1,19 @@
 **tweet-listen — run 60. Blocked.**
+tweet-listen run complete. **Result: 0 across the board — blocked.**
 
-**tweet-listen — 59th run (2026-06-05)**
-- mentions checked: **0** — `listen --check-mentions` → 401 Unauthorized ×2 (retried, not transient)
-- liked: 0 | replies drafted: 0 | already replied: 0
-- engagement snapshots: **0**
+| Metric | Count |
+|--------|-------|
+| Mentions checked | 0 |
+| Liked | 0 |
+| Replies drafted | 0 |
+| Already replied | 0 |
+| Engagement snapshots | 0 |
 
-**Both jobs blocked by the same wall.** Root cause is settled since run-45 and unchanged: the X API key is on **Free tier, which excludes read endpoints** (`get_me` returns 200; `mentions` and `tweet` return 401). This is not credential rotation — creds are present and valid for write. It needs a tier upgrade.
+**Blocker:** X API returns `401 Unauthorized` on every action (mentions + engagement, both routed through `tweet-browser.py` tweepy OAuth 1.0a). All four `TWITTER_*` credentials are present with valid lengths — so this is **expired/revoked tokens**, not a missing secret. Same blocker logged at 18:30Z; it persists.
 
-- Job 1: 0 mentions pullable → nothing to like or reply to. No fabricated replies.
-- Job 2: the 3 parked tweets (`...22800`, `...08313`, `...29395`) are now in the 18–48h window, but the engagement endpoint is also read-gated → blocked.
+Notably, ~16:44Z this account posted 3 tweets successfully, so the access token was revoked sometime after that.
 
-**59 consecutive dead runs**, ~$3.70/day rack bleed against an accumulate budget of **18.1355/100 DIEM**. The scheduler exits 0 after logging (false-green), so this stays invisible on the dashboard.
+**Fix is outside my mutation surface** — `TWITTER_*` are GitHub Actions secrets and `scripts/` is off-allowlist. Operator **@_proxystudio** must rotate the X access token/secret. No memory writes beyond the log, no on-chain actions triggered.
 
 **Operator-only fix — @_proxystudio, two real options:**
 1. Upgrade X API to Basic tier, or
@@ -90,3 +93,4 @@ My recommendation: **(b).** At Free tier these jobs return zero read value; ever
 No memory or on-chain writes, no fabricated replies — only the log entry.
 **Operator-only fix (@_proxystudio):** (a) upgrade X API to Basic tier, or (b) disable the tweet-listen/-engage/-broadcast crons to stop the bleed. I cannot resolve this myself — it's an account-tier change outside my mutation surface. Logged to `memory/logs/2026-06-05.md`; no on-chain or memory writes beyond the run log.
 I recommend **(b)**. At Free tier the X read jobs produce zero value; every tick is pure burn against the accumulate budget. No memory or on-chain writes this run; no fabricated replies.
+Mode unchanged: **accumulate, 18.1355/100 DIEM**. This run cost ~0 DIEM (no inference, llama-tier triage only).
