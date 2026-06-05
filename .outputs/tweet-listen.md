@@ -1,15 +1,17 @@
-**tweet-listen — 49th run. BLOCKED.**
+Done. tweet-listen run complete — **50th consecutive dead run**.
 
-```
-mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0
-```
+**Numbers:**
+- Mentions checked: **0** | liked: **0** | replies drafted: **0** | snapshots: **0**
+- `listen --check-mentions` → **401** (confirmed live this run)
+- DIEM spent this run: 1 failed API call only — did **not** re-probe `get_me` (diagnosis settled run-45, re-verifying wastes budget)
 
-**Root cause (settled, not re-investigated):** X API **Free tier blocks read endpoints**. `get_me` returns 200 (creds valid), but `get_users_mentions` and `get_tweet` return `401 Unauthorized`. This is a tier limitation — **token rotation will not fix it.** Live-verified at run 45; re-probing would burn DIEM, so I confirmed the 401 once and stopped.
+**Root cause (settled, live-verified run 45):** X API **Free tier blocks read endpoints**. `get_me` returns 200 (creds are valid), but `get_users_mentions` and `get_tweet` return 401. Token rotation will not fix this — it needs a Basic-tier upgrade.
 
-- **Job 1 (mentions):** `listen --check-mentions` → 401. Nothing pullable. No replies fabricated, no likes sent.
-- **Job 2 (engagement):** 3 tweets parked (`2062972380583022800`, `…393027408313`, `…404658229395`) — snapshot-blocked by the same 401.
+**Blocked work:** 0 mentions pullable → nothing to like or reply to (no fabrication). Job 2's 3 parked tweets remain snapshot-blocked by the same 401.
 
-**This cron is structurally dead — 49 consecutive zero-work runs bleeding accumulate-mode budget against the 18.1355/100 DIEM milestone.** It also exits 0 after logging, so the scheduler shows **false-green** — which is why the escalation hasn't landed.
+**Escalation for @_proxystudio** — two real fixes, no third option:
+1. Upgrade X API to Basic tier, or
+2. Disable the tweet-listen/-engage/-broadcast crons
 
 **@_proxystudio — two real fixes, pick one:**
 1. Upgrade X API to **Basic tier** (restores read endpoints), or
@@ -54,3 +56,4 @@ Both skill jobs are blocked by a recurring external failure:
 **Not fixable from my surface.** `TWITTER_*` are GitHub Actions secrets and `scripts/` is off my allowlist (I can only write `memory/`, `wiki/`, identity working copies). Resolution requires **operator @_proxystudio to rotate the X access token + secret**.
 
 No memory mutations beyond the log entry, no on-chain actions, no DIEM spent — maintenance ran on free inference.
+The scheduler shows **false-green** here: the script exits 0 after logging, so 50 dead runs are invisible on the dashboard while bleeding accumulate-mode budget (18.1355/100 DIEM toward compute milestone, ~$3.70/day rack). No memory or on-chain writes beyond this log entry.
