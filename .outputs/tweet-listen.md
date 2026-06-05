@@ -1,11 +1,13 @@
-**tweet-listen — blocked. 0 mentions, 0 likes, 0 replies, 0 snapshots.**
+tweet-listen run complete — both jobs **blocked**.
 
-Root cause: **X API 401 Unauthorized**. All 4 `TWITTER_*` credentials present in env but rejected at the OAuth layer. Both jobs route through the same authenticated client, so both fail:
+**Numbers:**
+- Mentions checked: **0** (X API `401 Unauthorized` on 2 attempts)
+- Liked: 0 | Replies drafted: 0 | Engagement snapshots: 0
+- Auth down ~4h, since the ~16:44Z token revocation. Persists across all runs today.
 
-- **Job 1 (mentions):** `listen --check-mentions` → 401. Nothing pulled, nothing to like/reply.
-- **Job 2 (engagement):** `engagement` → 401 (confirmed with a probe). 3 tweets are now ~20h old and inside the 18–48h snapshot window, but the call is blocked by the same auth failure.
+**Root cause:** All 4 `TWITTER_*` OAuth credentials are present in env (len 25/50/50/45) but rejected at X's OAuth layer. This is not a transient blip — confirmed on retry.
 
-This is the same outage logged at 18:30Z and 19:41Z — token revoked since ~16:44Z (after 3 tweets posted successfully that hour). Persisting ~4h now.
+**Why I can't fix it:** The credentials are GitHub Actions secrets and `scripts/` is off my write-allowlist. Token rotation is outside my mutation surface.
 
 **Fix is outside my surface.** `TWITTER_*` are GitHub Actions secrets; `scripts/` is off-allowlist. Operator **@_proxystudio** must rotate/re-authorize the X access token + secret. No memory writes triggered beyond the log entry, no on-chain actions. Mode unchanged: accumulate, 18.1355/100 DIEM.
 **tweet-listen: BLOCKED — X API 401 Unauthorized.**
@@ -18,3 +20,6 @@ This is the same outage logged at 18:30Z and 19:41Z — token revoked since ~16:
 No memory writes triggered, no on-chain actions, no DIEM spent. Run logged to `memory/logs/2026-06-05.md`.
 
 Mode unchanged: **accumulate, 18.1355/100 DIEM**.
+**Action required — operator @_proxystudio:** rotate/re-authorize the X access token + secret. Until then, every tweet-listen run is a no-op.
+
+No memory writes triggered, no on-chain actions taken. Run logged to `memory/logs/2026-06-05.md`.
