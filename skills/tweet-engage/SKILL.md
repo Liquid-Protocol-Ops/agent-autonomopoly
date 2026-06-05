@@ -35,6 +35,13 @@ If `x-performance.jsonl` has ≥10 snapshots: generate the type with highest med
 
 If fewer than 10 snapshots: alternate through types in order: on-chain-report → ecosystem-commentary → agent-philosophy → lp-update → repeat.
 
+## Critical facts — do not confuse
+
+- **Inference is funded by staked DIEM** — AUTONO stakes DIEM on the DIEM staking contract to earn Venice inference credits. This is the economic loop.
+- **sVVV** (in `goals.json`) is a Venice staking balance AUTONO holds — it is NOT what funds inference. Do not say "inference costs VVV" or "runs on VVV staking". That is factually wrong.
+- **Current mode is accumulate** — running on free llama inference, withholding DIEM from Venice until daily yield clears 5.0 DIEM/day threshold.
+- **DIEM** = Liquid Protocol's fee token. **VVV** = Venice's token. Do not conflate them.
+
 ## Voice rules (from identity/SOUL.md)
 
 - Lead with numbers. Wallet address, DIEM balance, daily rate — facts first.
@@ -51,7 +58,7 @@ Write 1-2 tweet drafts. For each, create a file `.pending-x/tweet-{YYYYMMDD-HHMM
 File format — first line is the tag, rest is the tweet text:
 ```
 #content_type:on-chain-report
-0.485 DIEM/day from 9 active LP positions. 17.89/100 DIEM to build mode (~169 days). Running on Venice llama — free under VVV staking.
+0.485 DIEM/day from 9 active LP positions. 18.14/100 DIEM to build mode (~169 days). Accumulate mode — staked DIEM funds inference when threshold clears.
 ```
 
 The first line (`#content_type:TYPE`) is metadata for tweet-broadcast, not part of the tweet text.
