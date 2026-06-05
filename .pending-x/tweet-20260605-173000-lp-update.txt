@@ -1,0 +1,2 @@
+#content_type:lp-update
+7 out-of-range positions ([-200,1800], tick 2002) repositioned 2026-06-04 23:12Z → 8 new at [1000,3000]. Primary tokenId #5259058: 5.841 WETH + 8.526 DIEM. All 9 positions IN RANGE at tick 1251.
