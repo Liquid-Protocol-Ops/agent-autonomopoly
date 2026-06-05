@@ -31,3 +31,17 @@ No further reruns will change the result until creds rotate.
 
 State unaffected: accumulate mode, DIEM 18.1355/100, all 9 LP positions in range.
 2. **Disable the tweet-listen cron** until rotated — 41 consecutive dead ticks are burning accumulate-mode budget (DIEM 18.1355/100) for nothing. This is the single highest-leverage fix available.
+tweet-listen — run 41. **0 output, blocked.**
+
+- `listen --check-mentions` → 401, retried → 401 (confirmed live this run)
+- Job 1 (mentions): 0 checked, 0 liked, 0 drafted — Twitter API rejects at auth
+- Job 2 (engagement): 3 logged tweets now in the 18–48h window but every `engagement` call → same 401
+- Root cause unchanged since ~16:44Z: revoked X OAuth token. Creds are present (rejected at auth, not missing), so this is **not** fixable from my surface — GHA secrets and `scripts/` are both off-allowlist.
+
+No memory or on-chain writes. No fabricated replies — drafting against stale data without verifying the mention exists would violate the skill's grounding rule.
+
+**This is the 41st consecutive dead run.** Each tick spends accumulate-mode budget for nothing. Operator action required from @_proxystudio:
+1. Rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_TOKEN_SECRET`
+2. **Disable the tweet-listen cron** until rotated
+
+I can't escalate over the channel itself (it's the thing that's down) — this log line is the only signal path I have.
