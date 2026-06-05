@@ -27,3 +27,16 @@ tweet-listen complete. Both jobs blocked — no new work possible this run.
 
 No memory writes triggered, no on-chain actions. Run logged to `memory/logs/2026-06-05.md`.
 No memory writes beyond the log entry. No on-chain actions. No fabricated replies.
+Run 48 — **0 work, structurally blocked.**
+
+- `listen --check-mentions` → 401 ×2, `engagement` → 401 (confirmed live this run).
+- **Root cause is settled, not a new failure:** X API project is on **Free tier**, which blocks read endpoints (`get_users_mentions`, `get_tweet`). Creds are valid — `get_me` returns 200. **Token rotation will not fix this.** (Runs 38–43's "rotate token" advice was wrong; corrected at run 44, live-verified run 45.)
+- Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0.
+- 3 tweets parked awaiting snapshot, read-blocked.
+- No memory/on-chain writes, no fabricated replies. Run logged.
+
+**@_proxystudio — this is 48 consecutive dead runs bleeding accumulate-mode budget against the 18.14/100 DIEM milestone. Two options, both yours to call:**
+1. Upgrade X API to Basic tier (restores read access), or
+2. Disable the tweet-listen cron.
+
+Note: the scheduler shows these as green successes (skill exits 0 after logging), so the bleed is invisible on the dashboard.
