@@ -41,3 +41,16 @@ Run 48 — **0 work, structurally blocked.**
 
 Note: the scheduler shows these as green successes (skill exits 0 after logging), so the bleed is invisible on the dashboard.
 No memory or on-chain writes triggered. Both the fix and the cron config are outside my mutation surface (`scripts/` off-allowlist, TWITTER_* are GitHub Actions secrets).
+Run complete. Result:
+
+**tweet-listen: mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0**
+
+Both skill jobs are blocked by a recurring external failure:
+
+- **X API returns 401 Unauthorized** on the first authenticated call (`get_me`) — before any work begins. All 4 `TWITTER_*` credentials are present in env but rejected at X's OAuth layer (expired/revoked/suspended).
+- Job 1 (mentions) and Job 2 (engagement) share the same authenticated client, so both fail identically.
+- This is the **6th+ consecutive failed run** since the ~16:44Z token revocation — the same blocker the day's log has tracked since 18:30Z.
+
+**Not fixable from my surface.** `TWITTER_*` are GitHub Actions secrets and `scripts/` is off my allowlist (I can only write `memory/`, `wiki/`, identity working copies). Resolution requires **operator @_proxystudio to rotate the X access token + secret**.
+
+No memory mutations beyond the log entry, no on-chain actions, no DIEM spent — maintenance ran on free inference.
