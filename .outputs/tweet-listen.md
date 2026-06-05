@@ -1,27 +1,16 @@
-tweet-listen run complete. **Blocked — 0 actions possible.**
+tweet-listen complete. Both jobs blocked at the same wall.
 
-| Job | Result |
-|-----|--------|
-| 1. Mentions/replies | `listen` → **401 Unauthorized** (2 retries). 0 mentions pulled, 0 liked, 0 replies drafted. |
-| 2. Engagement snapshots | `engagement` → **401 Unauthorized**. 3 tweets eligible (posted ~24h ago, no perf entry), 0 snapshots captured. |
+**Numbers:**
+- Mentions checked: **0** — `listen --check-mentions` → **401 Unauthorized** (2 calls, transient ruled out)
+- Replies drafted: **0** | Liked: **0** | Engagement snapshots: **0**
+- Eligible tweets for Job 2: **0** (3 logged posts all <18h old; window is 18–48h — and same 401 would block reads anyway)
+- **66th consecutive zero-value run** at ~$3.70/day rack bleed
 
-**Root cause:** X API credential rejected across all read endpoints. This is the same blockage logged at run-44 — X Free tier excludes read endpoints. It is **operator-only**: I cannot touch credentials (`scripts/`, secrets, env are off my mutation surface).
-
-**Operator action required, @_proxystudio:** upgrade X API to Basic tier *or* disable the tweet crons. Until then every tweet-listen run will no-op and burn a tick.
-
-**Fix is operator-only (@_proxystudio)** — outside my mutation surface:
-tweet-listen run complete. Blocked, no work possible.
-
-**Results: 0/0/0/0/0** (checked / liked / drafted / already-replied / snapshots)
-
-- **Job 1 — mentions:** `listen --check-mentions` → **401 Unauthorized**. 1 API call burned (skipped the engagement retry — shared auth path, no point). Zero mentions pullable → zero likes/replies/drafts. Nothing fabricated.
-- **Job 2 — engagement:** 3 parked tweets now past the 18h mark but snapshot-blocked by the same 401.
-
-**Root cause unchanged since run-45:** X API Free tier blocks authenticated READ endpoints (writes work — posting succeeded ~16:44Z; reads 401). Not token expiry. This is the **65th consecutive zero-value run** at ~$3.70/day rack bleed.
+**Root cause (established, not new):** All four `TWITTER_*` OAuth creds are present, but the X API **Free tier excludes authenticated read endpoints**. Known since run-44. This is not transient and not fixable by me — I have no write surface for credentials or billing tier.
 
 **Operator action required (@_proxystudio only):**
-- (a) Upgrade X API to Basic tier, or
-- (b) Disable tweet-listen/-engage/-broadcast crons
+- (a) Upgrade to X API Basic tier, **or**
+- (b) Disable the tweet-listen cron — **recommended**, since every run burns inference budget for guaranteed zero output.
 
 No memory or on-chain writes beyond the log entry. No fabricated replies.
 **Operator-only fix (@_proxystudio):** either (a) upgrade X API to Basic tier, or (b) disable the tweet-listen/-engage/-broadcast crons. **Recommendation: (b)** — Free-tier X read value is zero; every tick of these crons is pure burn against a budget that's already $3.70/day underwater. This is outside my mutation surface (GitHub secrets + cron config).
@@ -38,3 +27,4 @@ Two honest notes logged:
 2. Nothing fabricated, no memory/on-chain writes beyond this log line.
 
 **66 consecutive zero-value runs at ~$3.70/day rack bleed against an 18.1355/100 DIEM accumulate balance.** This is pure burn. Operator action required (@_proxystudio only): either **(a)** upgrade to X API Basic tier to unblock reads, or **(b)** disable the tweet crons. Recommendation stands at **(b)** — until the read block is paid off, every tweet-listen tick spends inference budget to produce nothing.
+No memory/chain writes made beyond the run log. No replies fabricated — the skill forbids replying without real mention data, and there is none.
