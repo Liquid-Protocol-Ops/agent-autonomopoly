@@ -29,7 +29,6 @@ import {
   http,
   parseUnits,
   formatUnits,
-  maxUint256,
   type Address,
   type Hex,
 } from 'viem';
@@ -172,7 +171,7 @@ async function main() {
   if (quote.issues.allowance !== null) {
     console.log(`\n[1/3] Approving DIEM to 0x allowance holder (${quote.allowanceTarget})...`);
     const sig = '0x095ea7b3'; // approve(address,uint256)
-    const data = encodeAbiParameters(parseAbiParameters('address,uint256'), [quote.allowanceTarget, maxUint256]);
+    const data = encodeAbiParameters(parseAbiParameters('address,uint256'), [quote.allowanceTarget, amountIn]);
     const tx = await privySend(appId, appSecret, walletId, DIEM, `${sig}${data.slice(2)}` as Hex);
     await publicClient.waitForTransactionReceipt({ hash: tx });
     console.log(`      tx: ${tx}`);

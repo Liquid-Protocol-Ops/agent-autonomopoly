@@ -28,7 +28,6 @@ import {
   http,
   parseUnits,
   formatUnits,
-  maxUint256,
   type Address,
   type Hex,
 } from 'viem';
@@ -162,7 +161,7 @@ async function main() {
   const { encodeAbiParameters: enc, parseAbiParameters: par } = await import('viem');
   const approveData = encodeAbiParameters(
     par('address,uint256'),
-    [UNI_V3_ROUTER, maxUint256],
+    [UNI_V3_ROUTER, amountIn],
   );
   // Build approve calldata manually using ABI encoding
   const approveSig = '0x095ea7b3'; // approve(address,uint256)
@@ -189,7 +188,7 @@ async function main() {
       address: UNI_V3_ROUTER,
       abi: SWAP_ROUTER_ABI,
       functionName: 'exactInput',
-      args: [{ path, recipient: agentWallet, amountIn, amountOutMinimum: 0n }],
+      args: [{ path, recipient: agentWallet, amountIn, amountOutMinimum: amountOutMin }],
       account: agentWallet,
     });
     vvvOut = result.result;
