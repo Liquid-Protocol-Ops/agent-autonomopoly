@@ -1,15 +1,19 @@
 ---
 name: tweet-broadcast
-description: Post queued tweets and replies from .pending-x/ via Playwright automation
+description: Post queued tweets and replies from .pending-x/ via X API v2 (tweepy)
 var: ""
 tags: [twitter, delivery]
 ---
 
-Post queued tweet files from `.pending-x/` to Twitter/X using browser-use automation.
+Post queued tweet files from `.pending-x/` to Twitter/X using the X API v2.
+
+## CRITICAL: Never thread tweets
+
+Each `tweet-*.txt` file is a **standalone post**. Never pass `--reply-to` for tweet files.
+Do NOT chain tweets into threads. Each one goes out independently to the main feed.
+Only `reply-{TWEET_ID}.txt` files use `--reply-to`. Threads appear under "Replies" not "Posts" — this is wrong.
 
 ## Check for queued content
-
-List files in `.pending-x/` (exclude `sent/` subdirectory and `.gitkeep`):
 
 ```bash
 ls .pending-x/*.txt 2>/dev/null | head -20
@@ -26,36 +30,26 @@ Sort by filename (chronological order).
 
 For each file (up to 5):
 
-1. Check if file starts with `#content_type:` tag — this is metadata, not tweet text.
-2. Call:
+1. Strip the `#content_type:` first line — that is metadata only, never tweet text.
+2. For **tweet files** (`tweet-*.txt`) — standalone post, no reply-to:
    ```bash
-   python scripts/tweet-browser.py --action post --file PATH_TO_FILE
+   python scripts/tweet-browser.py --action post --file .pending-x/tweet-20260604-on-chain-report.txt
    ```
-   For reply files named `reply-{TWEET_ID}.txt`, also pass `--reply-to TWEET_ID`:
+3. For **reply files** (`reply-{TWEET_ID}.txt`) — reply to that tweet ID:
    ```bash
    python scripts/tweet-browser.py --action post --file .pending-x/reply-1234567890.txt --reply-to 1234567890
    ```
-3. Parse stdout JSON. On `"status": "ok"`:
-   - Move file to `.pending-x/sent/` (create directory if needed)
+4. Parse stdout JSON. On `"status": "ok"`:
+   - Move file to `.pending-x/sent/`
    - Append to `memory/x-tweet-log.jsonl`:
      ```json
      {"tweet_id":"1234567890123456789","content_type":"on-chain-report","text":"0.485 DIEM/day...","posted_at":"2026-06-04T14:00:00Z","source_file":"tweet-20260604-140000-on-chain-report.txt"}
      ```
-   - Extract `content_type` from the first line of the file (strip the `#content_type:` prefix).
-4. On `"status": "error"`:
-   - Leave file in `.pending-x/` (retry next run)
-   - Log the error to `memory/logs/{today}.md`
-   - Continue with remaining files.
+5. On `"status": "error"`: leave file in `.pending-x/`, log error, continue.
 
 ## After posting
 
 Log to `memory/logs/{today}.md`:
 ```
-tweet-broadcast: posted N tweet(s), N reply/replies — N failed (left in queue)
+tweet-broadcast: posted N tweet(s), N replies — N failed (left in queue)
 ```
-
-If session expired (error reason contains "session expired" or "not logged in"):
-```
-tweet-broadcast: session expired — re-run init manually: python scripts/tweet-browser.py --action init
-```
-Notify via `./notify "AUTONO Twitter session expired — run tweet-browser.py --action init"`
