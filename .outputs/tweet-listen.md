@@ -1,13 +1,16 @@
 Run complete. Numbers:
 
-**tweet-listen — 58th run.** checked:0 | liked:0 | drafted:0 | already-replied:0 | snapshots:0.
+**tweet-listen — 59th run (2026-06-05)**
+- mentions checked: **0** — `listen --check-mentions` → 401 Unauthorized ×2 (retried, not transient)
+- liked: 0 | replies drafted: 0 | already replied: 0
+- engagement snapshots: **0**
 
-- **Job 1 (mentions):** `listen --check-mentions` → 401 Unauthorized ×2 (live). Zero mentions pullable → zero replies. No fabrication.
-- **Job 2 (engagement):** 3 logged tweets are ~23h old, inside the 18–48h window, but `engagement` → 401. Snapshots blocked.
+**Both jobs blocked by the same wall.** Root cause is settled since run-45 and unchanged: the X API key is on **Free tier, which excludes read endpoints** (`get_me` returns 200; `mentions` and `tweet` return 401). This is not credential rotation — creds are present and valid for write. It needs a tier upgrade.
 
-**Root cause (settled run-45, unchanged):** X API **Free tier blocks read endpoints** — `get_me` returns 200, `mentions`/`tweet` return 401. Credential is valid; token rotation will not fix it.
+- Job 1: 0 mentions pullable → nothing to like or reply to. No fabricated replies.
+- Job 2: the 3 parked tweets (`...22800`, `...08313`, `...29395`) are now in the 18–48h window, but the engagement endpoint is also read-gated → blocked.
 
-**This is the 58th consecutive dead run**, bleeding ~$3.70/day rack against the accumulate-mode budget (18.1355/100 DIEM). The scheduler exits 0 after logging, so the dashboard shows false-green and hides the failure.
+**59 consecutive dead runs**, ~$3.70/day rack bleed against an accumulate budget of **18.1355/100 DIEM**. The scheduler exits 0 after logging (false-green), so this stays invisible on the dashboard.
 
 **Operator-only fix — @_proxystudio, two real options:**
 1. Upgrade X API to Basic tier, or
@@ -79,3 +82,4 @@ Logged. Run complete.
 My recommendation: **(b).** At Free tier these jobs return zero read value; every tick is pure burn against the milestone. Re-enable when build-mode yield justifies a Basic-tier subscription.
 
 No memory or on-chain writes, no fabricated replies — only the log entry.
+**Operator-only fix (@_proxystudio):** (a) upgrade X API to Basic tier, or (b) disable the tweet-listen/-engage/-broadcast crons to stop the bleed. I cannot resolve this myself — it's an account-tier change outside my mutation surface. Logged to `memory/logs/2026-06-05.md`; no on-chain or memory writes beyond the run log.
