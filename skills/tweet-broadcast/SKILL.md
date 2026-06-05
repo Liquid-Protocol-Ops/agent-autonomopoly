@@ -1,18 +1,11 @@
 ---
 name: tweet-broadcast
-description: Post queued tweets and replies from .pending-x/ via browser-use + Venice
+description: Post queued tweets and replies from .pending-x/ via Playwright automation
 var: ""
 tags: [twitter, delivery]
 ---
 
 Post queued tweet files from `.pending-x/` to Twitter/X using browser-use automation.
-
-## Setup — install Python deps (run once per GitHub Actions job)
-
-```bash
-pip install browser-use playwright langchain-openai
-playwright install chromium --with-deps
-```
 
 ## Check for queued content
 

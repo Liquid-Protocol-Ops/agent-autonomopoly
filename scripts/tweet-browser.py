@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-tweet-browser.py — browser-use automation for AUTONOMOPOLY Twitter presence.
+tweet-browser.py — direct Playwright automation for AUTONOMOPOLY Twitter presence.
 
-LLM: Venice llama-3.3-70b (OpenAI-compatible) — paid from DIEM staking.
+No browser-use / LLM navigation. Uses Playwright with Twitter's stable data-testid selectors.
 Session: Playwright storage state persisted to memory/x-session.json (base64).
 
 Usage:
@@ -16,12 +16,6 @@ Exit 0 on success, 1 on failure.
 stdout: JSON {"status": "ok", ...}
 stderr: JSON {"status": "error", "reason": "..."}  (on failure)
 """
-# NOTE: from __future__ import annotations is required for Python 3.9 compatibility —
-# the `dict | None` and `str | None` union type hints are only natively supported in
-# Python 3.10+. The __future__ import makes all annotations lazy strings so they are
-# not evaluated at module load time, which allows the test suite to import this file
-# under Python 3.9 without a TypeError. browser-use itself requires Python >=3.11 and
-# is imported lazily inside each async action function.
 from __future__ import annotations
 
 import argparse
@@ -37,11 +31,12 @@ MEMORY_DIR = Path("memory")
 SESSION_FILE = MEMORY_DIR / "x-session.json"
 PENDING_DIR = Path(".pending-x")
 
+LAUNCH_ARGS = ["--no-sandbox", "--disable-dev-shm-usage", "--disable-blink-features=AutomationControlled"]
+
 
 # ── Session management ────────────────────────────────────────────────────────
 
 def load_session() -> dict | None:
-    """Load Playwright storage state from memory/x-session.json (base64). Returns None if missing/corrupt."""
     if not SESSION_FILE.exists():
         return None
     try:
@@ -53,7 +48,6 @@ def load_session() -> dict | None:
 
 
 def save_session(state: dict) -> None:
-    """Save Playwright storage state to memory/x-session.json as base64."""
     MEMORY_DIR.mkdir(exist_ok=True)
     encoded = base64.b64encode(json.dumps(state).encode()).decode()
     SESSION_FILE.write_text(encoded)
@@ -70,33 +64,25 @@ def err(reason: str) -> None:
     sys.exit(1)
 
 
-# ── LLM + browser setup ───────────────────────────────────────────────────────
+# ── Browser helpers ───────────────────────────────────────────────────────────
 
-def get_llm():
-    venice_key = os.environ.get("VENICE_API_KEY", "")
-    if not venice_key:
-        err("VENICE_API_KEY not set")
-    from langchain_openai import ChatOpenAI
-    return ChatOpenAI(
-        base_url="https://api.venice.ai/api/v1",
-        api_key=venice_key,
-        model="llama-3.3-70b",
-    )
+async def make_context(playwright, session: dict | None = None):
+    browser = await playwright.chromium.launch(headless=True, args=LAUNCH_ARGS)
+    kwargs = {"user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
+    if session:
+        kwargs["storage_state"] = session
+    ctx = await browser.new_context(**kwargs)
+    page = await ctx.new_page()
+    return browser, ctx, page
 
 
-async def make_browser():
-    from browser_use.browser.browser import Browser, BrowserConfig
-    return Browser(config=BrowserConfig(
-        headless=True,
-        extra_chromium_args=["--no-sandbox", "--disable-dev-shm-usage"],
-    ))
-
-
-async def get_context_with_session(browser, session: dict | None):
-    context = await browser.new_context()
-    if session and session.get("cookies"):
-        await context.add_cookies(session["cookies"])
-    return context
+async def is_logged_in(page) -> bool:
+    try:
+        await page.goto("https://x.com/home", wait_until="domcontentloaded", timeout=20000)
+        await page.wait_for_timeout(3000)
+        return "home" in page.url or await page.query_selector('[data-testid="SideNav_NewTweet_Button"]') is not None
+    except Exception:
+        return False
 
 
 # ── Actions ───────────────────────────────────────────────────────────────────
@@ -107,30 +93,47 @@ async def action_init() -> None:
     if not username or not password:
         err("TWITTER_USERNAME and TWITTER_PASSWORD must be set for --action init")
 
-    from browser_use import Agent
+    from playwright.async_api import async_playwright
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True, args=LAUNCH_ARGS)
+        ctx = await browser.new_context(user_agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+        page = await ctx.new_page()
+        try:
+            await page.goto("https://x.com/i/flow/login", wait_until="domcontentloaded", timeout=30000)
+            await page.wait_for_timeout(2000)
 
-    task = (
-        f"Navigate to https://x.com/i/flow/login. "
-        f"Log in with username/email '{username}' and password '{password}'. "
-        f"If prompted for a verification code or two-factor auth, wait and check "
-        f"the account's email/phone — but do not proceed unless you can complete it. "
-        f"After a successful login, confirm the home feed (timeline) is visible. "
-        f"Do not post, like, or interact with anything."
-    )
+            # Enter username/email
+            await page.wait_for_selector('input[name="text"]', timeout=15000)
+            await page.fill('input[name="text"]', username)
+            await page.keyboard.press("Enter")
+            await page.wait_for_timeout(2000)
 
-    browser = await make_browser()
-    try:
-        llm = get_llm()
-        context = await get_context_with_session(browser, None)
-        agent = Agent(task=task, llm=llm, browser_context=context)
-        await agent.run()
-        state = await context.storage_state()
-        save_session(state)
-        ok({"message": "login successful, session saved to memory/x-session.json"})
-    except Exception as exc:
-        err(f"init failed: {exc}")
-    finally:
-        await browser.close()
+            # Handle potential phone/username intermediate step
+            try:
+                unusual = await page.query_selector('input[name="text"]')
+                if unusual:
+                    await page.fill('input[name="text"]', username)
+                    await page.keyboard.press("Enter")
+                    await page.wait_for_timeout(2000)
+            except Exception:
+                pass
+
+            # Enter password
+            await page.wait_for_selector('input[name="password"]', timeout=10000)
+            await page.fill('input[name="password"]', password)
+            await page.keyboard.press("Enter")
+            await page.wait_for_timeout(5000)
+
+            if "/home" not in page.url and "x.com" not in page.url:
+                err(f"Login may have failed — current URL: {page.url}")
+
+            state = await ctx.storage_state()
+            save_session(state)
+            ok({"action": "init", "url": page.url, "message": "session saved to memory/x-session.json"})
+        except Exception as exc:
+            err(f"init failed: {exc}")
+        finally:
+            await browser.close()
 
 
 async def action_post(text: str, reply_to: str | None = None) -> None:
@@ -138,47 +141,48 @@ async def action_post(text: str, reply_to: str | None = None) -> None:
     if not session:
         err("no session found — run --action init first")
 
-    from browser_use import Agent
+    from playwright.async_api import async_playwright
+    async with async_playwright() as p:
+        browser, ctx, page = await make_context(p, session)
+        try:
+            if reply_to:
+                await page.goto(f"https://x.com/i/web/status/{reply_to}", wait_until="domcontentloaded", timeout=20000)
+                await page.wait_for_timeout(2000)
+                reply_btn = await page.wait_for_selector('[data-testid="reply"]', timeout=10000)
+                await reply_btn.click()
+                await page.wait_for_timeout(1500)
+            else:
+                await page.goto("https://x.com/home", wait_until="domcontentloaded", timeout=20000)
+                await page.wait_for_timeout(2000)
+                compose = await page.wait_for_selector('[data-testid="SideNav_NewTweet_Button"]', timeout=10000)
+                await compose.click()
+                await page.wait_for_timeout(1500)
 
-    if reply_to:
-        task = (
-            f"Navigate to https://x.com. "
-            f"Open the tweet at https://x.com/i/web/status/{reply_to}. "
-            f"Click the Reply button and type this reply text exactly as given: {text!r}. "
-            f"Click Post (or Reply). "
-            f"After posting, report the URL of your new reply tweet."
-        )
-    else:
-        task = (
-            f"Navigate to https://x.com. "
-            f"Click the compose tweet button (the quill/pen icon or 'Post' button). "
-            f"Type this text exactly as given — do not change punctuation, capitalisation, "
-            f"or add hashtags: {text!r}. "
-            f"Click the Post button. "
-            f"After posting, report the URL of the new tweet."
-        )
+            # Type tweet text
+            textarea = await page.wait_for_selector('[data-testid="tweetTextarea_0"]', timeout=10000)
+            await textarea.click()
+            await page.keyboard.type(text, delay=30)
+            await page.wait_for_timeout(1000)
 
-    browser = await make_browser()
-    try:
-        llm = get_llm()
-        context = await get_context_with_session(browser, session)
-        agent = Agent(task=task, llm=llm, browser_context=context)
-        result = await agent.run()
-        result_str = str(result)
+            # Click post button
+            post_btn = await page.wait_for_selector('[data-testid="tweetButtonInline"], [data-testid="tweetButton"]', timeout=5000)
+            await post_btn.click()
+            await page.wait_for_timeout(4000)
 
-        tweet_id = None
-        m = re.search(r'status/(\d+)', result_str)
-        if m:
-            tweet_id = m.group(1)
+            # Try to extract tweet ID from URL or response
+            tweet_id = None
+            current_url = page.url
+            m = re.search(r'status/(\d+)', current_url)
+            if m:
+                tweet_id = m.group(1)
 
-        state = await context.storage_state()
-        save_session(state)
-
-        ok({"tweet_id": tweet_id, "url": f"https://x.com/i/web/status/{tweet_id}" if tweet_id else None})
-    except Exception as exc:
-        err(f"post failed: {exc}")
-    finally:
-        await browser.close()
+            state = await ctx.storage_state()
+            save_session(state)
+            ok({"tweet_id": tweet_id, "text_posted": text[:80]})
+        except Exception as exc:
+            err(f"post failed: {exc}")
+        finally:
+            await browser.close()
 
 
 async def action_engagement(tweet_url: str) -> None:
@@ -186,38 +190,40 @@ async def action_engagement(tweet_url: str) -> None:
     if not session:
         err("no session found — run --action init first")
 
-    from browser_use import Agent
+    from playwright.async_api import async_playwright
+    async with async_playwright() as p:
+        browser, ctx, page = await make_context(p, session)
+        try:
+            await page.goto(tweet_url, wait_until="domcontentloaded", timeout=20000)
+            await page.wait_for_timeout(3000)
 
-    task = (
-        f"Navigate to {tweet_url}. "
-        f"Read the like count, reply count, and repost/retweet count for the main tweet "
-        f"(not the replies below it). "
-        f"Return a JSON object: {{\"likes\": N, \"replies\": N, \"reposts\": N}}"
-    )
+            def parse_count(s: str) -> int:
+                s = s.strip().replace(",", "")
+                if s.endswith("K"):
+                    return int(float(s[:-1]) * 1000)
+                if s.endswith("M"):
+                    return int(float(s[:-1]) * 1_000_000)
+                try:
+                    return int(s)
+                except ValueError:
+                    return 0
 
-    browser = await make_browser()
-    try:
-        llm = get_llm()
-        context = await get_context_with_session(browser, session)
-        agent = Agent(task=task, llm=llm, browser_context=context)
-        result = await agent.run()
-        result_str = str(result)
+            metrics = {"likes": 0, "replies": 0, "reposts": 0}
+            for testid, key in [("like", "likes"), ("reply", "replies"), ("retweet", "reposts")]:
+                try:
+                    el = await page.query_selector(f'[data-testid="{testid}"] span[data-testid="app-text-transition-container"]')
+                    if el:
+                        metrics[key] = parse_count(await el.inner_text())
+                except Exception:
+                    pass
 
-        metrics = {"likes": 0, "replies": 0, "reposts": 0}
-        m = re.search(r'\{[^{}]*"likes"[^{}]*\}', result_str, re.DOTALL)
-        if m:
-            try:
-                metrics = json.loads(m.group())
-            except json.JSONDecodeError:
-                pass
-
-        state = await context.storage_state()
-        save_session(state)
-        ok(metrics)
-    except Exception as exc:
-        err(f"engagement check failed: {exc}")
-    finally:
-        await browser.close()
+            state = await ctx.storage_state()
+            save_session(state)
+            ok(metrics)
+        except Exception as exc:
+            err(f"engagement check failed: {exc}")
+        finally:
+            await browser.close()
 
 
 async def action_listen(check_mentions: bool) -> None:
@@ -225,58 +231,64 @@ async def action_listen(check_mentions: bool) -> None:
     if not session:
         err("no session found — run --action init first")
 
-    from browser_use import Agent
-
     results: dict = {"mentions": []}
 
-    if check_mentions:
-        task = (
-            "Navigate to https://x.com/notifications/mentions. "
-            "List the last 10 mentions of @AUTONOMOPOLY. For each mention extract: "
-            "the author's @handle, the tweet text, the like count, and the full tweet URL. "
-            "Return ONLY a JSON array with no extra text: "
-            "[{\"author\": \"@handle\", \"text\": \"...\", \"likes\": 0, \"url\": \"https://x.com/...\"}]"
-        )
-        browser = await make_browser()
+    if not check_mentions:
+        ok(results)
+        return
+
+    from playwright.async_api import async_playwright
+    async with async_playwright() as p:
+        browser, ctx, page = await make_context(p, session)
         try:
-            llm = get_llm()
-            context = await get_context_with_session(browser, session)
-            agent = Agent(task=task, llm=llm, browser_context=context)
-            result = await agent.run()
-            result_str = str(result)
+            await page.goto("https://x.com/notifications/mentions", wait_until="domcontentloaded", timeout=20000)
+            await page.wait_for_timeout(3000)
 
-            m = re.search(r'\[.*\]', result_str, re.DOTALL)
-            if m:
+            mentions = []
+            articles = await page.query_selector_all('article[data-testid="tweet"]')
+            for article in articles[:10]:
                 try:
-                    results["mentions"] = json.loads(m.group())
-                except json.JSONDecodeError:
-                    pass
+                    handle_el = await article.query_selector('[data-testid="User-Name"] a')
+                    text_el = await article.query_selector('[data-testid="tweetText"]')
+                    link_el = await article.query_selector('a[href*="/status/"]')
 
-            state = await context.storage_state()
+                    handle = (await handle_el.get_attribute("href") or "").lstrip("/").split("/")[0] if handle_el else ""
+                    text = await text_el.inner_text() if text_el else ""
+                    href = await link_el.get_attribute("href") if link_el else ""
+                    url = f"https://x.com{href}" if href else ""
+                    tweet_id = re.search(r'/status/(\d+)', href or "")
+
+                    mentions.append({
+                        "author": f"@{handle}",
+                        "text": text[:280],
+                        "likes": 0,
+                        "url": url,
+                        "tweet_id": tweet_id.group(1) if tweet_id else None,
+                    })
+                except Exception:
+                    continue
+
+            results["mentions"] = mentions
+            state = await ctx.storage_state()
             save_session(state)
+            ok(results)
         except Exception as exc:
             err(f"listen failed: {exc}")
         finally:
             await browser.close()
 
-    ok(results)
-
 
 # ── Entry point ────────────────────────────────────────────────────────────────
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="AUTONOMOPOLY Twitter browser automation (browser-use + Venice)"
-    )
+    parser = argparse.ArgumentParser(description="AUTONOMOPOLY Twitter Playwright automation")
     parser.add_argument("--action", required=True,
-                        help="init=login+save-session, post=tweet, listen=mentions+metrics, engagement=read-tweet-stats")
+                        help="init | post | listen | engagement")
     parser.add_argument("--file", help="Path to tweet text file (post action)")
     parser.add_argument("--text", help="Tweet text inline (post action)")
-    parser.add_argument("--reply-to", dest="reply_to", metavar="TWEET_ID",
-                        help="Tweet ID to reply to (post action)")
+    parser.add_argument("--reply-to", dest="reply_to", metavar="TWEET_ID")
     parser.add_argument("--check-mentions", action="store_true")
-    parser.add_argument("--tweet-url", dest="tweet_url",
-                        help="Full tweet URL to read metrics for (engagement action)")
+    parser.add_argument("--tweet-url", dest="tweet_url")
     args = parser.parse_args()
 
     VALID_ACTIONS = {"init", "post", "listen", "engagement"}
@@ -302,9 +314,7 @@ def main():
         asyncio.run(action_post(text, reply_to=args.reply_to))
 
     elif args.action == "listen":
-        asyncio.run(action_listen(
-            check_mentions=args.check_mentions,
-        ))
+        asyncio.run(action_listen(check_mentions=args.check_mentions))
 
     elif args.action == "engagement":
         if not args.tweet_url:

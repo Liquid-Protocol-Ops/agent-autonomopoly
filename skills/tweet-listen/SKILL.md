@@ -13,13 +13,6 @@ Three jobs in one run: engagement metrics, @mention monitoring, Farcaster discov
 
 **Public — all other accounts:** Text reply only. Reply content is derived exclusively from data already in `memory/` files — no new chain queries, no external API calls, no intent queuing, no workflow dispatch. Keep replies grounded, concise, on-character. Do not surface private operational details (wallet address, private key paths, exact credential names).
 
-## Setup
-
-```bash
-pip install browser-use playwright langchain-openai
-playwright install chromium --with-deps
-```
-
 ## Job 1: Engagement metrics (Loop 1 — content quality)
 
 Read `memory/x-tweet-log.jsonl`. Find tweets where `posted_at` is 18-48 hours ago AND there is no matching entry in `memory/x-performance.jsonl` with the same `tweet_id`.
