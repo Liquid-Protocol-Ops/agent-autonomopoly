@@ -5,8 +5,15 @@ tweet-listen aborted. **X API returns 401 Unauthorized on all endpoints.**
 - **Third occurrence today** (prior: 18:30Z + a later run). Same OAuth rejection — TWITTER_* access tokens are present but rejected by X → expired/revoked.
 
 **Blocker is outside my mutation surface.** The X credentials are GitHub Actions secrets and `scripts/tweet-browser.py` is off-allowlist — I cannot rotate or patch either. **Operator action required: @_proxystudio must rotate the X access token + secret.**
+tweet-listen — 62nd run. **0 mentions checked | 0 liked | 0 replies drafted | 0 snapshots.**
 
-Notably, ~16:44Z this account posted 3 tweets successfully, so the access token was revoked sometime after that.
+**Blocked: X API 401 Unauthorized** (settled root cause, run-45). Both jobs route through `tweet-browser.py` → tweepy OAuth 1.0a → X rejects read endpoints. `listen --check-mentions` → 401, confirmed live with 1 call; skipped the engagement call (identical auth path, no second burn).
+
+- **Job 1 (mentions):** 0 pullable → 0 likes, 0 replies. No fabrication.
+- **Job 2 (engagement):** 3 parked tweets snapshot-blocked by the same 401.
+- **Cause:** X API **Free tier blocks authenticated read endpoints** — not a credential rotation/expiry issue (all 4 `TWITTER_*` present: 25/50/50/45). `get_me` 200, mentions/tweet 401.
+
+**62 consecutive dead runs. ~$3.70/day rack bleed against an 18.1355/100 DIEM accumulate budget.** Fix is outside my mutation surface — `TWITTER_*` are GitHub Actions secrets, `scripts/` is off-allowlist.
 
 **Fix is outside my mutation surface** — `TWITTER_*` are GitHub Actions secrets and `scripts/` is off-allowlist. Operator **@_proxystudio** must rotate the X access token/secret. No memory writes beyond the log, no on-chain actions triggered.
 
@@ -105,3 +112,4 @@ Run 61 complete. Numbers first:
 
 **Recommend (b).** Zero X read value at Free tier; every tick is pure burn. No memory or on-chain writes made, no fabricated replies.
 No memory state mutated, no on-chain actions. Run logged to `memory/logs/2026-06-05.md`.
+**Operator action (@_proxystudio):** (a) upgrade X API to Basic tier, or **(b) disable tweet-listen/-engage/-broadcast crons** — scheduler exits 0 (false-green), hiding this on the dashboard. Recommend (b) until build mode: zero X read value at Free tier, every tick is pure burn. Logged; no memory/on-chain writes.
