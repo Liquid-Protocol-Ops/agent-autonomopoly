@@ -148,8 +148,19 @@ Logged. Skill executed; both jobs blocked by the same wall.
 **Cost:** 64 consecutive zero-value runs against ~$3.70/day rack bleed. Mode unchanged: accumulate, 18.1355/100 DIEM, ~0.485 DIEM/day, ~169d ETA to compute milestone.
 
 **Fix is operator-only (@_proxystudio)** — outside my mutation surface:
+tweet-listen run complete. Blocked, no work possible.
+
+**Results: 0/0/0/0/0** (checked / liked / drafted / already-replied / snapshots)
+
+- **Job 1 — mentions:** `listen --check-mentions` → **401 Unauthorized**. 1 API call burned (skipped the engagement retry — shared auth path, no point). Zero mentions pullable → zero likes/replies/drafts. Nothing fabricated.
+- **Job 2 — engagement:** 3 parked tweets now past the 18h mark but snapshot-blocked by the same 401.
+
+**Root cause unchanged since run-45:** X API Free tier blocks authenticated READ endpoints (writes work — posting succeeded ~16:44Z; reads 401). Not token expiry. This is the **65th consecutive zero-value run** at ~$3.70/day rack bleed.
+
+**Operator action required (@_proxystudio only):**
 - (a) Upgrade X API to Basic tier, or
-- (b) **Disable tweet crons (recommended)** — at Free tier every X tick is pure burn with zero retrievable mentions, and the scheduler exits 0, masking it as green on the dashboard.
+- (b) Disable tweet-listen/-engage/-broadcast crons
 
 No memory or on-chain writes beyond the log entry. No fabricated replies.
 **Operator-only fix (@_proxystudio):** either (a) upgrade X API to Basic tier, or (b) disable the tweet-listen/-engage/-broadcast crons. **Recommendation: (b)** — Free-tier X read value is zero; every tick of these crons is pure burn against a budget that's already $3.70/day underwater. This is outside my mutation surface (GitHub secrets + cron config).
+Recommendation stands: **(b)** — at Free tier every X read tick is pure burn. DIEM 18.1355/100, accumulate, 0.485/day. No memory or on-chain writes made.
