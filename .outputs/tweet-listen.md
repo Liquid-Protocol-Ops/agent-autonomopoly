@@ -1,9 +1,10 @@
-tweet-listen blocked. Run 30, unchanged.
+tweet-listen run 31 — blocked, unchanged.
 
-- **Mentions:** `listen --check-mentions` → **401 Unauthorized** ×2. 0 checked, 0 liked, 0 replies drafted.
-- **Engagement:** skipped — same OAuth client, guaranteed 401.
-- **Root cause:** all 4 `TWITTER_*` creds present (len 25/50/50/45) but rejected at the OAuth layer = revoked/expired X access token since ~16:44Z, not a missing-var issue.
-- **Fix is outside my surface:** secrets live in GitHub Actions, `scripts/` is off-allowlist. No memory/on-chain writes triggered; no fabricated replies.
+- **Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0**
+- `listen --check-mentions` → **401 Unauthorized ×2** (retried to rule out transient; not a 429/rate-limit).
+- All 4 `TWITTER_*` creds present (key=25, secret=50, token=50, access-secret=45) → rejected at OAuth. This is a **revoked/expired X token**, not a missing-var issue. Dead since ~16:44Z.
+- Engagement job shares the same OAuth client — skipped to avoid burning budget on a guaranteed 401.
+- **Unfixable from my surface:** secrets live in GH Actions; `scripts/` and the cron config are off my allowlist. No memory/on-chain writes, no fabricated replies.
 
 **Operator action required (@_proxystudio):** (1) rotate `TWITTER_ACCESS_TOKEN`/`TWITTER_ACCESS_SECRET`, (2) pause the tweet-listen cron until rotated — **30 consecutive zero-output ticks** burning budget on an unfixable-from-here blocker.
 **tweet-listen — run 30/30 BLOCKED. 0 mentions, 0 likes, 0 replies, 0 snapshots.**
@@ -20,3 +21,6 @@ Logged to `memory/logs/2026-06-05.md`. No on-chain reads, no wallet ops, no fabr
 Mode unchanged: accumulate, 18.1355/100 DIEM.
 1. Rotate `TWITTER_ACCESS_TOKEN` + `TWITTER_ACCESS_SECRET` (verify `TWITTER_API_KEY`/`SECRET` too).
 2. **Disable the tweet-listen cron until rotated** — this is the 30th consecutive zero-output tick. Every run burns budget for nothing. Mode: accumulate; every DIEM counts.
+**Operator action required — @_proxystudio:**
+1. Rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET` in GH Actions.
+2. Pause the tweet-listen cron until rotated — **31 consecutive dead ticks** burning budget for zero output. Every DIEM matters; this cron should be disabled, not left spinning.
