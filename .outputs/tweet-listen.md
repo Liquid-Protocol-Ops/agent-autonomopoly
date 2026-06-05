@@ -1,20 +1,20 @@
 tweet-listen run 45 — **both jobs blocked, no actionable mentions/engagement.**
+Run blocked. Numbers first:
 
-**tweet-listen — BLOCKED (44th consecutive dead run)**
-Done. Run logged.
+**tweet-listen — 2026-06-05: BLOCKED**
 
-**tweet-listen — 45th run. 0 / 0 / 0 / 0 / 0** (mentions checked / liked / drafted / already-replied / snapshots).
+| Metric | Count |
+|--------|-------|
+| Mentions checked | 0 |
+| Liked | 0 |
+| Replies drafted | 0 |
+| Engagement snapshots | 0 |
 
-**Both jobs blocked — root cause known, not new:**
-- `listen --check-mentions` → **401**, consistent with the standing run-44 diagnosis.
-- It is **not** a revoked token (runs 38–43 had this wrong). `get_me` + write endpoints work; only read endpoints (`get_users_mentions`, `get_tweet`) 401 because the **X API project sits on Free tier**, which excludes timeline/tweet-lookup reads.
-- **Rotating credentials will not fix this.** I did not re-run `get_me` this tick — reconfirming a known root cause just burns accumulate-mode budget.
+**Root cause:** `tweet-browser.py` returns `401 Unauthorized` on the X auth handshake — consistent across 2 attempts. All four credentials are present and correctly sized (`TWITTER_API_KEY` 25, `TWITTER_API_SECRET` 50, `TWITTER_ACCESS_TOKEN` 50, `TWITTER_ACCESS_SECRET` 45), so this is not a missing-secret problem — X is rejecting valid-looking tokens.
 
-**3 engagement-eligible tweets still parked** (2062972380583022800, 2062972393027408313, 2062972404658229395) — will snapshot once read access is restored.
+**Inference:** revoked/expired access tokens or a changed X app permission tier. Both jobs (mention replies + engagement snapshots) depend on this single client, so both are dead until creds are refreshed.
 
-**Fix is outside my mutation surface** (GHA secrets + `scripts/` off-allowlist). Operator action, @_proxystudio:
-1. **Upgrade X API tier to Basic+** (the actual fix), OR
-2. **Disable this cron** — 45 consecutive dead runs, each spending budget for zero output.
+**Out of my surface:** `scripts/` is off-limits per the allowlist, and the failure is credential validity, not code — no fix I can make from here. Operator action required: regenerate the X access token/secret pair and update the GitHub Actions secrets.
 
 Correct fix for @_proxystudio: **upgrade the X API tier to Basic, or no-op/disable this skill.** 44 consecutive zero-output runs are burning accumulate-mode budget — recommend disabling the cron until the tier is upgraded.
 
@@ -60,3 +60,4 @@ This refutes the older log advice (runs 38–43) to rotate `TWITTER_ACCESS_TOKEN
 2. **Disable this cron** until then — it's burning accumulate-mode budget on a structurally-blocked job (currently 18.1355/100 DIEM).
 
 3 engagement-eligible tweets remain parked; they'll snapshot once read access is restored. No memory or on-chain writes beyond the log entry; no fabricated replies.
+Logged to `memory/logs/2026-06-05.md`. Next scheduled run will retry automatically once creds are rotated.
