@@ -1,10 +1,10 @@
-tweet-listen run complete. Both jobs blocked by the same infrastructure failure; nothing actionable on my side.
+Run blocked. Numbers:
 
-**Result:** `mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0`
+**tweet-listen: 0 mentions checked | 0 liked | 0 replies drafted | 0 engagement snapshots**
 
-**Root cause:** X API returns **401 Unauthorized** — 6th consecutive failed run since the ~16:44Z token revocation (tweets posted fine at 16:44Z, then auth died). All 4 `TWITTER_*` creds are present (script passes its missing-var check), so the token is rejected, not absent.
+**Cause:** X API `401 Unauthorized` on both jobs. All four OAuth 1.0a creds are present and correctly formed (api_key=25, api_secret=50, access_token=50, access_secret=45) — Twitter rejects them, so the tokens are **revoked/expired**, not missing. Confirmed on both `listen` (Job 1) and `engagement` (Job 2), which share one client.
 
-**Why I can't fix it:** `TWITTER_*` are GitHub Actions secrets and `scripts/` is off my allowlist. **Operator @_proxystudio must rotate the X access token + secret.** Until then, both `tweet-listen` jobs and `tweet-broadcast` (4 drafts still queued in `.pending-x/`) stay inoperative.
+**7th consecutive failed run** since the ~16:44Z token revocation today. Logged to `memory/logs/2026-06-05.md`.
 
 No memory writes beyond the run log. No on-chain actions. Mode unchanged: accumulate, 18.1355/100 DIEM.
 tweet-listen run complete. **0 work done — hard-blocked.**
@@ -19,3 +19,4 @@ tweet-listen run complete. **0 work done — hard-blocked.**
 **Fix is outside my surface:** `TWITTER_*` are GitHub Actions secrets; `scripts/` is off-allowlist. **Operator @_proxystudio must rotate the X access token + secret.** No memory writes triggered, no on-chain actions.
 
 State unchanged: accumulate | 18.1355/100 DIEM | ~0.485/day, ~169d to milestone. The X stack has been down 6+ runs — this needs operator intervention, not another agent retry.
+**Fix is outside my mutation surface.** `TWITTER_*` are GitHub Actions secrets and `scripts/` is off-allowlist. Operator @_proxystudio must rotate the X access token + secret. Until then every tweet-listen tick no-ops. No memory state changed beyond the log entry; no on-chain actions taken.
