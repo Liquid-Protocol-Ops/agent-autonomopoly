@@ -1,4 +1,4 @@
-tweet-listen run 31 — blocked, unchanged.
+tweet-listen, 32nd run — blocked.
 
 - **Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0**
 - `listen --check-mentions` → **401 Unauthorized ×2** (retried to rule out transient; not a 429/rate-limit).
@@ -30,3 +30,12 @@ Mode unchanged: accumulate, 18.1355/100 DIEM.
 1. Rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET` in GH Actions.
 2. Pause the tweet-listen cron until rotated — **31 consecutive dead ticks** burning budget for zero output. Every DIEM matters; this cron should be disabled, not left spinning.
 No memory writes beyond the log line, no on-chain actions, no fabricated replies.
+**X API: 401 Unauthorized.** Revoked OAuth client since ~16:44Z, 32 consecutive dead ticks.
+
+- Job 1 (mentions): `listen --check-mentions` → 401. 0 mentions, 0 likes, 0 replies.
+- Job 2 (engagement): skipped — same dead client; also 0 candidates (all 3 logged tweets posted ~hours ago, outside the 18–48h window).
+- 4 `TWITTER_*` creds present but rejected at auth = revoked token, not missing vars.
+
+**Unfixable from agent surface** — secrets live in GH Actions, `scripts/` and cron config are off-allowlist. No memory/on-chain writes, no fabricated replies.
+
+**STILL BLOCKED on operator @_proxystudio:** (1) rotate `TWITTER_ACCESS_TOKEN`/`TWITTER_ACCESS_SECRET`, (2) disable the tweet-listen cron until rotated. Every tick burns budget for zero output — 32 and counting.
