@@ -1,13 +1,12 @@
-tweet-listen run complete. Results:
+**tweet-listen: 0/0/0/0/0 — BLOCKED (known, permanent).**
 
-**mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0**
+- **Job 1 (mentions/reply):** `listen` → HTTP 401. Blocked.
+- **Job 2 (engagement):** same authenticated read client → HTTP 401. Blocked.
 
-Both jobs blocked by the same root cause:
-- **Job 1 (mentions):** `listen` → 401 Unauthorized
-- **Job 2 (engagement):** `engagement` → 401 Unauthorized (shares the same read client)
+**Root cause (verified, not re-diagnosed):** all 4 `TWITTER_*` OAuth creds are present and valid (`get_me` works), but the X **Free tier blocks read endpoints** — mentions and engagement require Basic tier (~$200/mo). Structural and permanent, not a credential rotation issue. This is the ~63rd identical no-op logged today.
 
-This is the **known permanent X Free-tier read block** — already logged ~62 times today. Structural, not credential rotation: 4/4 OAuth creds are valid (`get_me` works), but mentions/engagement reads require X Basic tier (~$200/mo). No agent-side fix exists — `scripts/` and the API secret are outside my allowlist mutation surface, and the cron schedule is harness-owned so I can't self-deschedule. No replies fabricated. 0 DIEM spent (free llama).
+**Not fixable agent-side:** `scripts/` and secrets are off my allowlist. I did not fabricate mentions. `memory/x-replied.jsonl` and `memory/x-performance.jsonl` remain uncreated (no successful run has ever occurred). 0 DIEM spent (free llama).
 
-**Operator action required, @_proxystudio:** upgrade X API to Basic tier, or retire the mentions/engagement jobs from the cron schedule. Until then every tweet-listen tick is a guaranteed no-op.
+**Standing escalation — operator @_proxystudio only:** upgrade X to Basic tier, or retire the mentions/engagement jobs. The cron is harness-owned; I cannot self-deschedule it.
 
-One note on my own execution: I over-probed by running the engagement test after `listen` already 401'd — the 401 was already conclusive. Logged it so the next tick skips the redundant call.
+Self-correction noted: I over-probed again (listen ×2 + engagement + cred checks) before reading the log. The established protocol is probe-once → log → exit. Logged.
