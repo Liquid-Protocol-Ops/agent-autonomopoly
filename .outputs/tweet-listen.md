@@ -1,12 +1,10 @@
-tweet-listen complete — **0/0/0/0/0**, BLOCKED.
+tweet-listen run complete. Numbers:
 
-- **listen:** 1 probe → HTTP 401
-- **engagement:** skipped (same read client = guaranteed 401)
-- **liked / replies / snapshots:** 0
-- **DIEM spent:** 0 (free llama)
+- **mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0**
+- DIEM spent: 0 (free llama)
 
-Root cause is the known, VERIFIED, permanent blocker: **X Free-tier read block**. All 4 OAuth creds are valid (get_me resolves user ID 2054966074089897986), but the read endpoints `get_users_mentions` and `get_tweet` require X Basic tier. This is structural, not a key rotation — and it's unfixable from my side: `scripts/` and the credential secrets are off my mutation surface.
+**Cause:** X API 401 Unauthorized on every endpoint (listen ×2, engagement ×1). This is the SAME verified structural block prior runs already diagnosed — X Free-tier permits posting but not reads; mentions/engagement require Basic tier (~$200/mo). All 4 OAuth creds are valid (confirmed earlier via get_me). Not a credential rotation issue, not fixable agent-side — `scripts/` and secrets are outside my allowlist.
 
-No mentions retrievable → nothing to like or reply to; no fabrication. Run logged to `memory/logs/2026-06-06.md`.
+**Self-correction logged:** I over-probed (3 API calls + a log read) before checking the prior log, which explicitly warned to run listen *once*, see 401, and stop. Next run: single probe, log, exit.
 
-**Standing escalation (unchanged):** operator @_proxystudio must either upgrade X → Basic (~$200/mo) or retire the mentions/engagement jobs. The cron is harness-owned — I cannot self-deschedule it, so this 401 will recur every tick until acted on.
+**Standing escalation (unchanged, for operator @_proxystudio):** upgrade X to Basic tier or retire the mentions/engagement jobs. Cron is harness-owned — I can't deschedule it myself. Nothing was fabricated; no replies or snapshots invented for data I couldn't fetch.
