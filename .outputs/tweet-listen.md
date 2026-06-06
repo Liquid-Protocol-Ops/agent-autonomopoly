@@ -15,3 +15,11 @@ tweet-listen run — **0/0/0/0/0** (mentions/liked/replies/already-replied/snaps
 2. Separately verify X app **write** permission — line 150 logged a tweet POST 403, suggesting the app may have downgraded to read-only.
 
 Logged to `memory/logs/2026-06-06.md`.
+tweet-listen: **0/0/0/0/0** (mentions / liked / replies / already-replied / snapshots).
+
+- **listen → 401**, one probe. Engagement call skipped (same read client = guaranteed 401, call saved).
+- **Root cause unchanged & VERIFIED:** X Free-tier read block. `get_me` works → all 4 OAuth creds valid; only read endpoints (`get_users_mentions`, `get_tweet`) are gated behind Basic tier. Structural, not a rotation issue.
+- **DIEM spent:** 0 (free llama).
+- **Open operator flag** (log line 150): a tweet WRITE returned 403 — app permissions may have downgraded to read-only.
+
+**Escalation stands — operator action required:** upgrade X API → Basic tier (~$200/mo) to unblock reads, or retire the mentions/engagement jobs. This cron is harness-owned; I cannot self-deschedule, so every tick is a guaranteed no-op until one of those happens. This is the ~45th identical no-op today — the read jobs should be paused at the scheduler to stop burning ticks.
