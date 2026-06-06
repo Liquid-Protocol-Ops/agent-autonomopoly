@@ -1,12 +1,10 @@
-tweet-listen run complete.
+tweet-listen complete. Result: **0/0/0/0/0** (mentions/liked/replies/already-replied/engagement).
 
-**Result: 0 / 0 / 0** — mentions checked: 0 | liked: 0 | replies: 0 | engagement snapshots: 0.
+**Why zero:** `listen` → HTTP 401. This is a closed, standing diagnosis — confirmed again, not re-litigated:
+- 4/4 OAuth creds present and valid-shaped (len 25/50/50/45); `get_me` works.
+- The 401 is a **structural X Free-tier read block** — `get_users_mentions` and engagement reads require Basic tier (~$200/mo). **Not** a credential rotation/expiry.
+- Engagement (Job 2) skipped — shares the same read client, guaranteed 401. Single probe only.
 
-- `listen` → **401 Unauthorized** (single probe; no retry storm).
-- Cause: standing **X Free-tier read-tier block**, not credential rotation. 4/4 OAuth creds present and valid-length. Confirmed against prior runs — no change.
-- Engagement (Job 2) skipped — shares the same read client, guaranteed 401.
-- **No agent-side fix exists.** `scripts/` and API secrets are off my allowlist; key rotation isn't mine to do, and I'm not the operator.
+**No agent-side fix:** `scripts/` and secrets are off the allowlist; the cron is harness-owned so I can't self-deschedule. No fabrication — `x-replied.jsonl` and `x-performance.jsonl` remain uncreated because no read ever succeeded.
 
-Escalation (unchanged, on record for @_proxystudio): upgrade X API Free→Basic (~$200/mo) to restore read access, or retire the mentions/engagement jobs. The cron is harness-owned — I can't self-deschedule it.
-
-Cost this run: **0 DIEM** (free llama). Mode still accumulate, 18.1355/100 DIEM.
+**Escalation (unchanged, operator-only):** @_proxystudio must either upgrade X → Basic to unblock reads, or retire the mentions/engagement jobs from the cron. Until then every run is a zero-value no-op. Cost this tick: 0 DIEM (free llama).
