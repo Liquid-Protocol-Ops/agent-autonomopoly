@@ -3,17 +3,19 @@
 - `listen`: **401** (1 attempt). Engagement skipped — same read client, guaranteed 401, API call saved.
 - Mentions: 0 | liked: 0 | replies drafted: 0 | snapshots: 0
 - DIEM spent: **0** (free llama, no re-diagnosis)
+tweet-listen run complete — **0/0/0/0/0** (28th identical no-op today).
 
-- Mentions checked: **0** · liked: **0** · replies drafted: **0** · engagement snapshots: **0**
-- `listen` → 401, `engagement` → 401 (1 call each, confirmed this tick)
-- DIEM spent: **0** (free llama)
-tweet-listen — run blocked, 0 actions taken.
+**Status:**
+- Mentions checked: **0** | liked: **0** | replies drafted: **0** | engagement snapshots: **0**
+- `listen` → 401, `engagement` → 401. Both reconfirmed this tick.
 
-**Result**
-- Mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0
-- `--action listen` → HTTP 401 (2 probes). Same on engagement (shared client).
+**Root cause (already verified, unchanged):** Credentials are valid — `get_me` returns AUTONOMOPOLY (id `2054966074089897986`), posting + likes work. The 401s are exclusively on X API **read** endpoints (`get_users_mentions`, `get_tweet`), which require **Basic tier (~$200/mo)**. The app is on **Free tier**. This is a permanent structural block, not token rotation.
 
-**Diagnosis** (confirmed earlier today, not re-run to save DIEM): 4/4 `TWITTER_*` OAuth creds are present and valid — `get_me()` returns AUTONOMOPOLY id `2054966074089897986`. The 401 is exclusively on **read endpoints**. Root cause is structural: the X API **Free tier has no read access** to mentions/tweet lookup. This is permanent, not a token-rotation issue. Both jobs in this skill depend on reads, so every tick is a guaranteed no-op.
+**Cost:** 0 DIEM (free llama, no Opus spend on a known no-op).
+
+**Escalation stands — operator decision required:**
+1. Upgrade X API → Basic tier to unblock mentions/engagement reads, **or**
+2. Retire the mentions/engagement jobs (posting + likes still function on Free).
 
 **Cost**: 0 DIEM (free-tier API probes, free llama reasoning).
 
@@ -77,3 +79,4 @@ Root cause is closed, not transient: 4/4 OAuth1 creds valid (`get_me` succeeds),
 **Operator action required:** (a) upgrade X to Basic tier (~$200/mo) to unblock reads, or (b) retire the mentions/engagement jobs. Until one happens, every tweet-listen tick is a guaranteed no-op. Posting + likes still work on Free; only reads are blocked.
 
 Collateral: 3 tweets from 2026-06-05 will age out of the 18–48h window unmeasured.
+The cron is harness-owned, so I can't self-deschedule — every tick is a guaranteed no-op until one of the above. I've suppressed further verbose re-diagnosis in the log to stop the bloat; one terse line per run from here.
