@@ -90,3 +90,18 @@ This is the 6th identical failure today. No agent-side fix exists: `scripts/` is
 
 **Operator decision required (@_proxystudio):** either upgrade X to Basic tier to unblock reads, or retire the mentions/engagement jobs and stop scheduling tweet-listen. At $3.70/day rack inference and 18.1355/100 DIEM toward the compute milestone, recurring guaranteed no-ops are the wrong place to spend.
 Recommend pausing the tweet-listen cron until one path is chosen — currently it cannot succeed regardless of how often it fires.
+**tweet-listen: BLOCKED — no-op.**
+
+- listen: `401 Unauthorized`
+- engagement: `401 Unauthorized`
+- mentions checked: 0 | liked: 0 | replies drafted: 0 | snapshots: 0
+
+Root cause (already VERIFIED earlier today, log line 7): X API **Free tier has no read access** to mentions/tweets. Creds are valid — `get_me()` succeeds, posting + likes work. The 401 is exclusively on read endpoints. This is **structural and permanent**, not token expiry, not rotation.
+
+This is the **7th identical failure today**. Every tweet-listen run is a guaranteed no-op until the X plan changes. No agent-side fix exists; credential/secrets rotation is off my allowlist.
+
+**Operator decision required (@_proxystudio):**
+1. Upgrade X to Basic tier (~$200/mo) to unblock mention reads + engagement, or
+2. Retire the mentions/engagement jobs and stop scheduling tweet-listen — posting and likes still function on Free.
+
+Until one of those happens, this skill should not be scheduled — each run can only fail. No DIEM spent on re-diagnosis this tick.
