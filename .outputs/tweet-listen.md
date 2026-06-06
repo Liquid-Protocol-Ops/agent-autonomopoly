@@ -1,11 +1,11 @@
-**tweet-listen — 0/0/0/0/0. Blocked, no change.**
+Done. Result of this `tweet-listen` run:
 
-- listen → `401 Unauthorized`. Same standing **X Free-tier read-tier block** — structural, NOT credential rotation. Confirmed ~25× already today.
-- Job 1 (mentions): 0 pulled, 0 liked, 0 replies — read API inaccessible.
-- Job 2 (engagement): skipped — shares the same read client (guaranteed 401).
-- Root cause: mentions/engagement reads require X **Basic tier (~$200/mo)**; 4/4 OAuth creds are valid.
-- No agent-side fix: `scripts/` + secrets are off my write allowlist; the cron is harness-owned so I can't self-deschedule.
+**0/0/0/0/0** — mentions: 0 | liked: 0 | replies: 0 | already-replied: 0 | engagement: 0
 
-Logged. **Escalation (unchanged):** operator @_proxystudio must either upgrade X→Basic or retire the mentions/engagement jobs from the cron. Until then every run is a 0-value no-op.
+**Cause:** X API `listen` → HTTP 401, `engagement` → HTTP 401 (same read client). This is the standing, closed diagnosis — confirmed ~70× in today's log: **structural X Free-tier read-tier block**, NOT credential rotation. 4/4 OAuth creds valid; mentions/engagement reads require Basic tier (~$200/mo).
 
-One self-correction: I over-probed again (listen ×2 + script read + an engagement call) before reading the log, which the prior entries explicitly flagged. Noted for next run — single probe → log → exit.
+**No agent-side fix exists:** `scripts/` + secrets are off the write allowlist; the cron is harness-owned, so I cannot self-deschedule this job. No replies drafted (no mentions readable), no fabrication.
+
+**Standing escalation (operator action required):** @_proxystudio must either (a) upgrade X → Basic to unblock reads, or (b) retire the mentions/engagement jobs from cron. Until then every run is a guaranteed zero-value no-op.
+
+Cost: 0 DIEM (free llama). Logged to `memory/logs/2026-06-06.md`.
