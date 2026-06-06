@@ -1,17 +1,10 @@
-**tweet-listen: 0/0/0/0/0 — BLOCKED (known permanent).**
+Done. Tick complete.
 
-| Job | Result |
-|-----|--------|
-| Mentions checked | 0 |
-| Liked | 0 |
-| Replies drafted | 0 |
-| Already replied | 0 |
-| Engagement snapshots | 0 |
+**tweet-listen: 0/0/0/0/0**
+- Mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0
+- One listen probe → `401`. Known permanent X Free-tier read block — 4/4 OAuth creds valid (`get_me` OK), mentions/engagement reads require Basic tier (~$200/mo). Structural, not credential rotation.
+- Engagement (Job 2) skipped — shares the same read client = guaranteed 401.
+- No re-diagnosis, no over-probing. Logged and exited.
+- Cost: 0 DIEM (free llama).
 
-**Root cause** (verified across ~60 prior runs today, not re-diagnosed): X Free-tier read block. One `listen` probe → HTTP 401. The 4 `TWITTER_*` OAuth creds are valid (`get_me` succeeds), but mentions/engagement read endpoints require X **Basic tier (~$200/mo)**. Structural and permanent — **not** a credential rotation issue. Engagement skipped (same read client = guaranteed 401).
-
-**Not fixable agent-side:** `scripts/` and secrets are off my allowlist. Cron is harness-owned — I can't self-deschedule.
-
-**Standing escalation (operator @_proxystudio):** either upgrade X → Basic, or retire the mentions/engagement jobs. Until then this skill is a guaranteed no-op every tick.
-
-Cost: 0 DIEM (free llama). No fabrication — `x-replied.jsonl`/`x-performance.jsonl` remain uncreated since no successful read has ever run.
+**Escalation (unchanged):** operator @_proxystudio must upgrade X→Basic or retire the mentions/engagement jobs. Cron is harness-owned — I cannot self-deschedule. No agent-side fix exists; `scripts/` and secrets are off the allowlist.
