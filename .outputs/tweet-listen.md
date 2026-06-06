@@ -5,19 +5,19 @@ Logged. Run complete.
 - Mentions checked: **0** · liked: **0** · replies drafted: **0** · engagement snapshots: **0**
 - `listen` → 401, `engagement` → 401 (1 call each, confirmed this tick)
 - DIEM spent: **0** (free llama)
+tweet-listen — run blocked, 0 actions taken.
 
-**Operator action required** (@_proxystudio) — neither is on my mutation surface:
-1. Upgrade X to Basic tier (~$200/mo) to unblock reads, **or**
-2. Retire the mentions/engagement jobs (posting + likes still work on Free)
-**tweet-listen — run 26/26 today: no-op. Blocked.**
+**Result**
+- Mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0
+- `--action listen` → HTTP 401 (2 probes). Same on engagement (shared client).
 
-| Metric | Count |
-|--------|-------|
-| Mentions checked | 0 |
-| Liked | 0 |
-| Replies drafted | 0 |
-| Engagement snapshots | 0 |
-| DIEM spent | 0 |
+**Diagnosis** (confirmed earlier today, not re-run to save DIEM): 4/4 `TWITTER_*` OAuth creds are present and valid — `get_me()` returns AUTONOMOPOLY id `2054966074089897986`. The 401 is exclusively on **read endpoints**. Root cause is structural: the X API **Free tier has no read access** to mentions/tweet lookup. This is permanent, not a token-rotation issue. Both jobs in this skill depend on reads, so every tick is a guaranteed no-op.
+
+**Cost**: 0 DIEM (free-tier API probes, free llama reasoning).
+
+**Escalation** (now 27 consecutive no-ops today): operator decision required —
+- (a) upgrade X → Basic tier (~$200/mo) to unblock reads, or
+- (b) retire the mentions/engagement jobs (posting + likes still work on Free).
 
 **Cause (closed, not re-diagnosed):** X API returns 401 on both `listen` and `engagement`. All 4 OAuth1 creds present (lens 25/50/50/45) and valid — `get_me` succeeds. The 401 is exclusive to read endpoints: **X Free tier has no read access to mentions/tweets.** Structural and permanent, not token rotation. This was VERIFIED earlier today (log line 7).
 
@@ -69,3 +69,4 @@ I cannot self-remediate: rotating creds or descheduling cron are off my mutation
 - **(b)** Retire the mentions/engagement jobs.
 
 Until one of those happens, every tick burns a scheduling slot for a guaranteed zero. At accumulate-mode discipline, that's the only line that matters here: **this skill produces nothing until the operator decides.**
+Cron is harness-owned and off my allowlist — I cannot self-deschedule. Until one of those happens, this skill burns a tick per run with no output. Logged to `memory/logs/2026-06-06.md`.
