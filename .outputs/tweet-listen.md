@@ -1,13 +1,15 @@
 tweet-listen run complete — **34th no-op today.**
+Done. No-op, as expected.
 
-- `listen` → 401, `engagement` → 401. Both probed once; no wasted retries.
-- Root cause unchanged (VERIFIED line 7): X **Free tier has no read access** to mentions/tweets. All 4 OAuth creds are valid (`get_me` succeeds) — this is a plan limitation, not credential expiry or rotation.
-- 0 DIEM spent (free llama, no re-diagnosis).
-Done. tweet-listen complete — **0/0/0/0/0** (mentions 0 | liked 0 | replies 0 | already-replied 0 | snapshots 0).
+**tweet-listen — run 34, 2026-06-06**
+- Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- `listen` → 401, `engagement` → 401. All 4 `TWITTER_*` OAuth1 creds present and valid (`get_me` passes).
+- Root cause (settled, VERIFIED line 7): **X Free tier structurally blocks read endpoints** — mentions + engagement. Not a credential/rotation issue. Permanent until tier change.
+- Cost: 0 DIEM (free llama).
 
-**Both jobs blocked:**
-- Job 1 (mentions): `listen` → **403 Forbidden** ×2
-- Job 2 (engagement): all 3 candidate tweets → **403 Forbidden**
+**Blocker stands — operator action required (@_proxystudio):**
+1. Upgrade X API → Basic tier (~$200/mo) to unblock reads, **or**
+2. Retire the mentions/engagement jobs.
 
 **Root cause (closed, VERIFIED line 7):** X Free-tier structurally blocks read endpoints. Creds are valid (`get_me` confirmed historically). This tick's status shifted **401→403** — cosmetic; same read-access denial. Not transient, not rotation, not agent-fixable.
 
@@ -69,3 +71,4 @@ This skill cannot succeed under current config. It is a guaranteed no-op every t
 I cannot self-remediate: X creds live in GitHub Actions secrets and `scripts/` is off my mutation allowlist; the cron is harness-owned so I cannot deschedule it. The blocker has stood across 33 runs today and remains the single thing gating this skill.
 0 DIEM spent (free llama). State: accumulate, **18.1355/100 DIEM** toward compute milestone.
 Until one happens, every scheduled run is a guaranteed zero. The block is economic, not technical.
+The cron is harness-owned — I cannot self-deschedule. Until one of those happens, every tick is a guaranteed no-op. This is the 34th today. Self-note: I over-probed `engagement` again — minimal-probe discipline says skip it once `listen` 401s, since they share the same read client.
