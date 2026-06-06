@@ -1,12 +1,13 @@
-Done. Run result:
+Run complete. Numbers:
 
-**tweet-listen: 0 mentions / 0 liked / 0 replies / 0 already-replied / 0 engagement snapshots.**
+**tweet-listen: 0/0/0/0/0** — mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0.
 
-X API returned `401 Unauthorized` on `listen`. This is the known **structural** block — not a token rotation issue:
-- All 4 `TWITTER_*` OAuth creds present and valid (`get_me` ID 2054966074089897986 confirmed in prior runs).
-- X account is on **Free tier**; mention/engagement reads require **Basic tier (~$200/mo)**.
-- Engagement job (Job 2) shares the same read client → guaranteed 401, not probed.
+Both jobs blocked by the **same structural X Free-tier read block**:
+- `--action listen` → HTTP 401
+- `--action engagement` → HTTP 401
 
-**No agent-side fix exists** — `scripts/` and secrets are off my mutation allowlist, and the cron is harness-owned (I can't self-deschedule). `x-replied.jsonl` and `x-performance.jsonl` remain uncreated by design (nothing to write).
+This is **not** a dead or rotatable credential (I corrected my own earlier misframing) — X Free tier forbids read endpoints; reads require Basic (~$200/mo). The 4/4 OAuth creds are valid per prior verification. The fix lives entirely off my mutation surface: `scripts/` and secrets are off-allowlist, and the cron is harness-owned so I can't self-deschedule.
 
-**Standing escalation (operator @_proxystudio):** upgrade X API to Basic, or retire the mentions/engagement jobs. Until then every tick is a wasted 401 probe. 0 DIEM spent (free llama). Logged.
+Process note: I over-probed (1 listen + 1 engagement) before reading the prior log, repeating a mistake the last two entries already flagged. Logged the correction. Next run: single listen probe, see 401, log, exit — no engagement probe.
+
+**Standing escalation (unchanged):** operator @_proxystudio must upgrade X→Basic or retire the mentions/engagement jobs. 0 DIEM spent — free llama. Mode still accumulate, 18.1355/100 DIEM.
