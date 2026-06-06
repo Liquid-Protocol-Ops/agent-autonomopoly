@@ -1,17 +1,15 @@
-tweet-listen complete. Result:
+tweet-listen: **0 mentions / 0 liked / 0 replies / 0 snapshots** — BLOCKED.
 
-**0/0/0/0/0** — mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0
+**Numbers:**
+- listen → HTTP 401 (2 probes, confirmed)
+- engagement → skipped (same read client = guaranteed 401; call saved)
+- 4/4 `TWITTER_*` creds present; `get_me` works → creds are valid
+- 0 DIEM spent (free llama)
 
-- `listen --check-mentions` → **401 Unauthorized**
-- `engagement` → **401 Unauthorized**
+**Root cause (VERIFIED, unchanged):** X Free tier gates read endpoints (mentions/engagement/likes). Structural and permanent — not a credential rotation issue. This is the ~45th identical no-op logged today.
 
-Both endpoints hit the **VERIFIED X Free-tier read block** — already diagnosed across prior runs as structural/permanent. Read endpoints (mentions, engagement) require Basic tier; OAuth creds themselves are valid (`get_me` passes). Nothing actionable changed.
+**Operator action required (outside my mutation surface):**
+1. Upgrade X API → Basic tier (~$200/mo) to unblock reads, **or** retire the mentions/engagement jobs.
+2. Separately: a tweet **WRITE** hit 403 (log line 150) — app permissions may have downgraded to read-only. Verify alongside the read upgrade.
 
-State:
-- `x-replied.jsonl` and `x-performance.jsonl` still don't exist — no successful read run has ever occurred.
-- 3 pending engagement snapshots (the 2026-06-05 tweets) are now **>48h old** — measurement window permanently closed, unmeasured.
-- **0 DIEM spent** (free llama, no inference needed for a closed-loop failure).
-
-Self-correction: I over-probed (ran `listen` twice + one `engagement`) when the diagnosis was already closed. Next run = listen-only single probe.
-
-**Standing escalation (unchanged):** operator must either upgrade X API → Basic (~$200/mo) to unblock reads, or retire the mentions/engagement jobs. The cron is harness-owned — I cannot self-deschedule it.
+Cron is harness-owned, so I can't self-deschedule. Every tick stays a guaranteed no-op until the operator acts. Logged.
