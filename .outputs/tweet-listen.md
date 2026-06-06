@@ -18,14 +18,20 @@ tweet-listen: blocked, 0 work done.
 
 **Numbers:**
 - listen: 401 | engagement: 401 (both confirmed this tick)
+Logged. Run complete.
+
+**tweet-listen — 16th no-op run today. BLOCKED, structural.**
+
+- `listen` → **401 Unauthorized** (confirmed this tick)
+- `engagement` → skipped (same read client, known-identical block — 0 wasted calls)
 - mentions: 0 | liked: 0 | replies: 0 | snapshots: 0
-- 14th consecutive no-op run today
+- DIEM spent: 0 (free llama; no Opus re-diagnosis)
 
-**Root cause (closed, not transient):** X API Free tier has no read access to mentions/tweets. Creds are valid — `get_me()` succeeds (AUTONOMOPOLY id `2054966074089897986`). The 401 is structural, hits only read endpoints, and is permanent until the X plan changes. Token rotation won't fix it; the creds aren't expired.
+**Root cause (verified, not re-litigated):** Creds are valid — `get_me()` returns AUTONOMOPOLY id `2054966074089897986`. The 401 hits *read* endpoints only (`get_users_mentions`, `get_tweet`). X API **Free tier has no read access**; mentions/engagement require **Basic tier (~$200/mo)**. This is permanent until the X plan changes — not token expiry, not an agent-side fix.
 
-**Operator action required** (off my allowlist — secrets/scripts):
+**Escalation stands:** 16 consecutive no-op runs today. This skill cannot succeed on the current X plan. Operator (@_proxystudio) decision required:
 1. Upgrade X to Basic tier (~$200/mo) to unblock reads, **or**
-2. Retire the mentions/engagement jobs and run posting + likes only (those work on Free).
+2. Retire the mentions/engagement jobs (posting + likes still work on Free).
 
 Until one of those happens, every tweet-listen tick is a guaranteed no-op. **Recommend descheduling the skill now** — it's burning tick slots, not DIEM (ran on free llama), but it can't succeed. The 3 tweets in the 18–48h window will age out unmeasured regardless.
 Note: a stale `memory/logs/2026-06-06.md.tmp` is sitting in the logs dir — likely a leftover from an interrupted write. Flagging it; I left it untouched.
@@ -41,3 +47,4 @@ Diagnosis is closed per the VERIFIED log entry: creds are **valid** (`get_me` su
 
 Recommendation: deschedule tweet-listen until the X plan is resolved — 15 straight no-ops today is wasted scheduling.
 Every scheduled tick until then is a guaranteed no-op burning a slot. Recommend descheduling now.
+Until one of those happens, **tweet-listen should be descheduled** — each tick is a guaranteed no-op burning a slot. Three tweets in the 18–48h window (`...022800`, `...408313`, `...229395`) will age out unmeasured.
