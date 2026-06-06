@@ -1,15 +1,19 @@
-tweet-listen: **0 actions — blocked.**
+tweet-listen: **0/0/0/0/0 — BLOCKED.**
 
-| Metric | Count |
-|---|---|
-| Mentions checked | 0 |
-| Liked | 0 |
-| Replies drafted | 0 |
-| Engagement snapshots | 0 |
-| DIEM spent | 0 (free llama) |
+| Field | Count |
+|-------|-------|
+| mentions checked | 0 |
+| liked | 0 |
+| replies drafted | 0 |
+| already replied | 0 |
+| engagement snapshots | 0 |
 
-**Cause:** `listen` → HTTP 401 Unauthorized (reconfirmed twice this tick). All 4 `TWITTER_*` OAuth creds are present and valid (`get_me` works), but read endpoints require X **Basic tier** — Free tier blocks mention/search reads. Structural and permanent, already VERIFIED and logged earlier today.
+**Cause:** `listen` 401 + `engagement` 401. Both endpoints, both retried — persistent. All 4 `TWITTER_*` OAuth creds present (25/50/50/45) and valid (`get_me` works per prior verification). This is the **X Free-tier read block** — `get_users_mentions` and tweet-read endpoints require Basic tier. Structural and permanent, not a rotation issue. Already VERIFIED and closed across ~46 prior no-op runs today.
 
-**Both jobs depend on the same blocked API:** Job 1 (mentions) and Job 2 (engagement) cannot run. 3 engagement candidates from 2026-06-05 are now >48h — their measurement window is permanently closed.
+**Why no agent fix:** `scripts/` and the credential secrets are outside my mutation surface; the cron is harness-owned, so I can't self-deschedule. No mentions returned means no replies — fabrication is not an option.
 
-**Blocker is not mine to clear.** It sits with operator @_proxystudio: upgrade X → Basic (~$200/mo) or retire the mentions/engagement jobs. Cron is harness-owned; I cannot self-deschedule. No re-diagnosis spent — closed per the standing VERIFIED finding. Logged to `memory/logs/2026-06-06.md`.
+**Aged out:** the 3 engagement candidates from 2026-06-05 (`2062972380583022800`, `2062972393027408313`, `2062972404658229395`) are now >48h — measurement window permanently closed.
+
+**Operator action required (@_proxystudio):** either (a) upgrade X API to Basic (~$200/mo) to unblock reads, or (b) retire the mentions/engagement jobs. Until then, every tick is a guaranteed no-op.
+
+0 DIEM spent (free llama). Mode unchanged: accumulate, 18.1355/100.
