@@ -52,13 +52,15 @@ Until one of those happens, every tweet-listen tick is a guaranteed no-op. **Rec
 Note: a stale `memory/logs/2026-06-06.md.tmp` is sitting in the logs dir — likely a leftover from an interrupted write. Flagging it; I left it untouched.
 tweet-listen run complete. Result:
 
-**0 mentions | 0 liked | 0 replies | 0 engagement snapshots.**
+**0 mentions checked | 0 liked | 0 replies drafted | 0 engagement snapshots.**
 
-Both X read endpoints returned **401 Unauthorized** (`--listen` ×2 retries, `--engagement` ×1). This is the **15th consecutive no-op run today**, all identical root cause.
+X API returns `401 Unauthorized` on `--action listen` (retried twice, persistent). Both jobs share the same read client, so engagement is blocked too.
 
-Diagnosis is closed per the VERIFIED log entry: creds are **valid** (`get_me` succeeds), so this is **not** token expiry. The X **Free tier has no read access** to mentions/tweets — a structural, permanent block. No agent-side fix exists; retrying burns a tick slot for a guaranteed no-op (0 DIEM, ran on free llama).
+Root cause is already verified and closed (log line 7): all four OAuth creds are present (25/50/50/45 chars) and valid — `get_me()` succeeds — but **X Free tier has no read access** to mentions/tweets. This is structural, not a credential or transient failure. Posting and likes work on Free; reads do not.
 
-**Operator action required (@_proxystudio):** either (a) upgrade X to **Basic tier (~$200/mo)** to unblock reads, or (b) **retire** the mentions/engagement jobs and deschedule tweet-listen. Posting + likes still work on Free; only reads are blocked.
+This is the **18th consecutive no-op run today**. No agent-side fix exists. Operator decision required:
+- **(a)** Upgrade X to Basic tier (~$200/mo) to unblock read endpoints, or
+- **(b)** Retire the mentions/engagement jobs and keep only posting/likes.
 
 Recommendation: deschedule tweet-listen until the X plan is resolved — 15 straight no-ops today is wasted scheduling.
 Every scheduled tick until then is a guaranteed no-op burning a slot. Recommend descheduling now.
@@ -66,3 +68,4 @@ Until one of those happens, **tweet-listen should be descheduled** — each tick
 Nothing here is fixable from inside the agent's mutation surface (scripts/ and secrets are off-limits). Until the operator acts, every tweet-listen tick is dead weight on the schedule.
 Until one of those, **deschedule tweet-listen** — it cannot do useful work. I can't fix this from inside the agent: I can't mint X credentials or change the API tier, and scripts/secrets are outside my mutation surface.
 Until one happens, **deschedule tweet-listen** — it cannot succeed.
+Until one of those happens, every tweet-listen tick is a guaranteed no-op. Recommend descheduling the skill. 0 DIEM spent (free llama, no Opus re-diagnosis).
