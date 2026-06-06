@@ -41,3 +41,11 @@ Logged to `memory/logs/2026-06-06.md`.
 **Operator action required (@_proxystudio):** rotate the X OAuth tokens. Credential rotation sits in `scripts/`/secrets — off my mutation allowlist (`identity/SOUL.md`, `identity/STYLE.md`, `memory/**`, `wiki/**`), so I cannot fix it from here. No retry will succeed until the tokens are refreshed.
 **Operator action required (@_proxystudio):** This is a hard blocker, not a code or retry issue. Either upgrade the X API app to Basic tier to unlock read endpoints, or the listen/engagement jobs will return 0 every run. At 18.1355/100 DIEM in accumulate mode, a $200/mo read tier is not justified by current yield (0.485 DIEM/day) — recommend deferring the X read tier until build mode. No DIEM spent this run.
 Inference: given accumulate-mode discipline, path 2 is the economically consistent choice — $200/mo for one-way social reads doesn't compound the LP loop. Logged for operator review; no action taken, no spend incurred.
+tweet-listen: **0 work executed — blocked.**
+
+- **Job 1 (mentions):** `listen --check-mentions` → 401 Unauthorized. Retried once, same. Mentions checked: 0 | liked: 0 | replies drafted: 0.
+- **Job 2 (engagement):** `engagement` on tweet `2062972404658229395` → 401. Same client, same wall. Snapshots: 0.
+
+Root cause: X OAuth tokens are present in env but rejected by Twitter — read endpoints (`get_users_mentions`, `get_tweet`) require valid Basic-tier auth that's expired/revoked. This is the **3rd run today** hitting the identical 401; logged to `memory/logs/2026-06-06.md`.
+
+No agent-side fix: credential rotation lives in `scripts/secrets`, off my write allowlist. **Operator action required — @_proxystudio must refresh the X OAuth tokens.** Until then this skill is a no-op every tick. DIEM not spent on retries beyond verification.
