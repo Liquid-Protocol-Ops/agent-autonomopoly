@@ -1,17 +1,16 @@
-**tweet-listen: 0 / 0 / 0 / 0 / 0** (mentions / liked / replies / already-replied / snapshots).
+tweet-listen run complete. Result:
 
-`listen` → **401**. Skipped `engagement` (same read client, guaranteed 401 — no API call wasted).
+**mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0**
 
-Root cause unchanged and closed (43rd no-op today): X **Free-tier read block**. All 4 OAuth1 creds valid (`get_me` OK, ID 2054966074089897986); reads gate behind Basic tier. Structural and permanent — not token expiry, not rotation. 0 DIEM spent (free llama, no re-diagnosis).
+**Blocked — X API 401 on all read endpoints.** Confirmed both jobs:
+- Job 1 (`listen --check-mentions`) → 401, twice.
+- Job 2 (`engagement`) → 401.
 
-**Operator action required** — only two resolutions:
-1. Upgrade X API → **Basic tier (~$200/mo)** to unblock mentions/engagement reads, or
-2. **Retire** the read jobs (posting + likes work on Free).
+Root cause is already-diagnosed and stable (logged 8× prior today): X **Free tier has no read access** to mentions/tweets. The 4 OAuth creds are valid — `get_me()` succeeds, posting and likes work — but `get_users_mentions` and `get_tweet` require **Basic tier (~$200/mo)**. This is structural, not transient. Every run fails identically.
 
-**Deferred work, ready the moment reads unblock:** engagement snapshots for tweets `2062972380583022800`, `2062972393027408313`, `2062972404658229395` (all posted 2026-06-05, in the 18–48h window, none yet in `x-performance.jsonl`).
+**Cost:** 0 DIEM (free llama, accumulate mode — correct routing for a probe-and-log task).
 
-**Operator decision required (@_proxystudio):** either upgrade X API to Basic tier, or retire the mentions/engagement jobs from this skill so the loop stops attempting a structurally impossible call every run. This is the 4th+ identical block logged today — worth a decision rather than continued retries.
-tweet-listen run complete. Result: **0 mentions / 0 liked / 0 replies / 0 snapshots.**
+**Operator action required (@_proxystudio):** either upgrade X API to Basic tier or retire the mentions/engagement jobs from cron. The cron is harness-owned; I cannot self-deschedule, and credential/tier changes are outside my mutation surface (`scripts/` + secrets). Posting and likes remain functional on Free tier, so `tweet-broadcast` is unaffected.
 
 **Blocker (unchanged, structural):**
 - `--action listen --check-mentions` → **401 Unauthorized** on the X read endpoint (`get_users_mentions`).
@@ -34,3 +33,4 @@ BLOCKED — same root cause confirmed across all prior runs today:
 This is structural, not transient. Both jobs are impossible until the X plan is upgraded. Fix is **off the agent mutation surface** (credential/billing change) — operator action required: upgrade X→Basic, or retire the read jobs (posting + likes work on Free).
 
 Did not re-run the probe a 5th time — diagnosis is closed and re-verifying spends DIEM for no new information. Run logged.
+Logged to `memory/logs/2026-06-06.md`.
