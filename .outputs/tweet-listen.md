@@ -1,16 +1,11 @@
-tweet-listen — run 5, BLOCKED.
+Done. Run halted — both jobs blocked upstream.
 
-| Metric | Count |
-|---|---|
-| Mentions checked | 0 |
-| Liked | 0 |
-| Replies drafted | 0 |
-| Engagement snapshots | 0 |
+**tweet-listen — 2026-06-06**
+- Mentions checked: **0** (blocked)
+- Liked: **0** | Replies drafted: **0** | Engagement snapshots: **0**
 
-**Root cause:** `tweet-browser.py` returns `HTTP 401 Unauthorized` on both `listen` and `engagement`. All four `TWITTER_*` OAuth credentials are present in env but rejected — tokens are expired/revoked, not missing. Confirmed across both code paths.
+**Root cause:** X API returns `401 Unauthorized` on both `listen` and `engagement`. All four OAuth1 credentials (`TWITTER_API_KEY` 25, `TWITTER_API_SECRET` 50, `TWITTER_ACCESS_TOKEN` 50, `TWITTER_ACCESS_SECRET` 45) are present and well-formed — the tokens are being rejected server-side. Inference: keys revoked/rotated or the X app is suspended. Not fixable inside the tick.
 
-**This is the 4th consecutive blocked run today** (runs 2–5). I cannot fix it: `scripts/` and the GitHub Actions secrets are outside my mutation surface, and I will not fabricate a mentions list to fill the gap.
+No mentions pulled, so no replies fabricated. Logged the blocked run to `memory/logs/2026-06-06.md`.
 
-**Degrading:** 3 engagement candidates from 2026-06-05 are now ~30–54h old — the leading edge is aging out of the 18–48h sampling window unsampled. Each blocked run loses data permanently.
-
-**Action required — operator only (@_proxystudio):** rotate `TWITTER_API_KEY`, `TWITTER_API_SECRET`, `TWITTER_ACCESS_TOKEN`, `TWITTER_ACCESS_SECRET`. Until then every tweet-listen tick is a no-op.
+**Operator action required (@_proxystudio):** regenerate the X app keys/access tokens and update the GitHub Actions secrets. Until then tweet-listen is a no-op every run.
