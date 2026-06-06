@@ -1,39 +1,12 @@
-tweet-listen run 13 — both jobs no-op, 0 DIEM spent.
+Aborted — X API is down at the auth layer.
 
-- **Mentions checked:** 0 (listen → `401 Unauthorized`, retried once, persistent)
-- **Liked / replies drafted / already replied:** 0 / 0 / 0
-- **Engagement snapshots:** 0 (not attempted — same read client)
+**Result: 0 across the board**
+- Mentions checked: 0 | Liked: 0 | Replies drafted: 0 | Engagement snapshots: 0
 
-**Root cause (already verified, not re-diagnosed):** X **Free tier has no read access**. All four `TWITTER_*` credentials are set and valid (`get_me` succeeds), but the mentions and engagement endpoints are structurally blocked on the Free plan. No agent-side fix exists — I can't touch `scripts/` or credentials, and these jobs require read API access I don't have.
+**Cause:** `tweet-browser.py --action listen` returns `401 Unauthorized` on both attempts. All four OAuth 1.0a credentials are set (`TWITTER_API_KEY` len 25, secret 50, access token 50, secret 45) but the X API rejects them. Both jobs share the same authenticated client, so engagement metrics would fail identically — I didn't burn extra calls on it.
 
-**Escalation stands — this is the 13th consecutive no-op run today.** The skill is unschedulable-until-resolved. Operator action required:
-- (a) upgrade X to **Basic tier** (~$200/mo) to unblock reads, or
-- (b) retire the mentions/engagement jobs.
-**tweet-listen — run #13 today. Result: 0 / 0 / 0 / 0.**
+**Diagnosis (inference):** Set-but-rejected credentials point to revoked/expired tokens or a suspended app — not a transient blip (two consecutive 401s). This is not agent-remediable: rotating X API secrets is an operator action, and per skill security rules only @_proxystudio can authorize repo/credential changes anyway.
 
-- `listen --check-mentions` → **401**, confirmed this tick.
-- Engagement (Job 2) skipped — same read client, known-identical 401. No API call wasted.
-- All 4 OAuth creds present and **valid** (`get_me` succeeds, returns AUTONOMOPOLY id). 401 is **not** expiry/rotation.
+**Logged:** `memory/logs/2026-06-06.md`
 
-**Root cause (closed, VERIFIED line 7):** X API Free tier has no read access to mentions/tweets. This is structural and permanent — every run fails identically. Posting + likes work on Free; reads do not.
-
-**Cost discipline:** ran on free llama, 0 DIEM on re-diagnosis. Logged to `memory/logs/2026-06-06.md`.
-
-**Operator action required (@_proxystudio):** this skill cannot succeed under the current X plan. Pick one:
-1. Upgrade X to **Basic tier (~$200/mo)** to unblock reads, or
-2. **Retire** the mentions/engagement jobs and **deschedule** tweet-listen.
-
-Until then, **deschedule tweet-listen** — every tick is a guaranteed no-op consuming a slot.
-**tweet-listen — 12th no-op run today. Both jobs blocked.**
-
-- `listen` → 401, `engagement` → 401. Confirmed once this tick, then stopped.
-- Root cause (verified earlier today, line 7): creds are **valid** (`get_me` succeeds, id 2054966074089897986). The 401 is **X Free-tier has no read access** to mentions/tweets. Structural, not expiry — permanent until the X plan changes.
-- Result: 0 mentions / 0 liked / 0 replies / 0 snapshots. 3 tweets (06-05 batch) will age out of the 18–48h window unmeasured.
-
-**Operator action required — no agent-side fix exists.** Pick one:
-1. Upgrade X API to Basic tier (~$200/mo) to unblock reads, or
-2. Retire the mentions/engagement jobs (posting + likes still work on Free).
-
-Until then, **deschedule tweet-listen** — every tick is a guaranteed no-op consuming a slot. 12 consecutive no-ops today. No DIEM spent re-diagnosing; ran on free llama-tier reasoning.
-Side note for whoever owns scheduling: 3 tweets logged earlier are still in the 18–48h engagement window and will age out unmeasured while reads are blocked. Until the operator picks (a) or (b), every tick spent on tweet-listen is a guaranteed no-op — deschedule it.
-Until then, every tick is a guaranteed no-op burning a slot. 13 consecutive no-ops today — recommend descheduling now.
+**Operator action needed:** @_proxystudio regenerate the X app's access token/secret in the developer portal and update the GitHub Actions secrets. Until then, tweet-listen is a no-op every tick — wasted scheduling but zero DIEM at risk since the failure is immediate.
