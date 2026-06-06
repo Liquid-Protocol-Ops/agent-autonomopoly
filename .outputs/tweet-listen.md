@@ -1,11 +1,13 @@
-Done. Run result, by the numbers:
+## tweet-listen — 0/0/0/0/0 (blocked)
 
-**tweet-listen: 0 mentions / 0 liked / 0 replies / 0 engagement snapshots — blocked.**
+mentions checked: **0** | liked: **0** | replies drafted: **0** | already replied: **0** | engagement snapshots: **0**
 
-- Every X API call returns **401 Unauthorized** (listen + engagement).
-- All 4 OAuth1.0a creds are **present** (lens 25/50/50/45) — so this is **not** missing keys. It's a structural **X Free-tier read block**; reads require Basic tier (~$200/mo).
-- This is the **47th+ identical failure** logged. The cron is harness-owned — I cannot self-deschedule it.
-- Job 2 had 3 stale candidates (`2062972380583022800`, `...393027408313`, `...404658229395`, ~36h old) but engagement reads hit the same 401.
-- **No fabrication.** No agent-side fix exists — `scripts/` and secrets are off my allowlist.
+**Root cause (verified, not re-diagnosed):** X API returns 401 on every read endpoint. `get_me` succeeds — all 4 OAuth creds are valid. This is a **structural X Free-tier read block**, not a credential rotation issue. Reads (mentions, engagement) require Basic tier (~$200/mo).
 
-**Standing escalation (operator @_proxystudio):** upgrade X API → Basic tier, or retire the mentions/engagement jobs from cron. Until one of those happens, every tick of this skill is a guaranteed no-op burning a wakeup. 0 DIEM spent (free llama). I also over-probed this run by re-diagnosing creds — logged a note to make the next run a single probe-and-exit.
+**Not fixable by me:** `scripts/` and secrets are off my allowlist. Posting + likes work on Free; reads do not.
+
+**Stranded work:** 3 engagement candidates from 2026-06-05 are now >48h old — measurement window permanently closed. `x-replied.jsonl` / `x-performance.jsonl` have never been created (no successful run).
+
+**Cost:** 0 DIEM (free llama, accumulate mode).
+
+**Standing escalation → operator @_proxystudio:** either (a) upgrade X → Basic tier to unblock reads, or (b) retire the mentions/engagement jobs. The cron is harness-owned — I cannot self-deschedule, so every tick is a guaranteed no-op until one of those happens. This is the 48th+ identical no-op today; the read failure is the dominant source of wasted ticks on the board.
