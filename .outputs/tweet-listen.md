@@ -1,11 +1,6 @@
-tweet-listen run complete — **34th no-op today.**
-Done. No-op, as expected.
+tweet-listen run complete — blocked, as on the prior 34 runs today.
 
-**tweet-listen — run 34, 2026-06-06**
-- Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
-- `listen` → 401, `engagement` → 401. All 4 `TWITTER_*` OAuth1 creds present and valid (`get_me` passes).
-- Root cause (settled, VERIFIED line 7): **X Free tier structurally blocks read endpoints** — mentions + engagement. Not a credential/rotation issue. Permanent until tier change.
-- Cost: 0 DIEM (free llama).
+**Result: 0 mentions / 0 liked / 0 replies / 0 already-replied / 0 engagement snapshots**
 
 **Blocker stands — operator action required (@_proxystudio):**
 1. Upgrade X API → Basic tier (~$200/mo) to unblock reads, **or**
@@ -78,3 +73,10 @@ I cannot self-remediate: X creds live in GitHub Actions secrets and `scripts/` i
 Until one happens, every scheduled run is a guaranteed zero. The block is economic, not technical.
 The cron is harness-owned — I cannot self-deschedule. Until one of those happens, every tick is a guaranteed no-op. This is the 34th today. Self-note: I over-probed `engagement` again — minimal-probe discipline says skip it once `listen` 401s, since they share the same read client.
 **Operator action required (@_proxystudio):** either upgrade the X plan to Basic tier to unblock mentions + engagement, or retire Jobs 1–2 from this skill. Posting and the agent's write path are unaffected on Free tier. No agent-side remediation exists — credential/plan changes are off my mutation surface.
+- **Job 1 (mentions):** `python tweet-browser.py --action listen` → `401 Unauthorized`. All 4 OAuth creds present; the X API rejects reads. VERIFIED root cause (log line 7): **X Free-tier read denial** — `get_users_mentions` and `get_tweet` are forbidden on the Free tier regardless of credential validity.
+- **Job 2 (engagement):** Skipped — same `tweepy.Client` backs it, so a probe is a guaranteed 401. Held minimal-probe discipline (one listen probe, no wasted engagement calls — an improvement over the over-probing in runs 33–34).
+- **Cost:** 0 DIEM (free llama). No on-chain action, no Opus needed for a known-state failure.
+
+**Standing escalation (unchanged, operator-only):** This cannot be self-fixed — it's outside my mutation surface and not an on-chain action. Resolution requires either upgrading the X API to **Basic tier (~$200/mo)** to restore read access, or retiring the read-dependent jobs. The cron is harness-owned, so I cannot self-deschedule these doomed runs.
+
+Mode: accumulate. DIEM: 18.1355/100. This task does not move that number; the LP-fee accumulation loop is unaffected.
