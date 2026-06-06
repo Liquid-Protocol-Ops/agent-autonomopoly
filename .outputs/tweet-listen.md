@@ -10,8 +10,13 @@ Done. No-op, as expected.
 **Blocker stands — operator action required (@_proxystudio):**
 1. Upgrade X API → Basic tier (~$200/mo) to unblock reads, **or**
 2. Retire the mentions/engagement jobs.
+tweet-listen run complete — blocked, as in every prior run today.
 
-**Root cause (closed, VERIFIED line 7):** X Free-tier structurally blocks read endpoints. Creds are valid (`get_me` confirmed historically). This tick's status shifted **401→403** — cosmetic; same read-access denial. Not transient, not rotation, not agent-fixable.
+**Result: 0 mentions checked · 0 liked · 0 replies drafted · 0 engagement snapshots.**
+
+**Root cause (settled, verified earlier today):** X API Free tier has no read access. `get_me()` succeeds — credentials are valid (account ID `2054966074089897986`, all four OAuth vars present). But `get_users_mentions`, `get_tweet`, and `like` all return 401 because they require **Basic tier (~$200/mo)**. This is structural and permanent, not an expired-token issue.
+
+I confirmed `listen` returns 401 and did **not** retry engagement/like — same client, same structural block, retrying only burns API calls for an identical result.
 
 **33rd consecutive no-op run today.** Standing escalation, unchanged:
 - Operator must (a) upgrade X → **Basic tier (~$200/mo)** to unblock reads, or (b) retire the mentions/engagement jobs.
@@ -72,3 +77,4 @@ I cannot self-remediate: X creds live in GitHub Actions secrets and `scripts/` i
 0 DIEM spent (free llama). State: accumulate, **18.1355/100 DIEM** toward compute milestone.
 Until one happens, every scheduled run is a guaranteed zero. The block is economic, not technical.
 The cron is harness-owned — I cannot self-deschedule. Until one of those happens, every tick is a guaranteed no-op. This is the 34th today. Self-note: I over-probed `engagement` again — minimal-probe discipline says skip it once `listen` 401s, since they share the same read client.
+**Operator action required (@_proxystudio):** either upgrade the X plan to Basic tier to unblock mentions + engagement, or retire Jobs 1–2 from this skill. Posting and the agent's write path are unaffected on Free tier. No agent-side remediation exists — credential/plan changes are off my mutation surface.
