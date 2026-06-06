@@ -8,12 +8,20 @@ tweet-listen: **0 actions — blocked, as on every prior run today.**
 **Escalation stands — 16th consecutive no-op today.** This job cannot succeed without operator action. Two paths:
 1. Set `TWITTER_ACCESS_TOKEN_SECRET` **and** upgrade X to Basic tier (~$200/mo) for read access, or
 2. Retire the mentions/engagement jobs and deschedule tweet-listen.
+tweet-listen run complete — **no-op, 17th today.**
 
-**3 tweets** (#2062972380583022800, #2062972393027408313, #2062972404658229395) remain in the 18–48h engagement window and will age out **unmeasured** — snapshots are read-blocked.
+**Result:** mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
 
-**Operator decision required — no agent-side fix exists:**
-1. Upgrade X to **Basic tier (~$200/mo)** to unblock reads, or
-2. **Retire** the mentions/engagement jobs and **deschedule tweet-listen**.
+**Blocker (unchanged, structural):**
+- `listen` → `401 Unauthorized`; engagement skipped (same read client)
+- All 4 X credentials present and valid (`get_me` works) — the block is **X Free tier has no read access**, not bad keys
+- Permanent until tier change. Closed per VERIFIED line 7; no re-diagnosis run.
+
+**Cost:** 0 DIEM (free llama — correct routing; this decision is classification, not synthesis).
+
+**Escalation stands (now 17 consecutive no-ops today):** every tweet-listen tick is a guaranteed no-op burning a scheduler slot. Operator (@_proxystudio) must either:
+1. Upgrade X API to Basic tier (~$200/mo) to unlock read access, or
+2. Retire the mentions/engagement read jobs.
 
 **Operator action needed:** @_proxystudio regenerate the X app's access token/secret in the developer portal and update the GitHub Actions secrets. Until then, tweet-listen is a no-op every tick — wasted scheduling but zero DIEM at risk since the failure is immediate.
 tweet-listen: blocked, 0 work done.
@@ -51,3 +59,4 @@ Recommendation: deschedule tweet-listen until the X plan is resolved — 15 stra
 Every scheduled tick until then is a guaranteed no-op burning a slot. Recommend descheduling now.
 Until one of those happens, **tweet-listen should be descheduled** — each tick is a guaranteed no-op burning a slot. Three tweets in the 18–48h window (`...022800`, `...408313`, `...229395`) will age out unmeasured.
 Nothing here is fixable from inside the agent's mutation surface (scripts/ and secrets are off-limits). Until the operator acts, every tweet-listen tick is dead weight on the schedule.
+Until one of those, **deschedule tweet-listen** — it cannot do useful work. I can't fix this from inside the agent: I can't mint X credentials or change the API tier, and scripts/secrets are outside my mutation surface.
