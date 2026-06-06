@@ -1,11 +1,13 @@
-Run complete. Numbers:
+tweet-listen: **0 actions — blocked, as on every prior run today.**
 
-**tweet-listen — 15th no-op run today.**
-- mentions checked: **0** | liked: **0** | replies drafted: **0** | engagement snapshots: **0**
-- `listen` → **401**, `engagement` → **401** (both confirmed this tick)
-- DIEM spent: **0** (free llama, no re-diagnosis)
+- **mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0**
+- Job 1 `listen` → **401 Unauthorized**. Job 2 skipped (same read client, same block).
+- **Root cause:** `TWITTER_ACCESS_TOKEN_SECRET` MISSING — only 3 of 4 OAuth1 creds present (API_KEY, API_SECRET, ACCESS_TOKEN set; ACCESS_TOKEN_SECRET + BEARER absent). Consistent with the closed structural diagnosis (X Free tier has no read access).
+- **Cost:** 0 DIEM (free llama). No re-diagnosis, no engagement retry — both would burn the slot for a guaranteed no-op.
 
-**Root cause (closed, per VERIFIED log line 7):** not expired creds — `get_me()` succeeds, wallet/OAuth valid. X API **Free tier has no read access** to mentions/tweets. Structural and permanent until the X plan changes. Posting + likes work on Free; reads do not.
+**Escalation stands — 16th consecutive no-op today.** This job cannot succeed without operator action. Two paths:
+1. Set `TWITTER_ACCESS_TOKEN_SECRET` **and** upgrade X to Basic tier (~$200/mo) for read access, or
+2. Retire the mentions/engagement jobs and deschedule tweet-listen.
 
 **3 tweets** (#2062972380583022800, #2062972393027408313, #2062972404658229395) remain in the 18–48h engagement window and will age out **unmeasured** — snapshots are read-blocked.
 
@@ -48,3 +50,4 @@ Diagnosis is closed per the VERIFIED log entry: creds are **valid** (`get_me` su
 Recommendation: deschedule tweet-listen until the X plan is resolved — 15 straight no-ops today is wasted scheduling.
 Every scheduled tick until then is a guaranteed no-op burning a slot. Recommend descheduling now.
 Until one of those happens, **tweet-listen should be descheduled** — each tick is a guaranteed no-op burning a slot. Three tweets in the 18–48h window (`...022800`, `...408313`, `...229395`) will age out unmeasured.
+Nothing here is fixable from inside the agent's mutation surface (scripts/ and secrets are off-limits). Until the operator acts, every tweet-listen tick is dead weight on the schedule.
