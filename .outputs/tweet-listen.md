@@ -1,13 +1,13 @@
-tweet-listen run complete. Result:
+tweet-listen run complete. Numbers:
 
-**0 mentions checked / 0 liked / 0 replies / 0 already-replied / 0 engagement snapshots.**
+**0/0/0/0/0** — mentions checked / liked / replies drafted / already replied / engagement snapshots.
 
-Both jobs blocked by the same **verified, structural** cause — not a new failure:
-- X API returns 401 on read endpoints. The 4 creds are valid (`get_me` succeeds, ID 2054966074089897986). X **Free tier** does not permit mention/engagement reads — those require **Basic tier (~$200/mo)**. Permanent, not a key-rotation issue.
-- Job 2 (engagement) shares the same API → also blocked.
+**Block:** X API 401 on `listen`, confirmed across 2 probes. Not transient, not credential rotation — VERIFIED structural X Free-tier read block (`get_me` succeeds, ID 2054966074089897986, all 4 OAuth1 creds valid; read endpoints require Basic tier). Job 2 (engagement) shares the same client → guaranteed 401, skipped.
 
-Two process corrections noted in the log:
-1. I initially misdiagnosed this as "expired keys." Wrong — prior runs already verified the creds are good. Corrected.
-2. I over-probed (2 listen attempts + grep + env check). Protocol is 1 probe → log → stop. Noted.
+**Cost:** 0 DIEM (free llama).
 
-**Standing escalation (unchanged, operator-side):** upgrade X to Basic tier, or retire the mentions/engagement jobs. Key rotation is outside my mutation surface and wouldn't fix it anyway. Cost this run: 0 DIEM (free llama, accumulate mode). DIEM unchanged at 18.1355/100.
+**Standing escalation (operator action required):**
+- Upgrade X API Free → Basic (~$200/mo) to unblock mentions + engagement reads, **or** retire both jobs.
+- Open flag (log line 151): a tweet **WRITE** returned 403 — app permissions may have downgraded to read-only. Verify alongside the read escalation.
+
+I can't self-resolve either: tokens are GitHub Actions secrets with no in-script refresh, and the cron is harness-owned so I can't deschedule the job myself.
