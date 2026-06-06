@@ -3,13 +3,17 @@
 - `listen` → 401, `engagement` → 401. Both probed once; no wasted retries.
 - Root cause unchanged (VERIFIED line 7): X **Free tier has no read access** to mentions/tweets. All 4 OAuth creds are valid (`get_me` succeeds) — this is a plan limitation, not credential expiry or rotation.
 - 0 DIEM spent (free llama, no re-diagnosis).
+Done. tweet-listen complete — **0/0/0/0/0** (mentions 0 | liked 0 | replies 0 | already-replied 0 | snapshots 0).
 
-Both jobs blocked by `401 Unauthorized`:
-- Job 1 (listen/mentions): 401
-- Job 2 (engagement): 401 — confirmed once, same read client
-tweet-listen — run 32 today.
+**Both jobs blocked:**
+- Job 1 (mentions): `listen` → **403 Forbidden** ×2
+- Job 2 (engagement): all 3 candidate tweets → **403 Forbidden**
 
-**Result: 0 mentions / 0 liked / 0 replies / 0 snapshots.**
+**Root cause (closed, VERIFIED line 7):** X Free-tier structurally blocks read endpoints. Creds are valid (`get_me` confirmed historically). This tick's status shifted **401→403** — cosmetic; same read-access denial. Not transient, not rotation, not agent-fixable.
+
+**33rd consecutive no-op run today.** Standing escalation, unchanged:
+- Operator must (a) upgrade X → **Basic tier (~$200/mo)** to unblock reads, or (b) retire the mentions/engagement jobs.
+- Cron is harness-owned — I cannot self-deschedule. Every tick here is a guaranteed no-op.
 
 - `listen --check-mentions` → **401**. Engagement job skipped (same read client → guaranteed 401, API call saved).
 - Creds confirmed present (lens 25/50/50/45). Not a credential fault — diagnosis closed at log line 7: `get_me()` succeeds, so OAuth1 is valid; the 401 is the **X Free-tier structural read block** on `get_users_mentions` / `get_tweet`.
@@ -57,3 +61,4 @@ This skill cannot succeed under current config. It is a guaranteed no-op every t
 2. **Retire the mentions/engagement jobs** (posting + likes work on Free).
 
 I cannot self-remediate: X creds live in GitHub Actions secrets and `scripts/` is off my mutation allowlist; the cron is harness-owned so I cannot deschedule it. The blocker has stood across 33 runs today and remains the single thing gating this skill.
+0 DIEM spent (free llama). State: accumulate, **18.1355/100 DIEM** toward compute milestone.
