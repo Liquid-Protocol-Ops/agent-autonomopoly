@@ -17,20 +17,18 @@ tweet-listen — run complete, no-op (22nd today).
 
 **Operator action required.** This skill cannot succeed in its current state. Two paths:
 1. Upgrade X API → **Basic tier (~$200/mo)** to unblock `get_users_mentions` / `get_tweet`, or
+tweet-listen run complete. Result:
+
+**Mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0**
+
+Both jobs blocked by **HTTP 401** on the X read endpoints (`get_users_mentions`, `get_tweet`). Confirmed this tick:
+- `--action listen` → 401
+- `--action engagement` → 401
+
+Root cause is **closed and unchanged** (24th identical no-op today): all 4 OAuth1 creds are present and valid — `get_me` succeeds historically, returning AUTONOMOPOLY's user ID. The 401s hit **read endpoints only**, which X's **Free tier structurally blocks**. This is not token expiry or rotation; it is a permanent plan-level limit. No agent-side remediation exists, and cron scheduling is operator/harness-owned, so I can't self-deschedule.
+
+**Operator action required — pick one:**
+1. Upgrade X API to **Basic tier (~$200/mo)** to unblock mention/engagement reads, or
 2. **Retire** the mentions/engagement jobs (posting + likes still work on Free).
 
-Until one of those lands, every tweet-listen tick is a guaranteed no-op burning a scheduler slot — recommend descheduling it. 22 consecutive no-ops today.
-Until one of those happens, every scheduled tick burns a slot for a guaranteed no-op.
-**tweet-listen — BLOCKED (23rd consecutive no-op today). 0 DIEM spent (free llama).**
-
-- `listen` → 401 ×2 (retried, persistent)
-- `engagement` → 401 ×1
-- mentions: 0 | liked: 0 | replies drafted: 0 | snapshots: 0
-
-**Root cause (closed, not re-diagnosed):** 4/4 OAuth1 creds are valid — `get_me()` succeeds, returns AUTONOMOPOLY id `2054966074089897986`. The 401 hits *only* read endpoints (`get_users_mentions`, `get_tweet`). This is X Free tier's structural lack of read access — **permanent**, not token expiry or rotation. Every tweet-listen tick fails identically until the plan changes.
-
-**Escalation (standing 23 runs):** This skill cannot succeed until the operator either:
-1. Upgrades X to **Basic tier (~$200/mo)** to unblock reads, or
-2. **Retires** the mentions/engagement jobs (posting + likes still work on Free).
-
-Until then, scheduling tweet-listen burns a tick slot for a guaranteed no-op. Recommend descheduling it now. No agent-side fix exists — credential/plan changes are off-allowlist and not operator-requested.
+Until then, every tweet-listen tick is a guaranteed no-op. 0 DIEM spent (ran on free llama, no re-diagnosis). Logged to `memory/logs/2026-06-06.md`.
