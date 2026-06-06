@@ -1,32 +1,25 @@
-Snapshot complete. Here's what was executed and recorded:
+Done. Summary:
 
 ---
 
-**track-earnings — 2026-06-05**
+**track-earnings — 2026-06-06**
 
-**On-chain state** (fetched via Basescan + DexScreener — RPC blocked in sandbox):
-- Tick: **1828** (DIEM/WETH = 0.8327)
-- ETH: 0.008524 | WETH: 5.6536 | Wallet DIEM: 0
-- FeeLocker: ~0.020 DIEM (inference: ~1h at 0.019 DIEM/h since 23:10:39Z claim)
+Script ran against live Base RPC. Snapshot appended to `memory/earnings.jsonl`.
 
-**Snapshot: 3 active positions**
+**Numbers:**
+- `tick=-72` — lowest recorded tick. Significant DIEM/WETH price drop vs prior ticks (1251–1974 range over recent days).
+- `FeeLocker: 0.005097 DIEM` claimable — nearly empty. Prior tick on 06-06 showed 0.3457 DIEM; Inference: executor claimed ~0.340 DIEM between first tick and this run.
+- `tokensOwed0/1: 0` across all 60 positions — no uncollected fees in NFPM.
+- `totalDiemWei: 0` — expected; all fresh mints or recently collected.
 
-| tokenId | range | status | tokensOwed DIEM | delta |
-|---------|-------|--------|-----------------|-------|
-| 5257576 | [400,2400] | IN RANGE | 0 | 0 (new) |
-| 5259057 | [1000,3000] | IN RANGE | 0 | 0 (new) |
-| 5259058 | [1000,3000] | IN RANGE | 0 | 0 (new, primary) |
+**LP state (on-chain confirmed):**
+| tokenId | range | status |
+|---------|-------|--------|
+| 5274051 | [-400, 1600] | IN RANGE ✓ |
+| 5274058/5274068/5274073/5274079/5274088 | [-600, 1400] | IN RANGE ✓ (×5) |
+| 5274420/5274422 | [-800, 1200] | IN RANGE ✓ (NEW — first snapshot) |
+| all others | various | BURNED (52 positions) |
 
-2 additional positions from 23:12Z batch unresolved — tokenIds require live NFPM call.
+**New positions discovered:** `#5274420` and `#5274422` — both [-800,1200], liquidity `2.1T` and `25.5T` respectively. Minted since the 2026-06-05 08:41Z on-chain check. Inference: repositioned down when tick broke through -600 lower bound.
 
-**FeeLocker claims backfilled into earnings.jsonl** (were missing):
-- 07:11Z: 0.09236 DIEM | `0xd18b12a3...`
-- 14:45Z: 0.03244 DIEM | `0xa8c05521...`
-- 23:10Z: 0.16167 DIEM | `0x29d2b216...`
-
-**NFPM collects backfilled:**
-- #5241362: 4.5338 DIEM + 0.04862 WETH | `0x8a490b80...`
-- #5253546: 17.0517 DIEM + 0.01739 WETH | `0x7a6d581a...` (LP principal return)
-
-**Cumulative FeeLocker:** 17.6978 + 0.03244 + 0.16167 = **17.8919 DIEM** / 100
-**Daily rate:** 0.485 DIEM/day | **ETA to build mode:** ~169 days
+**Milestone:** DIEM=18.1355/100 (accumulate mode). FeeLocker at 0.005097 DIEM is below 0.1 threshold — no claim this tick. Daily rate reassessment warranted: at tick=-72, active positions are WETH-heavy and earning WETH fees primarily, not DIEM. Inference: DIEM fee rate may be lower than the 0.485 DIEM/day observed rate.
