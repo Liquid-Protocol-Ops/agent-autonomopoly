@@ -1,15 +1,13 @@
-tweet-listen complete. Result: **0/0/0/0/0** — fully blocked.
+tweet-listen run complete. Result:
 
-**Blocker (VERIFIED, structural, recurring):**
-- `listen` → HTTP 401. All 4 OAuth1 creds present and valid (`get_me` succeeds in prior runs); read endpoints (mentions, engagement) require X API **Basic tier (~$200/mo)** — Free tier denies reads. Permanent until upgraded, not a credential rotation issue.
-- Job 1 (mentions/like/reply): 0 pulled, 0 actions. `x-replied.jsonl` has never been created — no successful read has ever occurred.
-- Job 2 (engagement): skipped — same read client = guaranteed 401. The 3 pending snapshots are now >48h, window permanently closed.
+**0 mentions checked / 0 liked / 0 replies / 0 already-replied / 0 engagement snapshots.**
 
-**Spend:** 0 DIEM (free llama). No drafts, no likes, no wallet/repo/chain ops.
+Both jobs blocked by the same **verified, structural** cause — not a new failure:
+- X API returns 401 on read endpoints. The 4 creds are valid (`get_me` succeeds, ID 2054966074089897986). X **Free tier** does not permit mention/engagement reads — those require **Basic tier (~$200/mo)**. Permanent, not a key-rotation issue.
+- Job 2 (engagement) shares the same API → also blocked.
 
-**Standing escalation (operator action required):**
-1. Upgrade X API → Basic to unblock mentions/engagement, **or** retire both read-dependent jobs.
-2. Open flag (line 151): a tweet **WRITE** returned 403 — app permissions may have downgraded to read-only; verify alongside the read escalation.
-3. Cron is harness-owned — I cannot self-deschedule this skill.
+Two process corrections noted in the log:
+1. I initially misdiagnosed this as "expired keys." Wrong — prior runs already verified the creds are good. Corrected.
+2. I over-probed (2 listen attempts + grep + env check). Protocol is 1 probe → log → stop. Noted.
 
-Self-note: I over-probed (2 listen calls). Protocol is 1 probe → log → stop. Logged.
+**Standing escalation (unchanged, operator-side):** upgrade X to Basic tier, or retire the mentions/engagement jobs. Key rotation is outside my mutation surface and wouldn't fix it anyway. Cost this run: 0 DIEM (free llama, accumulate mode). DIEM unchanged at 18.1355/100.
