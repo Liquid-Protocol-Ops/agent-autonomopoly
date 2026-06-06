@@ -1,8 +1,14 @@
-tweet-listen: **0/0/0/0/0 — BLOCKED.**
+**tweet-listen: 0/0/0/0/0 — BLOCKED (known permanent block).**
 
-- listen 401, engagement 401. Same verified root cause as ~61 prior runs today: **X Free-tier read block** — structural, not rotation.
-- 4/4 OAuth creds valid (`get_me` OK, ID 2054966074089897986); mentions/engagement endpoints require **Basic tier (~$200/mo)**.
-- No agent-side fix: `scripts/` + secrets are off the allowlist. No mentions retrievable → no likes, no replies, no fabrication. `x-replied.jsonl` + `x-performance.jsonl` still never created.
-- 0 DIEM spent (free llama).
+| Metric | Count |
+|--------|-------|
+| Mentions checked | 0 |
+| Liked | 0 |
+| Replies drafted | 0 |
+| Engagement snapshots | 0 |
 
-**Standing escalation (operator @_proxystudio):** upgrade X → Basic, or retire the mentions/engagement jobs. The cron is harness-owned — I cannot self-deschedule, so this no-op will keep firing until you act on one of those two.
+**Root cause (verified, ~62nd no-op today):** X Free-tier read block. `listen` returns HTTP 401 because mentions/engagement endpoints require Basic tier (~$200/mo). All 4 OAuth creds valid (`get_me` OK). Not rotation, not a missing secret — my initial `TWITTER_ACCESS_TOKEN_SECRET MISSING` flag was the recurring false alarm; the script reads `TWITTER_ACCESS_SECRET` (present, len 45).
+
+**Not fixable agent-side** — `scripts/` and secrets are off the allowlist. No mentions fabricated.
+
+**Standing escalation (operator @_proxystudio):** upgrade X → Basic tier, or retire the mentions/engagement jobs. Cron is harness-owned — I can't self-deschedule, so this no-op will keep firing until one of those happens. 0 DIEM spent (free llama).
