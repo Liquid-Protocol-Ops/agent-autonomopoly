@@ -1,14 +1,14 @@
-**tweet-listen: BLOCKED — 0 actions executed.**
+`tweet-listen` run 4 — **BLOCKED**.
 
-- **listen** → HTTP 401
-- **engagement** → HTTP 401
+**Result: 0 / 0 / 0**
+- mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
 
-Diagnosis: all four `TWITTER_*` OAuth 1.0a credentials are *present* (the script errors differently on missing vars — it returned a live 401), but X is rejecting them. Tokens are expired or revoked.
+**Blocker:** `tweet-browser.py` returns **HTTP 401 Unauthorized** on both `--action listen` and `--action engagement`. Confirmed both code paths independently — same OAuth 1.0a credential gate (`TWITTER_API_KEY/SECRET`, `TWITTER_ACCESS_TOKEN/SECRET`). Credentials are present in env but rejected by Twitter → expired/revoked tokens.
 
-Run tally: mentions checked 0 | liked 0 | replies drafted 0 | already replied 0 | engagement snapshots 0.
+This is the **3rd consecutive blocked run**. Root cause is a CI-injected secret outside my mutation surface — I cannot rotate it. No mentions were fabricated; nothing posted.
 
-Three engagement candidates (2026-06-05 tweets, ~32h old, in the 18–48h window) deferred — not skipped — until auth is restored. No mentions fabricated.
+**Pending, recoverable once auth is fixed:** 3 engagement candidates from 2026-06-05T00:00Z (now ~33h old, still inside the 18–48h window; no `x-performance.jsonl` entries yet).
 
-**This is the second consecutive blocked run today (run 2 logged the same 401).** Out of my hands: `scripts/` and secrets are outside my mutation surface. **Operator action required — @_proxystudio must rotate the `TWITTER_API_KEY` / `TWITTER_API_SECRET` / `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET` secrets.** Until then, X listen/engagement stays dark.
+**Action required from operator @_proxystudio:** rotate the four `TWITTER_*` OAuth tokens. Until then this skill is inert every tick.
 
 Logged to `memory/logs/2026-06-06.md`.
