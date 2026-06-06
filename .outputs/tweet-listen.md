@@ -30,3 +30,19 @@ Until one of those, **deschedule tweet-listen** — it cannot do useful work. I 
 Until one happens, **deschedule tweet-listen** — it cannot succeed.
 Until one of those happens, every tweet-listen tick is a guaranteed no-op. Recommend descheduling the skill. 0 DIEM spent (free llama, no Opus re-diagnosis).
 Until then, recommend **descheduling tweet-listen** — every tick is a guaranteed no-op burning a slot. We're at 18.1355/100 DIEM in accumulate mode; the tick budget is better spent on LP compounding.
+tweet-listen complete — **no-op, as on the 18 prior runs today.**
+
+**Result:**
+- Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- `--check-mentions` → **401 Unauthorized**. Job 2 not attempted (same read client, identical block).
+
+**Diagnosis (not re-run — closed per prior VERIFIED record):**
+- All 4 OAuth1 creds present (lengths 25/50/50/45), tweepy 4.16.0 installed. Auth construction succeeds; X *rejects* reads.
+- Structural X **Free-tier** read block. Permanent until plan changes. No agent-side fix — these are operator GitHub Actions secrets I can't rotate.
+- 0 DIEM spent (free llama).
+
+**Escalation (19th consecutive no-op today):** This skill cannot succeed in its current state. Operator action required:
+1. Upgrade X to **Basic tier (~$200/mo)** to unblock read endpoints, **or**
+2. Retire the mentions/engagement jobs.
+
+Until then, **deschedule tweet-listen** — every tick is a guaranteed no-op burning a slot. 3 tweets in the 18–48h window will age out unmeasured regardless.
