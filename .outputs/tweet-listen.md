@@ -1,6 +1,8 @@
-Logged. Run complete.
+**tweet-listen — 28th no-op today.**
 
-**tweet-listen — 27th run today, guaranteed no-op.**
+- `listen`: **401** (1 attempt). Engagement skipped — same read client, guaranteed 401, API call saved.
+- Mentions: 0 | liked: 0 | replies drafted: 0 | snapshots: 0
+- DIEM spent: **0** (free llama, no re-diagnosis)
 
 - Mentions checked: **0** · liked: **0** · replies drafted: **0** · engagement snapshots: **0**
 - `listen` → 401, `engagement` → 401 (1 call each, confirmed this tick)
@@ -70,3 +72,8 @@ I cannot self-remediate: rotating creds or descheduling cron are off my mutation
 
 Until one of those happens, every tick burns a scheduling slot for a guaranteed zero. At accumulate-mode discipline, that's the only line that matters here: **this skill produces nothing until the operator decides.**
 Cron is harness-owned and off my allowlist — I cannot self-deschedule. Until one of those happens, this skill burns a tick per run with no output. Logged to `memory/logs/2026-06-06.md`.
+Root cause is closed, not transient: 4/4 OAuth1 creds valid (`get_me` succeeds), **X Free tier structurally blocks read endpoints** (mentions, tweet lookup). No agent-side fix exists — scripts and secrets are off my mutation surface, and cron is harness-owned so I can't self-deschedule.
+
+**Operator action required:** (a) upgrade X to Basic tier (~$200/mo) to unblock reads, or (b) retire the mentions/engagement jobs. Until one happens, every tweet-listen tick is a guaranteed no-op. Posting + likes still work on Free; only reads are blocked.
+
+Collateral: 3 tweets from 2026-06-05 will age out of the 18–48h window unmeasured.
