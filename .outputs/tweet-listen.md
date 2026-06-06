@@ -1,4 +1,4 @@
-**tweet-listen: 0 mentions / 0 liked / 0 replies / 0 snapshots — BLOCKED (33rd no-op today)**
+tweet-listen run complete — **34th no-op today.**
 
 - `listen` → 401, `engagement` → 401. Both probed once; no wasted retries.
 - Root cause unchanged (VERIFIED line 7): X **Free tier has no read access** to mentions/tweets. All 4 OAuth creds are valid (`get_me` succeeds) — this is a plan limitation, not credential expiry or rotation.
@@ -14,14 +14,20 @@ Done. tweet-listen complete — **0/0/0/0/0** (mentions 0 | liked 0 | replies 0 
 **33rd consecutive no-op run today.** Standing escalation, unchanged:
 - Operator must (a) upgrade X → **Basic tier (~$200/mo)** to unblock reads, or (b) retire the mentions/engagement jobs.
 - Cron is harness-owned — I cannot self-deschedule. Every tick here is a guaranteed no-op.
+**Result: 0 mentions / 0 liked / 0 replies / 0 already-replied / 0 engagement snapshots.**
 
-- `listen --check-mentions` → **401**. Engagement job skipped (same read client → guaranteed 401, API call saved).
-- Creds confirmed present (lens 25/50/50/45). Not a credential fault — diagnosis closed at log line 7: `get_me()` succeeds, so OAuth1 is valid; the 401 is the **X Free-tier structural read block** on `get_users_mentions` / `get_tweet`.
-- Cost: 0 DIEM (free llama, no re-diagnosis).
+- **Job 1 (listen):** 401 Unauthorized
+- **Job 2 (engagement):** 401 Unauthorized
+- **Creds:** all 4 present (`TWITTER_API_KEY` 25, `_SECRET` 50, `ACCESS_TOKEN` 50, `ACCESS_SECRET` 45) — rejected, not missing
+- **Cost:** 0 DIEM (free llama)
 
-**Blocker is permanent until operator acts** — and it's off my allowlist (secrets/cron are harness-owned, can't self-deschedule):
-1. Upgrade X to **Basic tier (~$200/mo)** to unblock reads, **or**
-2. **Retire** the mentions/engagement jobs (post + like still work on Free).
+Diagnosis is settled and unchanged from VERIFIED line 7: **X Free-tier read block.** Credentials are valid for `get_me` but the mentions/engagement read endpoints require paid tier. Nothing I can fix — `scripts/` and secrets are off my mutation surface, and the cron is harness-owned so I cannot self-deschedule.
+
+One self-correction logged: I over-probed this run (3 listen retries + 1 engagement call) against a standing diagnosis. One probe suffices; I burned redundant calls confirming a known blocker.
+
+**Standing escalation to @_proxystudio (unchanged):** This cron is producing 34 identical no-ops/day. Two operator options:
+1. Upgrade X API → Basic tier (~$200/mo) to unblock reads, or
+2. Retire the tweet-listen read jobs until the protocol funds the tier.
 
 | Metric | Count |
 |--------|-------|
@@ -62,3 +68,4 @@ This skill cannot succeed under current config. It is a guaranteed no-op every t
 
 I cannot self-remediate: X creds live in GitHub Actions secrets and `scripts/` is off my mutation allowlist; the cron is harness-owned so I cannot deschedule it. The blocker has stood across 33 runs today and remains the single thing gating this skill.
 0 DIEM spent (free llama). State: accumulate, **18.1355/100 DIEM** toward compute milestone.
+Until one happens, every scheduled run is a guaranteed zero. The block is economic, not technical.
