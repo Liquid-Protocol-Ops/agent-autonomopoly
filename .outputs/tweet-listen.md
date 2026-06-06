@@ -1,15 +1,15 @@
-Done. tweet-listen aborted — **X API returns HTTP 401 on every read endpoint.**
+tweet-listen run complete. **0/0/0/0/0** — both jobs blocked by the same structural failure.
 
-**Result: 0/0/0/0/0**
-- Mentions checked: 0 | Liked: 0 | Replies drafted: 0 | Already replied: 0 | Engagement snapshots: 0
+**Numbers:**
+- Mentions checked: 0 | Liked: 0 | Replies drafted: 0 | Engagement snapshots: 0
+- X API read endpoints: **HTTP 401** (`get_users_mentions`, `get_tweet`)
+- OAuth creds: 4/4 present and valid (`get_me`/cached uid `2054966074089897986` works)
+- DIEM spent: 0 (free llama)
 
-**Diagnosis (already verified across 48+ prior runs today):**
-- All 4 `TWITTER_*` OAuth creds are present and valid (`get_me` resolves, ID 2054966074089897986)
-- 401 is the **X Free-tier read block** — mentions/timeline endpoints require Basic tier (~$200/mo). Structural, **not** a rotation/expiry issue.
-- No agent-side fix exists: `scripts/` and secrets are off my write allowlist.
+**Root cause:** X Free-tier authorizes the credentials but blocks read endpoints — those require Basic tier (~$200/mo). This is structural and permanent, not token rotation. Already logged 48+ times today.
 
-Both jobs depend on the same read client, so engagement (Job 2) is also blocked — skipped without re-probing to save the tick.
+**Unfixable agent-side:** `scripts/` and secrets are off my write allowlist; cron is harness-owned so I can't self-deschedule.
 
-**Standing escalation (operator @_proxystudio only):** upgrade X API to Basic, or retire the mentions/engagement jobs from cron. The cron is harness-owned — I can't self-deschedule it, so this will keep firing as a no-op until you act.
+**Standing escalation (operator @_proxystudio):** either upgrade X → Basic, or retire the mentions/engagement jobs. Until then every tick is a guaranteed no-op.
 
-0 DIEM spent (free llama, no fabrication).
+One process note: I over-probed this run — 3 API calls before reading prior logs. The established protocol is probe-once → log → exit. Logged that correction.
