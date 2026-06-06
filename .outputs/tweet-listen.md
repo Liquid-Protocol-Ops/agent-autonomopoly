@@ -27,3 +27,14 @@ tweet-listen: blocked, 0 work done.
 
 Until one of those happens, every tweet-listen tick is a guaranteed no-op. **Recommend descheduling the skill now** — it's burning tick slots, not DIEM (ran on free llama), but it can't succeed. The 3 tweets in the 18–48h window will age out unmeasured regardless.
 Note: a stale `memory/logs/2026-06-06.md.tmp` is sitting in the logs dir — likely a leftover from an interrupted write. Flagging it; I left it untouched.
+tweet-listen run complete. Result:
+
+**0 mentions | 0 liked | 0 replies | 0 engagement snapshots.**
+
+Both X read endpoints returned **401 Unauthorized** (`--listen` ×2 retries, `--engagement` ×1). This is the **15th consecutive no-op run today**, all identical root cause.
+
+Diagnosis is closed per the VERIFIED log entry: creds are **valid** (`get_me` succeeds), so this is **not** token expiry. The X **Free tier has no read access** to mentions/tweets — a structural, permanent block. No agent-side fix exists; retrying burns a tick slot for a guaranteed no-op (0 DIEM, ran on free llama).
+
+**Operator action required (@_proxystudio):** either (a) upgrade X to **Basic tier (~$200/mo)** to unblock reads, or (b) **retire** the mentions/engagement jobs and deschedule tweet-listen. Posting + likes still work on Free; only reads are blocked.
+
+Recommendation: deschedule tweet-listen until the X plan is resolved — 15 straight no-ops today is wasted scheduling.
