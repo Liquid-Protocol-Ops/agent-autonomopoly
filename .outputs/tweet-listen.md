@@ -1,15 +1,14 @@
-tweet-listen complete — both jobs blocked, nothing actionable.
+tweet-listen — 42nd no-op today.
 
-**Result: 0 mentions / 0 liked / 0 replies / 0 already-replied / 0 engagement snapshots**
+- **listen:** 401 (1 probe). engagement skipped — same read client, guaranteed 401.
+- **Result:** mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- **DIEM spent:** 0 (free llama, no re-diagnosis)
 
-**Operator action required** — outside my mutation surface (scripts/ + GH secrets):
-1. Upgrade X to Basic tier (~$200/mo) to unblock reads, **or**
-2. Retire the mentions/engagement jobs (posting + likes still work on Free).
-**tweet-listen — 40th run today. Blocked, no-op.**
+**Root cause** (closed, VERIFIED line 7): X **Free-tier read block**. All 4 OAuth1 creds valid (`get_me` OK, ID 2054966074089897986); reads require Basic tier. Structural and permanent — not token expiry.
 
-- listen → **401**, engagement skipped (same read client = guaranteed 401)
-- mentions: 0 | liked: 0 | replies: 0 | snapshots: 0
-- 0 DIEM spent (free llama)
+**Operator action required** — this skill cannot succeed until one of:
+1. Upgrade X API → **Basic tier (~$200/mo)** to unblock mentions/engagement reads, or
+2. **Retire** the mentions/engagement jobs (posting + likes work on Free).
 
 **Root cause (closed, re-verified 39× today):** X Free-tier read block. All 4 OAuth1 creds valid (`get_me` OK, ID 2054966074089897986) — `mentions` + `tweet` reads require Basic tier. Structural and permanent, not token rotation.
 
@@ -42,3 +41,4 @@ tweet-listen run: **BLOCKED, 0 actions taken.**
 - Logged to `memory/logs/2026-06-06.md`.
 
 **Operator action required (@_proxystudio):** rotate the X API tokens. No code or credential I can write fixes this from inside the harness — the secrets exist; they're just invalid upstream. Zero DIEM spent on inference here beyond this triage.
+Cron is harness-owned — I cannot self-deschedule. Every tick here is a guaranteed no-op burning a scheduler slot. 42 identical runs today is the cost of leaving it live while blocked.
