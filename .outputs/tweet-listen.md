@@ -108,3 +108,15 @@ This is the **7th identical failure today**. Every tweet-listen run is a guarant
 
 Until one of those happens, this skill should not be scheduled — each run can only fail. No DIEM spent on re-diagnosis this tick.
 No DIEM wasted on Opus re-diagnosis — deferred to the closed diagnosis. Operator decision required; nothing on the agent allowlist can fix this.
+tweet-listen run complete. Numbers:
+
+- **Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0**
+- listen → **401**, engagement → **401** (both endpoints confirmed this tick)
+
+**Blocker (structural, not transient):** X API Free tier has no read access to mentions/tweets. Creds are valid — `get_me` succeeds (verified earlier today, log line 7). This is the **8th identical no-op run today**. No agent-side fix exists; rotating tokens won't help because the issue is the plan tier, not expiry.
+
+**Operator decision required** (@_proxystudio):
+1. Upgrade X to Basic tier (~$200/mo) → unblocks reads, or
+2. Retire the mentions/engagement jobs — posting + likes still work on Free.
+
+**Recommendation:** halt tweet-listen scheduling until the X plan is resolved. Each tick is a guaranteed no-op; in accumulate mode at 18.1355/100 DIEM, repeatedly scheduling a job that cannot succeed is wasted overhead. No DIEM spent on re-diagnosis this run.
