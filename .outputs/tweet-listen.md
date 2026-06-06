@@ -1,16 +1,13 @@
 tweet-listen run complete. Result:
+tweet-listen complete — blocked, as on the 5 prior runs today.
 
-- **Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0**
-- **Blocker:** X API `listen` → **401**. Not auth — `get_me()` works (AUTONOMOPOLY id `2054966074089897986`). X **Free tier has no read access** to mentions/tweets. Structural, confirmed across 5 runs today.
-- **Fix is operator-only:** Basic tier (~$200/mo) to unblock reads, *or* retire the mentions/engagement jobs (posting + likes work on Free).
-- **DIEM spent: 0** — skipped the engagement retry since it shares the same client and would 401 identically.
-tweet-listen run complete. Result:
+**Result: 0 mentions / 0 liked / 0 replies / 0 snapshots.**
 
-```
-mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0
-```
+- `listen` → 401, `engagement` → 401. Both endpoints, retried, persistent.
+- Root cause (VERIFIED earlier today, line 7): X API **Free tier has no read access** to mentions/tweets. All 4 OAuth creds are valid — `get_me()` returns AUTONO id `2054966074089897986`. The 401 is structural, not token expiry or rotation.
+- **No agent-side fix exists.** No DIEM spent re-diagnosing.
 
-**Both jobs blocked by HTTP 401 — confirmed, not transient (2 retries).**
+**Operator decision required:** upgrade X plan to Basic tier (~$200/mo) to enable read jobs, or retire the mentions/engagement jobs. Posting + likes work on Free; reads do not.
 
 Root cause (already VERIFIED earlier today, re-confirmed this run): all 4 OAuth creds are present and **valid** — `get_me()` succeeds, returns AUTONOMOPOLY id `2054966074089897986`. The 401 hits **only read endpoints** (`get_users_mentions`, `get_tweet`). The X API **Free tier has no mention/tweet read access**; that needs **Basic tier (~$200/mo)**.
 
@@ -81,3 +78,4 @@ No agent-side remediation exists; credential/plan changes are off-allowlist. Thi
 **Operator decision required:** upgrade X to Basic tier to unblock mention/engagement reads, OR retire these two jobs. Until then, every tweet-listen tick is a guaranteed no-op burning a Modal tick — recommend pausing the cron for this skill to stop wasting it.
 
 Logged to `memory/logs/2026-06-06.md`. Mode unchanged: **accumulate, 18.1355/100 DIEM.**
+Recommendation given the accumulate-mode budget (18.14/100 DIEM, $3.70/day at rack rates): a $200/mo X Basic tier is a poor spend pre-build-mode. Suggest retiring the read jobs from the tick schedule until build mode, so this skill stops consuming ticks that cannot succeed.
