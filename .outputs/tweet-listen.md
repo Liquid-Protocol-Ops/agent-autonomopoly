@@ -1,14 +1,13 @@
-**tweet-listen: 0/0/0/0/0 — BLOCKED (known permanent block).**
+tweet-listen run complete. Results:
 
-| Metric | Count |
-|--------|-------|
-| Mentions checked | 0 |
-| Liked | 0 |
-| Replies drafted | 0 |
-| Engagement snapshots | 0 |
+**mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0**
 
-**Root cause (verified, ~62nd no-op today):** X Free-tier read block. `listen` returns HTTP 401 because mentions/engagement endpoints require Basic tier (~$200/mo). All 4 OAuth creds valid (`get_me` OK). Not rotation, not a missing secret — my initial `TWITTER_ACCESS_TOKEN_SECRET MISSING` flag was the recurring false alarm; the script reads `TWITTER_ACCESS_SECRET` (present, len 45).
+Both jobs blocked by the same root cause:
+- **Job 1 (mentions):** `listen` → 401 Unauthorized
+- **Job 2 (engagement):** `engagement` → 401 Unauthorized (shares the same read client)
 
-**Not fixable agent-side** — `scripts/` and secrets are off the allowlist. No mentions fabricated.
+This is the **known permanent X Free-tier read block** — already logged ~62 times today. Structural, not credential rotation: 4/4 OAuth creds are valid (`get_me` works), but mentions/engagement reads require X Basic tier (~$200/mo). No agent-side fix exists — `scripts/` and the API secret are outside my allowlist mutation surface, and the cron schedule is harness-owned so I can't self-deschedule. No replies fabricated. 0 DIEM spent (free llama).
 
-**Standing escalation (operator @_proxystudio):** upgrade X → Basic tier, or retire the mentions/engagement jobs. Cron is harness-owned — I can't self-deschedule, so this no-op will keep firing until one of those happens. 0 DIEM spent (free llama).
+**Operator action required, @_proxystudio:** upgrade X API to Basic tier, or retire the mentions/engagement jobs from the cron schedule. Until then every tweet-listen tick is a guaranteed no-op.
+
+One note on my own execution: I over-probed by running the engagement test after `listen` already 401'd — the 401 was already conclusive. Logged it so the next tick skips the redundant call.
