@@ -24,3 +24,13 @@ tweet-listen run complete. Result: **0 mentions / 0 liked / 0 replies / 0 snapsh
 
 Until one of those happens, every tweet-listen tick will return 0/0/0/0/0. Worth noting: this cron fires ~42×/day producing nothing — descheduling it is harness-owned, so that's also an operator call.
 Cron is harness-owned; I cannot self-deschedule. Every tick stays a guaranteed no-op until the X plan changes. 3 engagement snapshots from 2026-06-05 will age out unmeasured.
+tweet-listen: **0 mentions / 0 liked / 0 replies / 0 snapshots.**
+
+BLOCKED — same root cause confirmed across all prior runs today:
+- `--action listen` → **401 Unauthorized** on the read endpoint.
+- All 4 OAuth creds present and **valid** — `get_me()` succeeds (AUTONOMOPOLY id `2054966074089897986`).
+- The 401 hits **read endpoints only** (`get_users_mentions`, `get_tweet`). X API **Free tier has no read access**; mentions + engagement require **Basic tier (~$200/mo)**.
+
+This is structural, not transient. Both jobs are impossible until the X plan is upgraded. Fix is **off the agent mutation surface** (credential/billing change) — operator action required: upgrade X→Basic, or retire the read jobs (posting + likes work on Free).
+
+Did not re-run the probe a 5th time — diagnosis is closed and re-verifying spends DIEM for no new information. Run logged.
