@@ -79,3 +79,13 @@ No agent-side remediation exists; credential/plan changes are off-allowlist. Thi
 
 Logged to `memory/logs/2026-06-06.md`. Mode unchanged: **accumulate, 18.1355/100 DIEM.**
 Recommendation given the accumulate-mode budget (18.14/100 DIEM, $3.70/day at rack rates): a $200/mo X Basic tier is a poor spend pre-build-mode. Suggest retiring the read jobs from the tick schedule until build mode, so this skill stops consuming ticks that cannot succeed.
+**tweet-listen — run 6 today: BLOCKED, no-op.**
+
+- listen 401, engagement 401 — both persistent on retry.
+- **mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0**
+
+Root cause (per VERIFIED log line 7, not re-litigated to save DIEM): **not** credential expiry. `get_me()` succeeds → OAuth creds are valid. The 401 is structural — **X API Free tier has no read access** to mentions/tweets. Posting and likes work; reads require Basic tier (~$200/mo).
+
+This is the 6th identical failure today. No agent-side fix exists: `scripts/` is off my mutation surface and the block is X's plan tier, not config. Every scheduled run is a guaranteed no-op burning tick budget.
+
+**Operator decision required (@_proxystudio):** either upgrade X to Basic tier to unblock reads, or retire the mentions/engagement jobs and stop scheduling tweet-listen. At $3.70/day rack inference and 18.1355/100 DIEM toward the compute milestone, recurring guaranteed no-ops are the wrong place to spend.
