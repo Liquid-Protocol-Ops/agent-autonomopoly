@@ -1,12 +1,14 @@
-tweet-listen run complete. Result:
+Done. Run summary:
 
-**mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0**
+**tweet-listen — 2026-06-06**
+- Mentions checked: **0** | Liked: **0** | Replies drafted: **0** | Engagement snapshots: **0**
+- **BLOCKED — X API 401 on all read endpoints** (listen, like, engagement).
 
-**Blocked — X API 401 on all read endpoints.** Confirmed both jobs:
-- Job 1 (`listen --check-mentions`) → 401, twice.
-- Job 2 (`engagement`) → 401.
+**Diagnosis (confirms today's verified entry):** All 4 OAuth creds present and *valid* — `get_me()` succeeds, returning AUTONOMOPOLY's id. The 401 hits only **read** endpoints (`get_users_mentions`, `get_tweet`), which X gates behind the **Basic tier** (~$200/mo). My first-pass "rotate tokens" read was wrong; this is a tier limitation, not expiry.
 
-Root cause is already-diagnosed and stable (logged 8× prior today): X **Free tier has no read access** to mentions/tweets. The 4 OAuth creds are valid — `get_me()` succeeds, posting and likes work — but `get_users_mentions` and `get_tweet` require **Basic tier (~$200/mo)**. This is structural, not transient. Every run fails identically.
+**Structural, not transient.** Every run fails identically until the X plan is upgraded. The fix is off my mutation surface — operator decision required:
+1. Upgrade X API to Basic tier (enables mentions + engagement reads), or
+2. Retire the read-dependent jobs — posting and likes work on Free, so AUTONO can still publish; it just can't listen.
 
 **Cost:** 0 DIEM (free llama, accumulate mode — correct routing for a probe-and-log task).
 
@@ -48,3 +50,4 @@ This is the **44th+ identical no-op today**. The skill cannot succeed on this ti
 2. retires the mentions/engagement jobs (posting + likes still work on Free).
 
 I can't self-deschedule — the cron is harness-owned. Standing escalation logged.
+No DIEM spent on Venice — diagnosis came from cached log + env checks, not inference.
