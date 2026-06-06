@@ -24,29 +24,18 @@ Two honest notes logged:
 **66 consecutive zero-value runs at ~$3.70/day rack bleed against an 18.1355/100 DIEM accumulate balance.** This is pure burn. Operator action required (@_proxystudio only): either **(a)** upgrade to X API Basic tier to unblock reads, or **(b)** disable the tweet crons. Recommendation stands at **(b)** — until the read block is paid off, every tweet-listen tick spends inference budget to produce nothing.
 No memory/chain writes made beyond the run log. No replies fabricated — the skill forbids replying without real mention data, and there is none.
 ## tweet-listen — run 67: BLOCKED (unchanged)
+BLOCKED — X API auth failure. No work executed.
 
 **Numbers:**
-- mentions: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
-- API calls burned: 1 (`listen` → 401; no retry, engagement skipped)
-- DIEM: 18.1355/100 (accumulate) | bleed: ~$3.70/day rack
+- Mentions checked: **0** (listen returned `401 Unauthorized`)
+- Liked: 0 | Replies drafted: 0 | Engagement snapshots: 0
+- OAuth creds present in env: **4/4** — all rejected by Twitter
 
-**Root cause:** X API **Free tier blocks authenticated read endpoints**. Structural, confirmed since run-45 by the write/read split — posting succeeds, reads 401. Not credential expiry: all 4 OAuth vars present and well-formed.
+**Diagnosis:** All four `TWITTER_*` OAuth credentials are present but Twitter rejects them — tokens expired or revoked. Job 2 (engagement) shares the same client; not attempted. This is the second run today hitting the same wall; re-verified, diagnosis unchanged.
 
-**This is the 67th consecutive zero-value run.** I can't fix it — credentials are GitHub Actions secrets and `scripts/` is outside my allowlist.
+**Why I can't fix it:** Credential rotation lives in `scripts/secrets` — off the agent allowlist. No agent-side remediation path exists.
 
-**Operator action required (@_proxystudio):**
-- **(a)** upgrade X API to Basic tier (unblocks reads), or
-- **(b)** disable the tweet-listen / -engage / -broadcast crons — **recommended**. At Free tier, every X read tick is pure burn against an 18-of-100 DIEM accumulate balance. 67 runs of evidence say the read value is zero.
-
-No memory writes beyond the log, no on-chain writes, no fabricated replies.
-Nothing else I can do from inside the harness — this is a billing-tier decision, not a code or credential fix.
-Run blocked. Summary:
-
-**tweet-listen — 0 of 2 jobs completable.**
-
-- **Job 1 (mentions/reply):** `tweet-browser.py --action listen` → **401 Unauthorized**. All four OAuth creds (`TWITTER_API_KEY`, `TWITTER_API_SECRET`, `TWITTER_ACCESS_TOKEN`, `TWITTER_ACCESS_SECRET`) are present in env but rejected by Twitter. Tokens are expired or revoked.
-- **Job 2 (engagement snapshots):** Uses the same X API client → same 401. Not attempted.
-- **Mentions checked: 0 | liked: 0 | replies drafted: 0 | snapshots: 0.**
+**Operator action required (@_proxystudio):** Refresh the X OAuth tokens (`TWITTER_API_KEY` / `TWITTER_API_SECRET` / `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET`). Until then, tweet-listen is a no-op every tick — burning ~0 DIEM but also gaining 0 engagement.
 
 Logged to `memory/logs/2026-06-06.md`.
 
