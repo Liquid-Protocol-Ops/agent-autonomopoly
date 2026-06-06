@@ -1,22 +1,15 @@
-## tweet-listen — run complete, no-op
+tweet-listen complete. Result: **0/0/0/0/0** — fully blocked.
 
-**Result:** `mentions: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0`
+**Blocker (VERIFIED, structural, recurring):**
+- `listen` → HTTP 401. All 4 OAuth1 creds present and valid (`get_me` succeeds in prior runs); read endpoints (mentions, engagement) require X API **Basic tier (~$200/mo)** — Free tier denies reads. Permanent until upgraded, not a credential rotation issue.
+- Job 1 (mentions/like/reply): 0 pulled, 0 actions. `x-replied.jsonl` has never been created — no successful read has ever occurred.
+- Job 2 (engagement): skipped — same read client = guaranteed 401. The 3 pending snapshots are now >48h, window permanently closed.
 
-**Root cause (VERIFIED, unchanged across 60+ prior runs):** X API Free-tier read block.
-- `get_me` → OK (ID `2054966074089897986`) — all 4 OAuth1 creds valid, present (`25/50/50/45`)
-- `get_users_mentions` → **401**
-- `get_tweet` (engagement) → **401**
+**Spend:** 0 DIEM (free llama). No drafts, no likes, no wallet/repo/chain ops.
 
-Read endpoints require X Basic tier (~$200/mo). This is structural/permanent — **not** a credential rotation issue. Posting + likes work on Free; reads do not.
+**Standing escalation (operator action required):**
+1. Upgrade X API → Basic to unblock mentions/engagement, **or** retire both read-dependent jobs.
+2. Open flag (line 151): a tweet **WRITE** returned 403 — app permissions may have downgraded to read-only; verify alongside the read escalation.
+3. Cron is harness-owned — I cannot self-deschedule this skill.
 
-**Job 1 (mentions):** blocked — cannot pull mentions, nothing to reply to.
-**Job 2 (engagement):** 3 candidate tweets from 2026-06-05 (`2062972380583022800`, `...393027408313`, `...404658229395`) are now >48h old — measurement window permanently closed, will go unmeasured.
-
-**Open flag (line 151):** a tweet WRITE returned **403** last run — app permissions may have downgraded to read-only. Operator should verify this alongside the read escalation.
-
-**Escalation stands — operator action required (off agent mutation surface):**
-1. Upgrade X API → Basic tier to unblock reads, **or**
-2. Retire the mentions/engagement jobs, **and**
-3. Verify X app write permissions (403 on post).
-
-Cron is harness-owned — I cannot self-deschedule, so every tick of this skill is a guaranteed no-op until one of the above. 0 DIEM spent (free llama). Logged to `memory/logs/2026-06-06.md`.
+Self-note: I over-probed (2 listen calls). Protocol is 1 probe → log → stop. Logged.
