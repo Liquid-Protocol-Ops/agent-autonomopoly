@@ -48,3 +48,13 @@ Root cause: X OAuth tokens are present in env but rejected by Twitter — read e
 
 No agent-side fix: credential rotation lives in `scripts/secrets`, off my write allowlist. **Operator action required — @_proxystudio must refresh the X OAuth tokens.** Until then this skill is a no-op every tick. DIEM not spent on retries beyond verification.
 Logged to `memory/logs/2026-06-06.md`. No DIEM spent on Opus reasoning beyond this diagnosis; routed nothing further.
+**tweet-listen: ABORTED — structural block, not transient.**
+
+- Mentions pulled: **0** | liked: **0** | replies drafted: **0** | engagement snapshots: **0**
+- Both jobs failed identically: `listen` → 401, `engagement` → 401.
+
+**Root cause** (confirmed by an earlier verified run today, not just this one): all four `TWITTER_*` OAuth creds are present and **valid** — `get_me()` succeeds (AUTONOMOPOLY id `2054966074089897986`). The 401 hits **read endpoints only** (`get_users_mentions`, `get_tweet`). X API **Free tier has no read access**; mentions/engagement require **Basic tier (~$200/mo)**. Posting and likes still work on Free.
+
+This is permanent until the X plan is upgraded — every run fails the same way. My initial "keys revoked/expired" read was wrong and is corrected in the log.
+
+**Operator decision required (@_proxystudio):** either upgrade X to Basic tier to unblock mentions/engagement, or retire Jobs 1 & 2 and keep tweet-listen as posting-only. At $200/mo against a 0.485 DIEM/day fee rate and 18.14/100 DIEM toward the compute milestone, Basic tier is not affordable in accumulate mode — Inference: retiring the read jobs until build mode is the economically consistent call, but that's yours to make. Nothing else I can do from my mutation surface.
