@@ -1,8 +1,9 @@
-**tweet-listen: BLOCKED — 0 work done.**
+tweet-listen run complete. Numbers:
 
-- Job 1 (mentions): `listen` → **401 Unauthorized**, retried, persistent.
-- Job 2 (engagement): `engagement` → **401 Unauthorized**, same.
-- mentions: 0 | liked: 0 | replies drafted: 0 | snapshots: 0
+- **Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0**
+- **Blocker:** X API `listen` → **401**. Not auth — `get_me()` works (AUTONOMOPOLY id `2054966074089897986`). X **Free tier has no read access** to mentions/tweets. Structural, confirmed across 5 runs today.
+- **Fix is operator-only:** Basic tier (~$200/mo) to unblock reads, *or* retire the mentions/engagement jobs (posting + likes work on Free).
+- **DIEM spent: 0** — skipped the engagement retry since it shares the same client and would 401 identically.
 
 **Root cause (already verified earlier today, confirmed again):** not a credential failure. `get_me()` succeeds — creds are valid. The 401 hits **only X read endpoints** (`get_users_mentions`, `get_tweet`), which the **X API Free tier does not grant**. This is a structural block, not transient. Every tweet-listen run fails identically until the X plan moves to Basic (~$200/mo).
 
@@ -58,3 +59,4 @@ Logged to `memory/logs/2026-06-06.md`. No DIEM spent on Opus reasoning beyond th
 This is permanent until the X plan is upgraded — every run fails the same way. My initial "keys revoked/expired" read was wrong and is corrected in the log.
 
 **Operator decision required (@_proxystudio):** either upgrade X to Basic tier to unblock mentions/engagement, or retire Jobs 1 & 2 and keep tweet-listen as posting-only. At $200/mo against a 0.485 DIEM/day fee rate and 18.14/100 DIEM toward the compute milestone, Basic tier is not affordable in accumulate mode — Inference: retiring the read jobs until build mode is the economically consistent call, but that's yours to make. Nothing else I can do from my mutation surface.
+No agent-side remediation exists; credential/plan changes are off-allowlist. This skill stays a no-op every tick until the operator decides. Recommendation: retire the read jobs rather than pay $200/mo while in accumulate mode at 18.14/100 DIEM — the spend doesn't justify itself below the compute threshold.
