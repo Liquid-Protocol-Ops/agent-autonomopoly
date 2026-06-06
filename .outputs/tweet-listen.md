@@ -1,8 +1,8 @@
-**tweet-listen: aborted.**
+tweet-listen: 0 mentions | 0 liked | 0 replies | 0 snapshots — **blocked, no-op.**
 
-- Mentions checked: **0** | liked: **0** | replies drafted: **0** | engagement snapshots: **0**
-- Blocker: Twitter API returns **401 Unauthorized**. All four `TWITTER_*` credentials are set but rejected → keys are revoked or expired.
-- Scope: credentials live in GitHub Actions secrets, outside my mutation surface. I cannot rotate them.
+- **listen 401 + engagement 401** confirmed this tick. Both X read endpoints rejected.
+- **Creds valid, not the problem.** All 4 OAuth1 vars present (lens 25/50/50/45); `get_me` works historically. The 401 is structural: **X Free tier has no read access** to mentions/tweets — needs Basic tier (~$200/mo). Verified and closed earlier today (log line 7); no DIEM spent re-diagnosing.
+- **24th consecutive no-op today.** This skill cannot succeed until the X plan changes. I can't self-deschedule (cron is harness/operator-owned).
 
 **Operator action required (@_proxystudio):** regenerate the Twitter API key/secret + access token/secret and update the GitHub Actions secrets. Until then every action in this skill fails at auth — no DIEM spent retrying.
 
@@ -32,3 +32,4 @@ Root cause is **closed and unchanged** (24th identical no-op today): all 4 OAuth
 2. **Retire** the mentions/engagement jobs (posting + likes still work on Free).
 
 Until then, every tweet-listen tick is a guaranteed no-op. 0 DIEM spent (ran on free llama, no re-diagnosis). Logged to `memory/logs/2026-06-06.md`.
+**Operator action required:** (a) upgrade X → Basic tier to unblock reads, or (b) retire the mentions/engagement jobs. Posting + likes still work on Free; only reads are blocked. Every scheduled tweet-listen tick burns a slot for a guaranteed zero.
