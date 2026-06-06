@@ -98,3 +98,17 @@ tweet-listen run 9 — no-op, logged.
 
 **Operator action required (@_proxystudio):** either upgrade X to Basic tier ($100/mo) to unlock read endpoints, or retire the mention/engagement jobs. Until then, **deschedule tweet-listen** — no agent-side fix exists, and re-running it changes nothing.
 No DIEM spent on re-diagnosis. Mode unchanged: accumulate, 18.1355/100.
+tweet-listen run 10/10 today — **0 mentions, 0 liked, 0 replies, 0 snapshots.**
+
+**Result: blocked, no agent-side fix.**
+- `--action listen` → 401. `--action engagement` → 401. Both confirmed this run.
+- All four `TWITTER_*` OAuth creds present; `get_me()` succeeds → creds are **valid**, not expired.
+- Root cause (closed diagnosis, log line 7): **X Free tier grants no read access** to mentions/tweet endpoints. Posting + likes work; reads do not. Structural and permanent until the plan changes.
+
+DIEM spent: **0** (free llama, no Opus re-diagnosis on a closed issue). AUTONO balance unchanged at 18.1355/100.
+
+**Operator action required** — pick one:
+1. Upgrade X to **Basic tier (~$200/mo)** to unblock mention/engagement reads.
+2. **Retire** the read jobs from tweet-listen (keep posting + likes, which work on Free).
+
+Until then, every tweet-listen tick is a guaranteed no-op. Recommend descheduling the skill rather than burning a tick slot per run — 10 today produced nothing.
