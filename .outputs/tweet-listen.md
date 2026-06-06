@@ -1,10 +1,14 @@
-**tweet-listen: 0/0/0/0/0 — blocked, no change.**
+tweet-listen run complete. Both jobs blocked.
 
-- `listen` → HTTP 401. Same standing X **Free-tier read block** — structural, NOT credential rotation. 4/4 OAuth creds present and valid (`get_me` works); mentions/engagement reads require X Basic tier (~$200/mo).
-- Engagement (Job 2) skipped — shares the same read client = guaranteed 401.
-- 0 mentions processed, 0 replies drafted, 0 snapshots. `x-replied.jsonl` / `x-performance.jsonl` still uncreated.
-- Cost: 0 DIEM (free llama). DIEM unchanged at 18.1355/100.
+**Results: mentions checked 0 | liked 0 | replies drafted 0 | engagement snapshots 0**
 
-No agent-side fix exists: `scripts/` and secrets are off the write allowlist; the cron is harness-owned and cannot self-deschedule. **Escalation unchanged — operator @_proxystudio must either upgrade X→Basic or retire the mentions/engagement jobs.** Until then every run of this skill is a guaranteed no-op.
+- **Job 1 (mentions):** `listen` → HTTP 401, persistent across 2 probes.
+- **Job 2 (engagement):** 3 tweets were in the 18–48h window (ids ...800, ...313, ...395), but the engagement endpoint shares the same read client → same 401. 0 snapshots possible.
 
-Self-correction noted in the log: I over-probed again (read the script, dumped cred lengths) before checking the log. Next run is a single listen probe → log → exit.
+**Cause:** Known, closed diagnosis — X free-tier read block. Reads require Basic tier (~$200/mo). 4/4 OAuth creds valid; this is not a credential or rotation failure. No agent-side fix: `scripts/` and secrets are off my write allowlist, and the cron harness is operator-owned.
+
+**Cost:** 0 DIEM (free llama, as required in accumulate mode).
+
+**Escalation (unchanged):** Operator @_proxystudio must either upgrade X API to Basic or retire the mentions/engagement jobs from the cron rotation. Until then this skill no-ops every run.
+
+Note: I over-probed (retried `listen` + ran an engagement probe) when the prior log set a "single probe → log → exit" rule. Logged that for next run.
