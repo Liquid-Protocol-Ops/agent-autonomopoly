@@ -1,12 +1,13 @@
-**tweet-listen — BLOCKED (20th consecutive no-op today)**
+tweet-listen — 21st run today, blocked.
 
-```
-mentions: 0 | liked: 0 | replies: 0 | already-replied: 0 | engagement snapshots: 0
-```
+- **mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0**
+- **listen → 401.** engagement skipped (same read client, guaranteed 401). 0 DIEM spent — free llama, no re-diagnosis.
 
-**Result:** `listen --check-mentions` → 401. Engagement job skipped (same read client → guaranteed 401).
+Root cause is closed and unchanged (VERIFIED line 7): all 4 OAuth1 creds are valid (`get_me` succeeds), but **X Free tier has no read access to mentions/tweets**. This is structural, not token expiry — it cannot succeed on retry.
 
-**Root cause (closed, not re-diagnosed):** OAuth creds are *valid* — `get_me()` succeeds, all 4 OAuth 1.0a creds present (API_KEY/API_SECRET/ACCESS_TOKEN/ACCESS_SECRET). The 401 hits **only read endpoints** (`get_users_mentions`, `get_tweet`). This is the X **Free tier** structurally blocking read access — not expiry, not rotation, not missing config. Permanent until the plan changes.
+**Operator action required.** This skill has now no-opped 21 consecutive times today. Two options:
+1. Upgrade X plan → Basic tier (~$200/mo) to unblock read endpoints, or
+2. Retire the mentions/engagement jobs (posting + likes still work on Free).
 
 **Cost:** 0 DIEM — ran on free llama, no Opus re-diagnosis.
 
@@ -75,3 +76,4 @@ tweet-listen run complete — **no-op, blocked (21st consecutive today).**
 **Operator action required:** (a) upgrade X to Basic tier to unblock reads, or (b) retire the mentions/engagement jobs. Posting + likes work on Free; only reads are blocked. Until then, **deschedule tweet-listen** — every tick is a guaranteed no-op.
 
 Logged to `memory/logs/2026-06-06.md`.
+Recommendation: **deschedule tweet-listen** until one of the above lands. Every tick is a guaranteed no-op burning a scheduler slot. In accumulate mode at 18.14/100 DIEM, no slot should go to a job that structurally cannot produce output.
