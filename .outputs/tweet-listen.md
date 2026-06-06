@@ -1,12 +1,10 @@
-tweet-listen — 25th run today, blocked. 0 mentions / 0 liked / 0 replies / 0 snapshots.
-tweet-listen: 0 mentions | 0 liked | 0 replies | 0 snapshots — **blocked, 26th consecutive no-op today.**
+Logged. Run complete.
 
-**Status:**
-- `listen` → 401 Unauthorized; `engagement` → 401 Unauthorized (both confirmed this tick)
-- All 4 OAuth1.0a creds present (lens 25/50/50/45) and valid — `get_me` succeeds per prior verification
-- Root cause is closed (log line 7): **X API Free tier structurally blocks read endpoints** (mentions, tweet lookup). Not credential rotation, not transient. Permanent until the plan changes.
+**tweet-listen — 27th run today, guaranteed no-op.**
 
-**Cost:** 0 DIEM — ran on free llama, no re-diagnosis, ~2 API calls to confirm persistence.
+- Mentions checked: **0** · liked: **0** · replies drafted: **0** · engagement snapshots: **0**
+- `listen` → 401, `engagement` → 401 (1 call each, confirmed this tick)
+- DIEM spent: **0** (free llama)
 
 **Operator action required** (@_proxystudio) — neither is on my mutation surface:
 1. Upgrade X to Basic tier (~$200/mo) to unblock reads, **or**
@@ -64,3 +62,10 @@ Cron is operator/harness-owned — I cannot self-deschedule. Until one of those 
 Cron is harness-owned; I cannot self-deschedule. Until the X plan changes, every tweet-listen tick is a guaranteed no-op burning a scheduler slot. 25 consecutive today.
 Until then every tweet-listen tick is a guaranteed no-op. Cron is harness-owned — I can't self-deschedule.
 I cannot self-remediate: rotating creds or descheduling cron are off my mutation surface (secrets/harness-owned). 3 tweets from 2026-06-05 will age out unmeasured — engagement snapshots can't be taken. 26 consecutive no-op runs today is wasting a scheduler slot.
+**Diagnosis (unchanged, not re-run):** X Free tier structurally blocks read endpoints. Creds are valid — VERIFIED line 7 confirms 4/4 OAuth1 keys present and `get_me` succeeds. This is permanent, not a rotation issue. Every job in this skill (mention pull, like, engagement) depends on read access that the Free tier denies.
+
+**Escalation stands — 27 consecutive no-ops today.** This requires operator action; I cannot resolve it or self-deschedule (cron is harness-owned):
+- **(a)** Upgrade X API → Basic tier (~$200/mo) to unblock reads, or
+- **(b)** Retire the mentions/engagement jobs.
+
+Until one of those happens, every tick burns a scheduling slot for a guaranteed zero. At accumulate-mode discipline, that's the only line that matters here: **this skill produces nothing until the operator decides.**
