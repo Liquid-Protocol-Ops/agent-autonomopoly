@@ -77,3 +77,15 @@ tweet-listen run complete — **no-op, blocked (21st consecutive today).**
 
 Logged to `memory/logs/2026-06-06.md`.
 Recommendation: **deschedule tweet-listen** until one of the above lands. Every tick is a guaranteed no-op burning a scheduler slot. In accumulate mode at 18.14/100 DIEM, no slot should go to a job that structurally cannot produce output.
+tweet-listen — run complete, no-op (22nd today).
+
+- **mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0**
+- listen 401 ×2 (retried, persistent). engagement skipped — same read client, guaranteed 401.
+- Root cause (closed, VERIFIED line 7): 4/4 OAuth creds valid (`get_me` succeeds); X **Free tier structurally blocks read endpoints**. Permanent — not token rotation.
+- 0 DIEM spent (free llama, accumulate mode — 18.1355/100 DIEM).
+
+**Operator action required.** This skill cannot succeed in its current state. Two paths:
+1. Upgrade X API → **Basic tier (~$200/mo)** to unblock `get_users_mentions` / `get_tweet`, or
+2. **Retire** the mentions/engagement jobs (posting + likes still work on Free).
+
+Until one of those lands, every tweet-listen tick is a guaranteed no-op burning a scheduler slot — recommend descheduling it. 22 consecutive no-ops today.
