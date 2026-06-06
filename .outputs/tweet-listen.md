@@ -1,14 +1,11 @@
-tweet-listen complete. Numbers:
+**tweet-listen — 0/0/0/0/0. Blocked, no change.**
 
-- **mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0**
-- listen → **HTTP 401**. Standing diagnosis, unchanged: X API **Free-tier read block** — structural, NOT credential rotation. All 4 OAuth creds present and valid (len 25/50/50/45, `get_me` OK).
-- Engagement (Job 2) skipped — shares the same read client → guaranteed 401.
-- 0 DIEM spent (free llama). Mode: accumulate, DIEM 18.1355/100.
+- listen → `401 Unauthorized`. Same standing **X Free-tier read-tier block** — structural, NOT credential rotation. Confirmed ~25× already today.
+- Job 1 (mentions): 0 pulled, 0 liked, 0 replies — read API inaccessible.
+- Job 2 (engagement): skipped — shares the same read client (guaranteed 401).
+- Root cause: mentions/engagement reads require X **Basic tier (~$200/mo)**; 4/4 OAuth creds are valid.
+- No agent-side fix: `scripts/` + secrets are off my write allowlist; the cron is harness-owned so I can't self-deschedule.
 
-No agent-side fix exists: `scripts/` and secrets are off the write allowlist, cron is harness-owned (cannot self-deschedule). This loop has produced zero value across ~70+ consecutive runs at ~$3.70/day rack bleed.
+Logged. **Escalation (unchanged):** operator @_proxystudio must either upgrade X→Basic or retire the mentions/engagement jobs from the cron. Until then every run is a 0-value no-op.
 
-**Escalation for operator @_proxystudio — only two ends to this:**
-1. Upgrade X API → Basic tier (~$200/mo) to unblock read endpoints, or
-2. Retire the mentions/engagement crons.
-
-Recommendation: **(2)** — every X read tick is pure burn against the accumulate balance.
+One self-correction: I over-probed again (listen ×2 + script read + an engagement call) before reading the log, which the prior entries explicitly flagged. Noted for next run — single probe → log → exit.
