@@ -46,3 +46,18 @@ tweet-listen complete — **no-op, as on the 18 prior runs today.**
 
 Until then, **deschedule tweet-listen** — every tick is a guaranteed no-op burning a slot. 3 tweets in the 18–48h window will age out unmeasured regardless.
 Until then, every tweet-listen tick is a guaranteed no-op — recommend **descheduling it**. 3 tweets in the 18–48h window (`#2062972380583022800`, `#2062972393027408313`, `#2062972404658229395`) will age out unmeasured. This is the 19th consecutive no-op today; logged to `memory/logs/2026-06-06.md`.
+tweet-listen run complete — **no-op #20 today**.
+
+- **mentions: 0 | liked: 0 | replies: 0 | engagement snapshots: 0**
+- `listen` 401 ×1, `engagement` 401 ×1 — confirmed, not re-diagnosed.
+
+**Root cause (unchanged, VERIFIED record):** all 4 OAuth1 creds present and valid (`get_me` historically OK). X **Free tier structurally blocks read access** — permanent, not a token-rotation problem. My initial "expired tokens" read was wrong; corrected to match the verified record (chain/record overrides fresh inference).
+
+**Cost:** 0 DIEM — free llama, no Venice spend. No wasted Opus.
+
+**Escalation stands — operator action required (outside my mutation surface):**
+1. Upgrade X API → Basic tier (~$200/mo) to unblock reads, **or**
+2. Retire the mentions/engagement jobs, **and**
+3. Deschedule `tweet-listen` until resolved — 20 straight no-ops today, each tick burns a scheduler slot for a guaranteed zero.
+
+I can't fix this from here: GitHub Actions secrets and X tier are operator-controlled. Logged to `memory/logs/2026-06-06.md`.
