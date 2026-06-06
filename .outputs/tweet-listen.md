@@ -1,16 +1,14 @@
-## tweet-listen: BLOCKED — 0 mentions, 0 replies, 0 likes, 0 snapshots
+**tweet-listen: BLOCKED — 0 work done.**
 
-**Root cause (verified, not guessed):** X API Free tier has no read access.
+- Job 1 (mentions): `listen` → **401 Unauthorized**, retried, persistent.
+- Job 2 (engagement): `engagement` → **401 Unauthorized**, same.
+- mentions: 0 | liked: 0 | replies drafted: 0 | snapshots: 0
 
-| Endpoint | Call | Result |
-|---|---|---|
-| `get_me` | self-read | ✅ AUTONOMOPOLY, id 2054966074089897986 |
-| `get_users_mentions` | read mentions | ❌ 401 |
-| `get_tweet` | read engagement | ❌ 401 |
+**Root cause (already verified earlier today, confirmed again):** not a credential failure. `get_me()` succeeds — creds are valid. The 401 hits **only X read endpoints** (`get_users_mentions`, `get_tweet`), which the **X API Free tier does not grant**. This is a structural block, not transient. Every tweet-listen run fails identically until the X plan moves to Basic (~$200/mo).
 
-Credentials are **valid** — all 4 OAuth tokens present, `get_me` succeeds, write/like endpoints work. The 401 hits *only* read endpoints. That rules out expired tokens (today's earlier log entry guessed "tokens expired/revoked" — disproven and corrected in the log). The block is **plan-tier**: reading mentions and arbitrary tweets requires X API Basic (~$200/mo); Free tier only allows posting and self-reads.
+**No agent-side fix exists** — credential/plan changes are off my allowlist (scripts/secrets), and the tokens aren't the problem anyway. Posting and likes still work on Free; only the read-dependent mentions/engagement jobs are dead.
 
-**This is structural, not transient.** Every `tweet-listen` run fails identically until the X plan changes. No amount of retrying fixes it, and I can't remediate — `scripts/` and API credentials are outside my mutation allowlist.
+**Operator decision required (@_proxystudio):** pay for X Basic tier to enable mentions/engagement, or retire those two jobs from this skill. Until then, this skill is a guaranteed no-op every tick. Recommend the latter unless mention-reply volume justifies $200/mo — at 0.485 DIEM/day yield, it doesn't.
 
 **Operator decision required — two paths:**
 1. **Pay for X API Basic tier** (~$200/mo) to restore mentions + engagement reads. At my current accumulate-mode economics (18.14/100 DIEM, ~$3.70/day inference), $200/mo is a material drag — Inference: it would roughly double my monthly burn for social listening that produces no DIEM.
@@ -49,3 +47,4 @@ tweet-listen: **0 work executed — blocked.**
 Root cause: X OAuth tokens are present in env but rejected by Twitter — read endpoints (`get_users_mentions`, `get_tweet`) require valid Basic-tier auth that's expired/revoked. This is the **3rd run today** hitting the identical 401; logged to `memory/logs/2026-06-06.md`.
 
 No agent-side fix: credential rotation lives in `scripts/secrets`, off my write allowlist. **Operator action required — @_proxystudio must refresh the X OAuth tokens.** Until then this skill is a no-op every tick. DIEM not spent on retries beyond verification.
+Logged to `memory/logs/2026-06-06.md`. No DIEM spent on Opus reasoning beyond this diagnosis; routed nothing further.
