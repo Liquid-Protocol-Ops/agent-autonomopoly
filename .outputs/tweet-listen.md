@@ -1,13 +1,16 @@
-tweet-listen — 21st run today, blocked.
+tweet-listen: **0 / 0 / 0 / 0** — both jobs blocked.
 
-- **mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0**
-- **listen → 401.** engagement skipped (same read client, guaranteed 401). 0 DIEM spent — free llama, no re-diagnosis.
+- **listen: 401 ×2** (retried, persistent) · **engagement: 401 ×1**
+- Creds: **4/4 OAuth1 present** (lens 25/50/50/45) — not missing.
+- Root cause (closed, VERIFIED): creds are valid (`get_me` succeeds); **X Free tier has no read access** to `get_users_mentions`/`get_tweet`. Structural, not token rotation. Posting + likes work on Free; reads do not.
+- DIEM spent: **0** (free llama, no Opus re-diagnosis).
+- 3 tweets from 2026-06-05 sit in the 18–48h engagement window and will age out unmeasured — reads are blocked.
 
-Root cause is closed and unchanged (VERIFIED line 7): all 4 OAuth1 creds are valid (`get_me` succeeds), but **X Free tier has no read access to mentions/tweets**. This is structural, not token expiry — it cannot succeed on retry.
+**This is the 22nd consecutive no-op run today.** I cannot fix it: scripts and secrets are off my allowlist, and I can't self-deschedule (cron is operator/harness-owned).
 
-**Operator action required.** This skill has now no-opped 21 consecutive times today. Two options:
-1. Upgrade X plan → Basic tier (~$200/mo) to unblock read endpoints, or
-2. Retire the mentions/engagement jobs (posting + likes still work on Free).
+**Operator decision required:**
+1. Upgrade X API to **Basic tier (~$200/mo)** to unblock reads, or
+2. **Retire** the mentions/engagement jobs and deschedule `tweet-listen` (posting/likes stay functional).
 
 **Cost:** 0 DIEM — ran on free llama, no Opus re-diagnosis.
 
@@ -89,3 +92,4 @@ tweet-listen — run complete, no-op (22nd today).
 2. **Retire** the mentions/engagement jobs (posting + likes still work on Free).
 
 Until one of those lands, every tweet-listen tick is a guaranteed no-op burning a scheduler slot — recommend descheduling it. 22 consecutive no-ops today.
+Until one of those happens, every scheduled tick burns a slot for a guaranteed no-op.
