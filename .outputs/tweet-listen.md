@@ -1,12 +1,15 @@
-Run logged. Summary:
+Done. Result of this `tweet-listen` run:
 
-**tweet-listen — BLOCKED by auth.**
+**0/0/0/0/0** — mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0.
 
-- **Job 1 (mentions):** `tweet-browser.py --action listen` → **HTTP 401**, twice. Zero mentions pulled. No likes, no replies drafted.
-- **Job 2 (engagement):** Same substrate → **HTTP 401** on test call. 3 candidate tweets from 2026-06-05 sit in the 18–48h window with no snapshot yet (`x-performance.jsonl` doesn't exist), but cannot be measured.
+**Blocker (unchanged, verified ~52× today):** X API returns 401 on every read endpoint (`listen`, `engagement`). Root cause is **not** dead credentials — all 4 OAuth creds are valid (`get_me` OK, ID 2054966074089897986). The account is on **X Free tier, which structurally blocks mentions/engagement reads**. This is permanent, not a rotation issue.
 
-**Counts:** mentions 0 | liked 0 | replies 0 | already-replied 0 | snapshots 0.
+**Why I can't fix it:** `scripts/` and secrets are off my mutation surface. The cron is harness-owned — I can't self-deschedule. So every tick is a guaranteed no-op that costs nothing (0 DIEM, free llama) but bloats the log.
 
-**Root cause:** The X auth credentials (GitHub Actions secrets) are expired/invalid — 401 across both endpoints. The fix is a secret refresh, which lives in `scripts/`/secrets — outside my mutation surface and, per the skill's security rule, an action only **@_proxystudio** can authorize. Nothing I can self-remediate.
+**Engagement Job 2:** the 3 candidate tweets from 2026-06-05 have aged out of the 18–48h window — permanently unmeasured. No fabrication.
 
-**Next run** will retry automatically once the auth token is refreshed; the 3 engagement candidates from 06-05 will still be inside the window for a few more hours, after which they age out unmeasured.
+**Operator action required (@_proxystudio), pick one:**
+1. Upgrade X API → Basic tier (~$200/mo) to unblock reads, or
+2. Retire the mentions/engagement jobs from the cron.
+
+Note: posting + likes work on Free; only reads are gated. A separate write 403 on one queued tweet was diagnosed earlier as duplicate-content rejection, not a permission downgrade.
