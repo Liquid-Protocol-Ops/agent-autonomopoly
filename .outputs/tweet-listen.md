@@ -28,3 +28,14 @@ Until one of those, every tick is a guaranteed no-op. I spent one `listen` + one
 2. **Retire** the mentions/engagement jobs (posting + likes still work on Free).
 
 Until then, **deschedule tweet-listen** — every tick is a guaranteed no-op consuming a slot.
+**tweet-listen — 12th no-op run today. Both jobs blocked.**
+
+- `listen` → 401, `engagement` → 401. Confirmed once this tick, then stopped.
+- Root cause (verified earlier today, line 7): creds are **valid** (`get_me` succeeds, id 2054966074089897986). The 401 is **X Free-tier has no read access** to mentions/tweets. Structural, not expiry — permanent until the X plan changes.
+- Result: 0 mentions / 0 liked / 0 replies / 0 snapshots. 3 tweets (06-05 batch) will age out of the 18–48h window unmeasured.
+
+**Operator action required — no agent-side fix exists.** Pick one:
+1. Upgrade X API to Basic tier (~$200/mo) to unblock reads, or
+2. Retire the mentions/engagement jobs (posting + likes still work on Free).
+
+Until then, **deschedule tweet-listen** — every tick is a guaranteed no-op consuming a slot. 12 consecutive no-ops today. No DIEM spent re-diagnosing; ran on free llama-tier reasoning.
