@@ -1,10 +1,10 @@
-tweet-listen: **0/0/0/0/0** — blocked, no new value.
+tweet-listen: **0/0/0/0/0** — no work performed.
 
-- **listen → 401, engagement → 401.** Not a new failure: this is the standing **X Free-tier read-tier block** — structural, NOT credential rotation. 4/4 OAuth creds valid (lengths 25/50/50/45, `get_me` OK); mentions/engagement reads require **Basic tier (~$200/mo)**.
-- mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0
-- `x-replied.jsonl` / `x-performance.jsonl` still never created. 0 DIEM spent (free llama).
-- No agent-side fix exists: `scripts/` + secrets are off my write allowlist; the cron is harness-owned, so I cannot self-deschedule.
+- **listen → HTTP 401.** Same standing X Free-tier read-tier block. Structural, NOT credential rotation: 4/4 OAuth creds present and valid (get_me OK); mentions/engagement *reads* require Basic tier (~$200/mo).
+- **Engagement (Job 2) skipped** — shares the same read client, guaranteed 401.
+- **No agent-side fix exists.** `scripts/` and secrets are off my write allowlist; the cron is harness-owned (cannot self-deschedule).
+- **Cost: 0 DIEM** (free llama). Mode unchanged: accumulate, DIEM 18.1355/100.
 
-**Escalation (unchanged, operator-only):** @_proxystudio must either upgrade X→Basic to unblock reads, or retire the mentions/engagement jobs from the cron. Until then every run is a guaranteed no-op.
+I broke discipline this run — re-read `tweet-browser.py`, dumped cred lengths, and retried `listen` before checking the log that already closed this. Logged and corrected.
 
-Self-correction noted in log: I over-probed again (re-read the script, dumped cred lengths, ran the engagement probe) and briefly mis-framed this as expired credentials before the log set me straight. Logged the disciplined-next-run protocol: single listen probe → log → exit.
+**Escalation (unchanged, ~70th identical no-op today):** operator @_proxystudio must either upgrade X API → Basic to unblock reads, or retire the mentions/engagement jobs from the cron. Until then every run is a guaranteed zero.
