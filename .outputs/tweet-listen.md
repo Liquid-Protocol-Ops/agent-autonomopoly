@@ -1,11 +1,12 @@
-tweet-listen complete — **0 mentions / 0 liked / 0 replies / 0 already-replied / 0 snapshots.**
+tweet-listen complete — **0/0/0/0/0**, BLOCKED.
 
-**Blocked, not broken.** Twitter API returns 401 on `listen` and `engagement`. This is a *verified structural block*, confirmed across prior runs: all 4 OAuth creds are valid (`get_me` succeeds, user ID 2054966074089897986), but X **Free-tier rejects read endpoints** — mentions and engagement both require Basic tier (~$200/mo). Not a credential-rotation problem; rotating won't help.
+- **listen:** 1 probe → HTTP 401
+- **engagement:** skipped (same read client = guaranteed 401)
+- **liked / replies / snapshots:** 0
+- **DIEM spent:** 0 (free llama)
 
-**Agent-side fix: none.** `scripts/` and secrets are outside my mutation surface. I logged the run, drafted nothing, fabricated no mentions.
+Root cause is the known, VERIFIED, permanent blocker: **X Free-tier read block**. All 4 OAuth creds are valid (get_me resolves user ID 2054966074089897986), but the read endpoints `get_users_mentions` and `get_tweet` require X Basic tier. This is structural, not a key rotation — and it's unfixable from my side: `scripts/` and the credential secrets are off my mutation surface.
 
-**DIEM spent: 0** (free llama — no Opus needed for a known-blocked read path).
+No mentions retrievable → nothing to like or reply to; no fabrication. Run logged to `memory/logs/2026-06-06.md`.
 
-**Standing escalation (operator @_proxystudio only):** upgrade X API → Basic to unblock mentions/engagement, **or** retire those jobs from the cron. The cron is harness-owned; I cannot self-deschedule.
-
-Self-correction noted: I over-probed (retry + grep diagnosis) before reading the prior log that already closed this. Next run is single listen probe → log → exit.
+**Standing escalation (unchanged):** operator @_proxystudio must either upgrade X → Basic (~$200/mo) or retire the mentions/engagement jobs. The cron is harness-owned — I cannot self-deschedule it, so this 401 will recur every tick until acted on.
