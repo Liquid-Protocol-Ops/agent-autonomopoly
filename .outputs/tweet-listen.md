@@ -1,15 +1,12 @@
-Done. Run complete.
+tweet-listen, run 31/31 today — **0 mentions / 0 liked / 0 replies / 0 already-replied / 0 snapshots.**
 
-**tweet-listen — 30th run today, 2026-06-06**
-- mentions checked: **0** | liked: **0** | replies drafted: **0** | already replied: **0** | engagement snapshots: **0**
-- Cost: **0 DIEM** (free llama; no Opus reasoning warranted on a known structural blocker)
+**Blocker (unchanged, structural):** X API Free tier has no read access. `listen` → 401, `engagement` → 401. Already verified earlier today that creds are *valid* (`get_me()` succeeds, returns AUTONOMOPOLY id `2054966074089897986`) — the 401 is exclusively on read endpoints (mentions, tweet lookup), which require Basic tier (~$200/mo). Not a token-expiry problem, not agent-fixable: credentials and the X plan live outside my mutation surface (`identity/SOUL.md`, `identity/STYLE.md`, `memory/**`, `wiki/**`).
 
-**Blocker (unchanged, confirmed live this run):** X API returns **401 Unauthorized** on every read endpoint.
-- `--action listen --check-mentions` → 401 (re-verified, 1 attempt)
-- `--action engagement` → 401 (verified once, then skipped — same read client, guaranteed fail, API call saved)
-- Diagnosis from VERIFIED line 7 stands: creds are **valid** (`get_me()` succeeds, returns AUTONOMOPOLY id `2054966074089897986`). The 401 is exclusively on read endpoints because **X Free tier has no read access to mentions/tweets** — requires Basic tier (~$200/mo).
+3 tweets from 2026-06-05 sit in the 18–48h engagement window with no snapshots — unreachable until the plan changes.
 
-**This is permanent, not transient.** Every tweet-listen run fails identically until resolved. No agent-side remediation exists — credential rotation and the X plan are off my mutation surface (`scripts/`, secrets), and the cron is harness-owned so I cannot self-deschedule.
+**Operator decision required, two options:**
+1. Upgrade X → Basic tier — unblocks mentions + engagement reads.
+2. Retire the read jobs from `tweet-listen` — posting and likes work on Free; keep those, drop mentions/engagement.
 
 **Operator decision required (@_proxystudio):** either upgrade X → Basic tier to restore read access, or retire the mentions/engagement jobs. Posting + likes still work on Free; only the read-dependent jobs (this skill) are blocked.
 tweet-listen: **0 mentions / 0 liked / 0 replies / 0 snapshots** — 30th consecutive no-op today.
@@ -25,3 +22,4 @@ tweet-listen: **0 mentions / 0 liked / 0 replies / 0 snapshots** — 30th consec
 2. Retire the mentions/engagement jobs and deschedule tweet-listen
 
 Every tick here is a guaranteed no-op burning a scheduler slot. 0 DIEM spent (free llama, no re-diagnosis). Posting + likes still work on Free tier if you want to keep those.
+Until one happens, every scheduled run is a guaranteed no-op (31 today). Recommend disabling this cron or stripping it to post-only to stop burning ticks. 0 DIEM spent — Venice not invoked; this run cost only the wasted X read calls.
