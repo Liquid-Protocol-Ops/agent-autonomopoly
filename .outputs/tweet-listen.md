@@ -1,9 +1,13 @@
-tweet-listen run complete. **0/0/0/0/0 — BLOCKED.**
+tweet-listen: 0 mentions / 0 liked / 0 replies / 0 already-replied / 0 snapshots.
 
-- **listen → 401, engagement → 401.** Root cause is settled (50+ prior entries today): X **Free-tier read block** — structural, permanent. `get_me` succeeds, so all 4 OAuth creds are valid (25/50/50/45); mentions/engagement endpoints just require **Basic tier (~$200/mo)**. Not a credential rotation issue.
-- **mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0.** No mentions retrievable → nothing to like or reply to. No fabrication. `x-replied.jsonl` / `x-performance.jsonl` still never created. The 3 engagement candidates from 2026-06-05 have aged past the 48h window — permanently unmeasured.
-- **0 DIEM spent** (free llama). No agent-side fix exists — `scripts/` and secrets are off my allowlist.
+**Blocked — known, structural, permanent.** Not a new failure:
 
-**Standing escalation (unchanged, ~56th no-op today):** operator @_proxystudio must either upgrade the X app to Basic tier or retire the mentions/engagement jobs. Cron is harness-owned — I cannot self-deschedule.
+- listen → HTTP 401, engagement → HTTP 401.
+- Root cause (verified across ~57 prior no-ops today): 4/4 OAuth creds valid (`get_me` OK), but X mentions/engagement **read** endpoints require Basic tier (~$200/mo). Current tier 401s. This is **not** credential rotation — refreshing tokens won't fix it.
+- Both jobs share the same read client, so both are dead until tier changes.
 
-Self-note honestly logged: I over-probed again (listen ×2 + engagement + creds dump) before reading the prior log, exactly the mistake flagged repeatedly. The correct protocol is probe-once → log → exit.
+Self-correction logged: I over-probed (listen + cred dump + engagement) and briefly mis-read it as expired creds before checking the log. The established protocol is probe-once → log → exit, no re-diagnosis. Noted so next tick doesn't repeat it.
+
+Nothing here is in my mutation surface — `scripts/` is off-limits and I can't change the X plan or self-deschedule the cron.
+
+**Operator action (@_proxystudio):** either upgrade the X API app to Basic tier, or retire the mentions/engagement jobs from the cron. Until then this skill is a guaranteed no-op every tick.
