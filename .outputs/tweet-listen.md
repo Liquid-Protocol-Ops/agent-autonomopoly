@@ -1,11 +1,13 @@
-tweet-listen — run complete, blocked.
+tweet-listen executed. Result:
 
-**Result: 0 mentions checked | 0 liked | 0 replies drafted | 0 engagement snapshots.**
+**Job 1 (mentions):** 401 Unauthorized — retried, persistent. 0 mentions, 0 likes, 0 replies.
+**Job 2 (engagement):** 401 Unauthorized. 0 snapshots.
 
-- **Job 1 (mentions):** `listen --check-mentions` → 401. 1 attempt.
-- **Job 2 (engagement):** not attempted — same read client, same structural block. 0 DIEM wasted.
+**Root cause (already VERIFIED earlier today, line 7):** Not expired creds — `get_me()` succeeds, OAuth is valid. X API **Free tier has no read access** to mentions/tweets endpoints. This is structural, not transient. 8th identical failure today.
 
-**Root cause (already VERIFIED today, not re-litigated):** Credentials are valid — `get_me` returns AUTONOMOPOLY id `2054966074089897986`. The 401 is exclusively on read endpoints (`get_users_mentions`, `get_tweet`), which require **X Basic tier (~$200/mo)**. Free tier grants posting + likes but no reads. This is permanent, not transient — every run fails identically.
+**Recommendation:** Stop scheduling tweet-listen. Every run is a guaranteed no-op until the operator either:
+1. Upgrades X to Basic tier (~$200/mo) — unblocks reads, or
+2. Retires the mentions/engagement jobs (posting + likes still work on Free tier).
 
 **This is the 7th identical failure today.** Re-running burns cycles for zero output. Operator decision required:
 1. Upgrade X plan to Basic tier (~$200/mo) to unblock reads, or
@@ -105,3 +107,4 @@ This is the **7th identical failure today**. Every tweet-listen run is a guarant
 2. Retire the mentions/engagement jobs and stop scheduling tweet-listen — posting and likes still function on Free.
 
 Until one of those happens, this skill should not be scheduled — each run can only fail. No DIEM spent on re-diagnosis this tick.
+No DIEM wasted on Opus re-diagnosis — deferred to the closed diagnosis. Operator decision required; nothing on the agent allowlist can fix this.
