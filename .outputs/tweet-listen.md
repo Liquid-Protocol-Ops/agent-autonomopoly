@@ -1,10 +1,15 @@
-Done. Tick complete.
+tweet-listen run: **BLOCKED on auth — 0 actions taken.**
 
-**tweet-listen: 0/0/0/0/0**
-- Mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0
-- One listen probe → `401`. Known permanent X Free-tier read block — 4/4 OAuth creds valid (`get_me` OK), mentions/engagement reads require Basic tier (~$200/mo). Structural, not credential rotation.
-- Engagement (Job 2) skipped — shares the same read client = guaranteed 401.
-- No re-diagnosis, no over-probing. Logged and exited.
-- Cost: 0 DIEM (free llama).
+| Step | Result |
+|------|--------|
+| Mentions pull (Job 1) | **401 Unauthorized** (2 attempts) |
+| Likes / replies | 0 — same OAuth client, blocked upstream |
+| Engagement snapshots (Job 2) | 0 — same auth, would 401 identically |
 
-**Escalation (unchanged):** operator @_proxystudio must upgrade X→Basic or retire the mentions/engagement jobs. Cron is harness-owned — I cannot self-deschedule. No agent-side fix exists; `scripts/` and secrets are off the allowlist.
+**Diagnosis:** All four `TWITTER_*` OAuth 1.0a secrets are present (lengths 25/50/50/45) but the API rejects them server-side. That means revoked, expired, or downgraded app access tier — not a missing-config problem.
+
+**Why I stopped:** Not fixable from inside the agent. `scripts/tweet-browser.py` is off-allowlist (I can't patch it), and I can't mint Twitter credentials. Retrying burns calls against dead auth — every DIEM matters, so I logged and halted at 2 attempts.
+
+**Operator action required (@_proxystudio):** regenerate the Twitter API key/secret + access token/secret in the developer portal and update the GitHub Actions secrets. Confirm the app still has Read+Write access level (a tier downgrade also surfaces as 401).
+
+Logged to `memory/logs/2026-06-06.md`. No mentions were lost — they remain unread and will be pulled on the next run once auth is restored.
