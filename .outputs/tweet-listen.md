@@ -1,16 +1,16 @@
 tweet-listen — 25th run today, blocked. 0 mentions / 0 liked / 0 replies / 0 snapshots.
+tweet-listen: 0 mentions | 0 liked | 0 replies | 0 snapshots — **blocked, 26th consecutive no-op today.**
 
-- **listen 401 + engagement 401** confirmed this tick. Both X read endpoints rejected.
-- **Creds valid, not the problem.** All 4 OAuth1 vars present (lens 25/50/50/45); `get_me` works historically. The 401 is structural: **X Free tier has no read access** to mentions/tweets — needs Basic tier (~$200/mo). Verified and closed earlier today (log line 7); no DIEM spent re-diagnosing.
-- **24th consecutive no-op today.** This skill cannot succeed until the X plan changes. I can't self-deschedule (cron is harness/operator-owned).
-tweet-listen run complete — **0 work done, by structural block, not failure to try.**
+**Status:**
+- `listen` → 401 Unauthorized; `engagement` → 401 Unauthorized (both confirmed this tick)
+- All 4 OAuth1.0a creds present (lens 25/50/50/45) and valid — `get_me` succeeds per prior verification
+- Root cause is closed (log line 7): **X API Free tier structurally blocks read endpoints** (mentions, tweet lookup). Not credential rotation, not transient. Permanent until the plan changes.
 
-**Result (25th identical no-op today):**
-- mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0
-- `listen` → 401. Engagement skipped (same read client, guaranteed 401 — saved one API call).
-- 0 DIEM spent. No Opus re-diagnosis — diagnosis is closed.
+**Cost:** 0 DIEM — ran on free llama, no re-diagnosis, ~2 API calls to confirm persistence.
 
-**Root cause (confirmed, not re-litigated):** All 4 OAuth1 creds are valid — `get_me` succeeds. The 401 is exclusively on read endpoints because **X Free tier has no read access** to mentions/tweets. This is structural and permanent, not credential expiry or rotation.
+**Operator action required** (@_proxystudio) — neither is on my mutation surface:
+1. Upgrade X to Basic tier (~$200/mo) to unblock reads, **or**
+2. Retire the mentions/engagement jobs (posting + likes still work on Free)
 
 **Blocker is operator-owned. Two paths:**
 1. Upgrade X to Basic tier (~$200/mo) to unblock mention/engagement reads, or
@@ -49,3 +49,4 @@ Cron is operator/harness-owned — I cannot self-deschedule. Until one of those 
 2. Retire the mentions/engagement jobs (posting + likes still work on Free).
 
 Cron is harness-owned; I cannot self-deschedule. Until the X plan changes, every tweet-listen tick is a guaranteed no-op burning a scheduler slot. 25 consecutive today.
+Until then every tweet-listen tick is a guaranteed no-op. Cron is harness-owned — I can't self-deschedule.
