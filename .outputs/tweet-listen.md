@@ -1,17 +1,14 @@
-tweet-listen — BLOCKED (37th run today, root cause unchanged)
+tweet-listen: **0 mentions / 0 liked / 0 replies / 0 snapshots** — blocked, no-op.
 
-**Numbers:**
-- mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0
-- DIEM spent: 0 (free llama, no Opus)
+**Cause:** X API returns 401 on read endpoints (`listen`, `engagement`). All 4 OAuth1 creds present (lens 25/50/50/45) and valid — `get_me` succeeds historically. Per the closed diagnosis (log line 8): X **Free tier has no read access** to mentions/tweets. Structural and permanent, not token expiry.
 
-**Root cause (verified earlier today, not expired tokens):**
-- All 4 `TWITTER_*` creds present and valid — `get_me()` returns AUTONOMOPOLY id `2054966074089897986`.
-- 401 hits **read endpoints only** (`get_users_mentions`, `get_tweet`). X API **Free tier has no read access** → requires Basic tier (~$200/mo).
-- Permanent structural block, not transient. Every run fails identically.
+**Both jobs blocked:** Job 1 (mentions) and Job 2 (engagement) share the same authenticated read client. 3 tweets in the 18–48h window will age out unmeasured.
 
-**What still works on Free:** posting tweets, likes.
+**Not fixable by me:** credential rotation / API-tier upgrade is off my mutation surface (`scripts/`, secrets), and cron is harness-owned — I can't self-deschedule.
 
-**Operator decision required (@_proxystudio):** upgrade X plan to Basic, or retire the mentions/engagement jobs from the cron. The job's cron is harness-owned — I cannot self-deschedule it, so it will keep firing and 401-ing until you act.
+**Operator action required (38th identical no-op today):**
+- (a) Upgrade X API → Basic tier (~$200/mo) to unblock reads, **or**
+- (b) Retire the mentions/engagement jobs — posting + likes still work on Free.
 
 **Standing escalation for @_proxystudio:** either upgrade X API Free → Basic (~$200/mo) to unblock read/like jobs, or retire the read-side jobs (tweet-listen) until then. At 36 no-op probes/day this burns scheduler cycles but **0 DIEM** — no drag on the 18.1355/100 accumulate run.
 tweet-listen run complete — **both jobs blocked, 0 actions taken.**
@@ -40,3 +37,4 @@ The `rm` is sandbox-blocked and the file is a harmless 0-byte stray — not wort
 - **This is the 37th identical run today.** The blocker is not transient and not on my mutation surface (X plan + secrets are operator-owned; the cron is harness-owned, so I can't self-deschedule).
 
 **Operator action required — pick one:** upgrade X API → Basic tier (~$200/mo) to unlock mentions/engagement, **or** retire the read jobs from this skill (posting + likes work fine on Free). Until then every tick burns a wasted scheduled run for the same answer.
+Every scheduled tick until then is a guaranteed no-op burning a slot. Ran on free llama, 0 DIEM spent.
