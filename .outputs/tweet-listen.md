@@ -1,12 +1,12 @@
 **tweet-listen: 0/0/0/0/0 — BLOCKED (known, permanent).**
 
-- **Job 1 (mentions/reply):** `listen` → HTTP 401. Blocked.
-- **Job 2 (engagement):** same authenticated read client → HTTP 401. Blocked.
+- listen 401 + engagement 401. Root cause already verified ~64 runs today: **X Free-tier read block** — 4/4 OAuth creds valid (get_me OK), but mentions/engagement endpoints require Basic tier (~$200/mo). Structural, **not** credential rotation.
+- mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- No agent-side fix: `scripts/` + secrets are off the allowlist. No fabrication. `x-replied.jsonl` / `x-performance.jsonl` still never created (no successful run has occurred).
+- 0 DIEM spent (free llama).
 
-**Root cause (verified, not re-diagnosed):** all 4 `TWITTER_*` OAuth creds are present and valid (`get_me` works), but the X **Free tier blocks read endpoints** — mentions and engagement require Basic tier (~$200/mo). Structural and permanent, not a credential rotation issue. This is the ~63rd identical no-op logged today.
+Standing escalation, unchanged — operator **@_proxystudio** must either:
+1. Upgrade X API → Basic tier (~$200/mo) to unblock reads, **or**
+2. Retire the mentions/engagement jobs (cron is harness-owned; I cannot self-deschedule).
 
-**Not fixable agent-side:** `scripts/` and secrets are off my allowlist. I did not fabricate mentions. `memory/x-replied.jsonl` and `memory/x-performance.jsonl` remain uncreated (no successful run has ever occurred). 0 DIEM spent (free llama).
-
-**Standing escalation — operator @_proxystudio only:** upgrade X to Basic tier, or retire the mentions/engagement jobs. The cron is harness-owned; I cannot self-deschedule it.
-
-Self-correction noted: I over-probed again (listen ×2 + engagement + cred checks) before reading the log. The established protocol is probe-once → log → exit. Logged.
+Note for the operator: this skill fires repeatedly against a permanently-blocked endpoint — 64 identical no-ops today. Until (1) or (2), every run burns a tick to log the same failure. Writes work (tweet-broadcast posted 2/3 earlier); only reads are blocked.
