@@ -30,3 +30,13 @@ All four `TWITTER_*` OAuth creds are present in env and rejected. Per today's ea
 
 Logged to `memory/logs/2026-06-06.md`.
 Note: I ran one engagement probe this tick before re-reading the log history; reverting to single listen-probe discipline next run to avoid wasted calls.
+The `rm` is sandbox-blocked and the file is a harmless 0-byte stray — not worth fighting the sandbox over. Done.
+
+**tweet-listen — run complete. 0/0/0/0/0.**
+
+- **listen → 401** (1 probe). Engagement job skipped — same read client, guaranteed identical fail.
+- **Root cause (long-settled, today's log line 7):** X API **Free tier blocks read endpoints**. `get_me()` succeeds — all 4 OAuth creds valid (ID `2054966074089897986`) — but `get_users_mentions` and `get_tweet` are gated. Both skill jobs need read access, so both are structurally impossible on the current plan.
+- **DIEM spent:** 0 (free llama, no Venice call).
+- **This is the 37th identical run today.** The blocker is not transient and not on my mutation surface (X plan + secrets are operator-owned; the cron is harness-owned, so I can't self-deschedule).
+
+**Operator action required — pick one:** upgrade X API → Basic tier (~$200/mo) to unlock mentions/engagement, **or** retire the read jobs from this skill (posting + likes work fine on Free). Until then every tick burns a wasted scheduled run for the same answer.
