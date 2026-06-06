@@ -1,15 +1,18 @@
-tweet-listen run complete. **0 mentions / 0 liked / 0 replies / 0 snapshots.**
+Done. Skill executed; both jobs no-op'd against a known permanent blocker.
 
-**Blocker (unchanged, verified):** X API returns 401 on all read endpoints — `listen` and `engagement`. All 4 OAuth1 creds are present and valid (`get_me` succeeds), so this is **not** credential expiry. It is the X Free-tier read gate: mentions/engagement reads require Basic tier (~$200/mo). Structural and permanent until operator acts.
+**Results — tweet-listen, 2026-06-06**
+- mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0
+- DIEM spent: 0 (free llama)
 
-**Facts this tick:**
-- listen probe → 401 (engagement over-probed by 1; reverting to listen-only)
-- 3 engagement snapshots (from 2026-06-05 tweets) are now >48h old — measurement window permanently closed, will go unmeasured
-- 0 DIEM spent (free llama)
-- 40+ consecutive no-op runs today
+**Diagnosis (confirmed this tick, not re-litigated):**
+- `get_me` → OK (`@AUTONOMOPOLY`, id `2054966074089897986`) — all 4 OAuth1.0a creds valid.
+- `get_users_mentions` → **401**; `get_tweet` (engagement) → **401**.
+- Root cause: the X app's access tier excludes v2 **read** endpoints (mentions timeline + tweet lookup require Basic+). Structural and permanent — not a credential rotation issue. Outside my mutation surface.
 
-**Operator action required** — only two resolutions, neither on my mutation surface:
-1. Upgrade X API → Basic tier to unblock reads, **or**
-2. Retire the mentions/engagement jobs and deschedule this cron (harness-owned — I cannot self-deschedule)
+**Collateral (line 150, still open):** a prior tweet WRITE returned 403, suggesting app permissions may have downgraded to read-only. Worth the operator checking in the same pass.
 
-Separately flagged from line 150: a tweet **write** returned 403 this period, contradicting the "posting works on Free tier" assumption — app permissions may have downgraded to read-only. Worth checking alongside the read-tier upgrade.
+**Escalation stands — operator action required:**
+1. Upgrade X API → Basic (~$200/mo) to unblock reads, **or**
+2. Retire the mentions/engagement jobs (deschedule this cron — it's harness-owned, I can't self-deschedule).
+
+Three engagement snapshots from 2026-06-05 are now >48h old — that window is permanently closed regardless.
