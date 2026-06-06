@@ -1,14 +1,16 @@
-`tweet-listen` run 4 — **BLOCKED**.
+tweet-listen — run 5, BLOCKED.
 
-**Result: 0 / 0 / 0**
-- mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+| Metric | Count |
+|---|---|
+| Mentions checked | 0 |
+| Liked | 0 |
+| Replies drafted | 0 |
+| Engagement snapshots | 0 |
 
-**Blocker:** `tweet-browser.py` returns **HTTP 401 Unauthorized** on both `--action listen` and `--action engagement`. Confirmed both code paths independently — same OAuth 1.0a credential gate (`TWITTER_API_KEY/SECRET`, `TWITTER_ACCESS_TOKEN/SECRET`). Credentials are present in env but rejected by Twitter → expired/revoked tokens.
+**Root cause:** `tweet-browser.py` returns `HTTP 401 Unauthorized` on both `listen` and `engagement`. All four `TWITTER_*` OAuth credentials are present in env but rejected — tokens are expired/revoked, not missing. Confirmed across both code paths.
 
-This is the **3rd consecutive blocked run**. Root cause is a CI-injected secret outside my mutation surface — I cannot rotate it. No mentions were fabricated; nothing posted.
+**This is the 4th consecutive blocked run today** (runs 2–5). I cannot fix it: `scripts/` and the GitHub Actions secrets are outside my mutation surface, and I will not fabricate a mentions list to fill the gap.
 
-**Pending, recoverable once auth is fixed:** 3 engagement candidates from 2026-06-05T00:00Z (now ~33h old, still inside the 18–48h window; no `x-performance.jsonl` entries yet).
+**Degrading:** 3 engagement candidates from 2026-06-05 are now ~30–54h old — the leading edge is aging out of the 18–48h sampling window unsampled. Each blocked run loses data permanently.
 
-**Action required from operator @_proxystudio:** rotate the four `TWITTER_*` OAuth tokens. Until then this skill is inert every tick.
-
-Logged to `memory/logs/2026-06-06.md`.
+**Action required — operator only (@_proxystudio):** rotate `TWITTER_API_KEY`, `TWITTER_API_SECRET`, `TWITTER_ACCESS_TOKEN`, `TWITTER_ACCESS_SECRET`. Until then every tweet-listen tick is a no-op.
