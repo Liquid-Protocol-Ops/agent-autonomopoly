@@ -35,6 +35,7 @@ from pathlib import Path
 PENDING_DIR = Path(".pending-x")
 MEMORY_DIR = Path("memory")
 CACHED_USER_ID_FILE = MEMORY_DIR / "x-user-id.txt"
+SINCE_ID_FILE = MEMORY_DIR / "x-since-id.txt"
 
 
 def ok(data: dict) -> None:
@@ -148,13 +149,21 @@ def action_listen(check_mentions: bool) -> None:
             MEMORY_DIR.mkdir(exist_ok=True)
             CACHED_USER_ID_FILE.write_text(str(user_id))
 
-        response = client.get_users_mentions(
-            id=user_id,
-            max_results=20,
-            tweet_fields=["public_metrics", "author_id", "text"],
-            expansions=["author_id"],
-            user_fields=["username"],
-        )
+        kwargs: dict = {
+            "id": user_id,
+            "max_results": 100,
+            "tweet_fields": ["public_metrics", "author_id", "text"],
+            "expansions": ["author_id"],
+            "user_fields": ["username"],
+        }
+        # since_id: only fetch mentions newer than the last processed tweet.
+        # Prevents re-reading already-seen posts and eliminates redundant read costs.
+        if SINCE_ID_FILE.exists():
+            since_id = SINCE_ID_FILE.read_text().strip()
+            if since_id.isdigit():
+                kwargs["since_id"] = since_id
+
+        response = client.get_users_mentions(**kwargs)
 
         users_by_id: dict = {}
         if response.includes and response.includes.get("users"):
@@ -162,6 +171,7 @@ def action_listen(check_mentions: bool) -> None:
                 users_by_id[u.id] = u.username
 
         mentions = []
+        newest_id: str | None = None
         for tweet in (response.data or []):
             author_handle = "@" + users_by_id.get(tweet.author_id, str(tweet.author_id))
             metrics = tweet.public_metrics or {}
@@ -172,6 +182,14 @@ def action_listen(check_mentions: bool) -> None:
                 "url": f"https://x.com/i/web/status/{tweet.id}",
                 "tweet_id": str(tweet.id),
             })
+            # Track the highest tweet ID seen so far
+            if newest_id is None or int(tweet.id) > int(newest_id):
+                newest_id = str(tweet.id)
+
+        # Persist since_id so the next poll only fetches genuinely new mentions
+        if newest_id:
+            MEMORY_DIR.mkdir(exist_ok=True)
+            SINCE_ID_FILE.write_text(newest_id)
 
         results["mentions"] = mentions
         ok(results)
@@ -201,10 +219,16 @@ def main():
             return
         try:
             client = get_client()
-            me = client.get_me()
-            if not me.data:
-                err("could not retrieve authenticated user for like")
-            client.like(me.data.id, args.tweet_id_arg)
+            if CACHED_USER_ID_FILE.exists():
+                user_id = int(CACHED_USER_ID_FILE.read_text().strip())
+            else:
+                me = client.get_me()
+                if not me.data:
+                    err("could not retrieve authenticated user for like")
+                user_id = me.data.id
+                MEMORY_DIR.mkdir(exist_ok=True)
+                CACHED_USER_ID_FILE.write_text(str(user_id))
+            client.like(user_id, args.tweet_id_arg)
             ok({"liked": args.tweet_id_arg})
         except Exception as exc:
             err(f"like failed: {_exc_summary(exc)}")

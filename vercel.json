@@ -3,7 +3,7 @@
   "crons": [
     {
       "path": "/api/cron/listen",
-      "schedule": "*/5 * * * *"
+      "schedule": "*/15 * * * *"
     }
   ]
 }
