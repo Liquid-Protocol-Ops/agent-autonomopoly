@@ -1,82 +1,11 @@
-**tweet-listen — 28th no-op today.**
+tweet-listen complete. 29th consecutive no-op run today.
 
-- `listen`: **401** (1 attempt). Engagement skipped — same read client, guaranteed 401, API call saved.
-- Mentions: 0 | liked: 0 | replies drafted: 0 | snapshots: 0
-- DIEM spent: **0** (free llama, no re-diagnosis)
-tweet-listen run complete — **0/0/0/0/0** (28th identical no-op today).
+**Result: 0 mentions / 0 liked / 0 replies / 0 snapshots.**
 
-**Status:**
-- Mentions checked: **0** | liked: **0** | replies drafted: **0** | engagement snapshots: **0**
-- `listen` → 401, `engagement` → 401. Both reconfirmed this tick.
+Both jobs blocked by the same structural cause:
+- `listen` → 401, `engagement` → 401 (both reconfirmed this tick)
+- Root cause (VERIFIED, not re-diagnosed): all 4 OAuth1 creds are valid — `get_me()` succeeds — but X **Free tier has no read access** to mentions/tweets. Requires Basic tier (~$200/mo).
+- Permanent, not transient. Cron is harness-owned, so I cannot self-deschedule.
+- 0 DIEM spent (free llama, no Opus re-diagnosis).
 
-**Root cause (already verified, unchanged):** Credentials are valid — `get_me` returns AUTONOMOPOLY (id `2054966074089897986`), posting + likes work. The 401s are exclusively on X API **read** endpoints (`get_users_mentions`, `get_tweet`), which require **Basic tier (~$200/mo)**. The app is on **Free tier**. This is a permanent structural block, not token rotation.
-
-**Cost:** 0 DIEM (free llama, no Opus spend on a known no-op).
-
-**Escalation stands — operator decision required:**
-1. Upgrade X API → Basic tier to unblock mentions/engagement reads, **or**
-2. Retire the mentions/engagement jobs (posting + likes still function on Free).
-
-**Cost**: 0 DIEM (free-tier API probes, free llama reasoning).
-
-**Escalation** (now 27 consecutive no-ops today): operator decision required —
-- (a) upgrade X → Basic tier (~$200/mo) to unblock reads, or
-- (b) retire the mentions/engagement jobs (posting + likes still work on Free).
-
-**Cause (closed, not re-diagnosed):** X API returns 401 on both `listen` and `engagement`. All 4 OAuth1 creds present (lens 25/50/50/45) and valid — `get_me` succeeds. The 401 is exclusive to read endpoints: **X Free tier has no read access to mentions/tweets.** Structural and permanent, not token rotation. This was VERIFIED earlier today (log line 7).
-
-**Both jobs are guaranteed no-ops every tick until the X plan changes.** Posting and likes work on Free; reads do not.
-
-**Operator action required (@_proxystudio):**
-1. Upgrade X to Basic tier (~$200/mo) to unblock mention/engagement reads, **or**
-2. Retire the mentions/engagement jobs and deschedule tweet-listen.
-
-- **mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0**
-- listen 401 ×2 (retried, persistent). engagement skipped — same read client, guaranteed 401.
-- Root cause (closed, VERIFIED line 7): 4/4 OAuth creds valid (`get_me` succeeds); X **Free tier structurally blocks read endpoints**. Permanent — not token rotation.
-- 0 DIEM spent (free llama, accumulate mode — 18.1355/100 DIEM).
-
-**Operator action required.** This skill cannot succeed in its current state. Two paths:
-1. Upgrade X API → **Basic tier (~$200/mo)** to unblock `get_users_mentions` / `get_tweet`, or
-tweet-listen run complete. Result:
-
-**Mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0**
-
-Both jobs blocked by **HTTP 401** on the X read endpoints (`get_users_mentions`, `get_tweet`). Confirmed this tick:
-- `--action listen` → 401
-- `--action engagement` → 401
-
-Root cause is **closed and unchanged** (24th identical no-op today): all 4 OAuth1 creds are present and valid — `get_me` succeeds historically, returning AUTONOMOPOLY's user ID. The 401s hit **read endpoints only**, which X's **Free tier structurally blocks**. This is not token expiry or rotation; it is a permanent plan-level limit. No agent-side remediation exists, and cron scheduling is operator/harness-owned, so I can't self-deschedule.
-
-**Operator action required — pick one:**
-1. Upgrade X API to **Basic tier (~$200/mo)** to unblock mention/engagement reads, or
-2. **Retire** the mentions/engagement jobs (posting + likes still work on Free).
-
-Until then, every tweet-listen tick is a guaranteed no-op. 0 DIEM spent (ran on free llama, no re-diagnosis). Logged to `memory/logs/2026-06-06.md`.
-**Operator action required:** (a) upgrade X → Basic tier to unblock reads, or (b) retire the mentions/engagement jobs. Posting + likes still work on Free; only reads are blocked. Every scheduled tweet-listen tick burns a slot for a guaranteed zero.
-Cron is operator/harness-owned — I cannot self-deschedule. Until one of those happens, every tweet-listen tick is a guaranteed no-op burning a scheduler slot. Flagging for the 25th time today; the log bloat itself is now evidence the schedule should pause.
-- **listen: 401**, **engagement: 401** — both confirmed this tick.
-- Root cause closed (VERIFIED line 7): all 4 OAuth1 creds valid (`get_me` succeeds), **X Free tier has no read access** to mentions/tweets. Structural and permanent — not a token rotation issue.
-- DIEM spent: **0** (free llama; no Opus re-diagnosis).
-
-**Escalation stands — operator action required:**
-1. Upgrade X to Basic tier (~$200/mo) to unblock read endpoints, **or**
-2. Retire the mentions/engagement jobs (posting + likes still work on Free).
-
-Cron is harness-owned; I cannot self-deschedule. Until the X plan changes, every tweet-listen tick is a guaranteed no-op burning a scheduler slot. 25 consecutive today.
-Until then every tweet-listen tick is a guaranteed no-op. Cron is harness-owned — I can't self-deschedule.
-I cannot self-remediate: rotating creds or descheduling cron are off my mutation surface (secrets/harness-owned). 3 tweets from 2026-06-05 will age out unmeasured — engagement snapshots can't be taken. 26 consecutive no-op runs today is wasting a scheduler slot.
-**Diagnosis (unchanged, not re-run):** X Free tier structurally blocks read endpoints. Creds are valid — VERIFIED line 7 confirms 4/4 OAuth1 keys present and `get_me` succeeds. This is permanent, not a rotation issue. Every job in this skill (mention pull, like, engagement) depends on read access that the Free tier denies.
-
-**Escalation stands — 27 consecutive no-ops today.** This requires operator action; I cannot resolve it or self-deschedule (cron is harness-owned):
-- **(a)** Upgrade X API → Basic tier (~$200/mo) to unblock reads, or
-- **(b)** Retire the mentions/engagement jobs.
-
-Until one of those happens, every tick burns a scheduling slot for a guaranteed zero. At accumulate-mode discipline, that's the only line that matters here: **this skill produces nothing until the operator decides.**
-Cron is harness-owned and off my allowlist — I cannot self-deschedule. Until one of those happens, this skill burns a tick per run with no output. Logged to `memory/logs/2026-06-06.md`.
-Root cause is closed, not transient: 4/4 OAuth1 creds valid (`get_me` succeeds), **X Free tier structurally blocks read endpoints** (mentions, tweet lookup). No agent-side fix exists — scripts and secrets are off my mutation surface, and cron is harness-owned so I can't self-deschedule.
-
-**Operator action required:** (a) upgrade X to Basic tier (~$200/mo) to unblock reads, or (b) retire the mentions/engagement jobs. Until one happens, every tweet-listen tick is a guaranteed no-op. Posting + likes still work on Free; only reads are blocked.
-
-Collateral: 3 tweets from 2026-06-05 will age out of the 18–48h window unmeasured.
-The cron is harness-owned, so I can't self-deschedule — every tick is a guaranteed no-op until one of the above. I've suppressed further verbose re-diagnosis in the log to stop the bloat; one terse line per run from here.
+**Operator action required:** (a) upgrade X → Basic tier to unblock reads, or (b) retire the mentions/engagement jobs. Until then every tick is a guaranteed no-op. 3 tweets in the 18–48h window will age out unmeasured.
