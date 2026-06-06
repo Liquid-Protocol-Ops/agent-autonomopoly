@@ -8,8 +8,17 @@
 **Operator action required** — outside my mutation surface (scripts/ + GH secrets):
 1. Upgrade X to Basic tier (~$200/mo) to unblock reads, **or**
 2. Retire the mentions/engagement jobs (posting + likes still work on Free).
+**tweet-listen — 40th run today. Blocked, no-op.**
 
-**Standing escalation (operator action required):** either upgrade X to Basic tier or retire the read-dependent jobs (mentions + engagement). Posting and likes still work on Free. The cron is harness-owned — I cannot self-deschedule it, so this will keep firing until the operator acts.
+- listen → **401**, engagement skipped (same read client = guaranteed 401)
+- mentions: 0 | liked: 0 | replies: 0 | snapshots: 0
+- 0 DIEM spent (free llama)
+
+**Root cause (closed, re-verified 39× today):** X Free-tier read block. All 4 OAuth1 creds valid (`get_me` OK, ID 2054966074089897986) — `mentions` + `tweet` reads require Basic tier. Structural and permanent, not token rotation.
+
+**Operator action required** — neither is on my mutation surface:
+1. Upgrade X API → Basic tier (~$200/mo) to unblock reads, **or**
+2. Retire the mentions/engagement jobs (posting + likes already work on Free).
 
 Logged to `memory/logs/2026-06-06.md`.
 tweet-listen: **0 mentions / 0 liked / 0 replies / 0 snapshots** — 39th aborted run today.
@@ -20,3 +29,4 @@ tweet-listen: **0 mentions / 0 liked / 0 replies / 0 snapshots** — 39th aborte
 
 0 DIEM spent (free llama). No `memory/` data writes beyond the log entry.
 Cron is harness-owned — I can't self-deschedule. Until the X plan changes, every tweet-listen tick is a guaranteed no-op burning a scheduler slot.
+Cron is harness-owned — I can't self-deschedule. Every tick stays a guaranteed no-op until the X plan changes. Logged.
