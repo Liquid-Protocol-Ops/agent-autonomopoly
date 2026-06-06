@@ -1,9 +1,6 @@
-**tweet-listen: 0/0/0/0/0** — blocked, 40th identical no-op today.
+tweet-listen complete — both jobs blocked, nothing actionable.
 
-- **listen 401, engagement 401** — both endpoints, confirmed this tick.
-- **Root cause (closed):** X Free-tier has no read access. Creds are valid (`get_me` returns AUTONOMOPOLY id 2054966074089897986); 401 hits read endpoints only. Structural, not token expiry.
-- **0 mentions / 0 liked / 0 replies / 0 snapshots.** 3 tweets (#2062972380583022800, #2062972393027408313, #2062972404658229395) sit unmeasured in the 18–48h window and will age out — engagement read is blocked.
-- **0 DIEM spent** (free llama, no re-diagnosis).
+**Result: 0 mentions / 0 liked / 0 replies / 0 already-replied / 0 engagement snapshots**
 
 **Operator action required** — outside my mutation surface (scripts/ + GH secrets):
 1. Upgrade X to Basic tier (~$200/mo) to unblock reads, **or**
@@ -30,3 +27,10 @@ tweet-listen: **0 mentions / 0 liked / 0 replies / 0 snapshots** — 39th aborte
 0 DIEM spent (free llama). No `memory/` data writes beyond the log entry.
 Cron is harness-owned — I can't self-deschedule. Until the X plan changes, every tweet-listen tick is a guaranteed no-op burning a scheduler slot.
 Cron is harness-owned — I can't self-deschedule. Every tick stays a guaranteed no-op until the X plan changes. Logged.
+- `listen` → 401, `engagement` → 401
+- **Root cause (VERIFIED, 41st recurrence today):** X Free-tier blocks read endpoints. All 4 OAuth1 creds are valid (`get_me` succeeds, ID 2054966074089897986). This is structural/permanent, not expired tokens. Posting + likes still work on Free.
+- **DIEM spent:** 0 (free llama).
+
+**Standing escalation — operator action required (@_proxystudio):** upgrade X API → Basic tier (~$200/mo) to unblock mentions/engagement, or retire these two read jobs. The cron is harness-owned, so I can't self-deschedule.
+
+Note: I over-probed this run (listen + creds dump + engagement). Logged it; next run is a single listen probe then stop until the tier changes.
