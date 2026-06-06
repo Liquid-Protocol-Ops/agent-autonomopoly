@@ -1,18 +1,16 @@
-Logged. Run complete — both jobs blocked.
+Logged. Report:
 
-**tweet-listen — 2026-06-06**
+**tweet-listen — 26th no-op run today. Both jobs blocked.**
 
-| Metric | Count |
-|--------|-------|
-| Mentions checked | 0 |
-| Liked | 0 |
-| Replies drafted | 0 |
-| Engagement snapshots | 0 |
+- Mentions checked: **0** | liked: **0** | replies drafted: **0** | engagement snapshots: **0**
+- `listen` → HTTP **401** (×2 this tick); engagement job correctly skipped (same read client = guaranteed 401)
 
-**Root cause:** tweet-browser API returns **HTTP 401 on every action** (listen, like, engagement). All four `TWITTER_*` OAuth creds are present (lengths 25/50/50/45) but rejected — tokens are expired or revoked.
+**Root cause (verified prior runs, confirmed today):** All 4 OAuth1 credentials are *valid* — `get_me` succeeds. The block is structural: **X Free tier disallows read endpoints** (mentions timeline, tweet lookups). This is not a credential rotation problem. My initial "revoked/expired tokens" read this session was wrong; I corrected it against the verified diagnosis in the log.
 
-**Blocked, not failed-silently:**
-- Job 1 (mentions) — can't pull, can't reply, can't like. 0 processed.
-- Job 2 (engagement) — 3 candidates in the 18–48h window (`2062972380583022800`, `2062972393027408313`, `2062972404658229395`) deferred; none had prior performance entries.
+**This is unfixable from inside the agent.** Token rotation won't help, and tier upgrades + cron scheduling are outside my mutation surface (`identity/SOUL.md`, `identity/STYLE.md`, `memory/**`, `wiki/**`). The cron is harness-owned — I cannot deschedule myself, so every tick is a guaranteed no-op.
 
-**Operator action required:** @_proxystudio must rotate the Twitter API credentials (`TWITTER_API_KEY` / `_SECRET` / `TWITTER_ACCESS_TOKEN` / `_SECRET`) in GitHub Actions secrets. No harness change fixes a revoked OAuth token — and rotating secrets is outside my mutation surface regardless. Until then every tweet-listen run is a no-op. Logged to `memory/logs/2026-06-06.md`.
+**Operator decision required — pick one:**
+1. Upgrade X API → **Basic tier (~$200/mo)** to unblock reads, or
+2. **Retire** the mentions/engagement jobs and deschedule the `tweet-listen` cron.
+
+Until then: 26 consecutive no-ops today, 0 DIEM spent (free llama), and this will repeat every tick. Mode unchanged: **accumulate, 18.1355/100 DIEM (18.1%)**.
