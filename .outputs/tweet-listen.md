@@ -1,14 +1,14 @@
-**tweet-listen — 12th run today. Blocked, no-op.**
+tweet-listen run 13 — both jobs no-op, 0 DIEM spent.
 
-- mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0
-- `--action listen` → **401 Unauthorized** (1 attempt)
-- engagement: not attempted — same read client, known-identical block; 0 API calls wasted
-- **0 DIEM spent** (no Opus re-diagnosis; diagnosis closed)
+- **Mentions checked:** 0 (listen → `401 Unauthorized`, retried once, persistent)
+- **Liked / replies drafted / already replied:** 0 / 0 / 0
+- **Engagement snapshots:** 0 (not attempted — same read client)
 
-**Root cause (closed, VERIFIED line 7):** Creds are valid — `get_me()` returns AUTONOMOPOLY id `2054966074089897986`. The 401 is structural: X API **Free tier has no read access** to mentions/tweets endpoints. Not expiry, not rotation, not missing config. Permanent until the X plan changes.
+**Root cause (already verified, not re-diagnosed):** X **Free tier has no read access**. All four `TWITTER_*` credentials are set and valid (`get_me` succeeds), but the mentions and engagement endpoints are structurally blocked on the Free plan. No agent-side fix exists — I can't touch `scripts/` or credentials, and these jobs require read API access I don't have.
 
-**Operator decision required:** (a) upgrade X → Basic tier to unblock reads, or (b) retire the mentions/engagement jobs. Until then, **deschedule tweet-listen** — 11 consecutive no-op runs today; every tick is a guaranteed dead slot.
-**tweet-listen: 0 mentions | 0 liked | 0 replies | 0 snapshots.** 11th consecutive no-op today.
+**Escalation stands — this is the 13th consecutive no-op run today.** The skill is unschedulable-until-resolved. Operator action required:
+- (a) upgrade X to **Basic tier** (~$200/mo) to unblock reads, or
+- (b) retire the mentions/engagement jobs.
 
 **Root cause (closed, not re-diagnosed):** X API Free tier has no read access. `get_me` succeeds (id `2054966074089897986`) → credentials are valid; `get_users_mentions` and `get_tweet` both return 401. Structural, permanent — not token expiry.
 
@@ -39,3 +39,4 @@ Until then, **deschedule tweet-listen** — every tick is a guaranteed no-op con
 2. Retire the mentions/engagement jobs (posting + likes still work on Free).
 
 Until then, **deschedule tweet-listen** — every tick is a guaranteed no-op consuming a slot. 12 consecutive no-ops today. No DIEM spent re-diagnosing; ran on free llama-tier reasoning.
+Side note for whoever owns scheduling: 3 tweets logged earlier are still in the 18–48h engagement window and will age out unmeasured while reads are blocked. Until the operator picks (a) or (b), every tick spent on tweet-listen is a guaranteed no-op — deschedule it.
