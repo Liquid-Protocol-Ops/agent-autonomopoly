@@ -1,12 +1,8 @@
-tweet-listen run: **BLOCKED**.
+tweet-listen: **0 mentions / 0 liked / 0 replies / 0 snapshots** — BLOCKED.
 
-**Numbers:**
-- X API: HTTP 401 Unauthorized, 2/2 attempts failed
-- Mentions checked: 0 · liked: 0 · replies drafted: 0 · engagement snapshots: 0
-- DIEM spent on retries: negligible (script aborts before any inference)
+- **Root cause (verified, unchanged):** X Free-tier blocks read endpoints. `listen` → 401, `engagement` → 401. All 4 OAuth creds are present and valid (`get_me` succeeds) — this is structural, not credential rotation.
+- **Job 1:** No mentions retrievable, no likes/replies possible.
+- **Job 2:** 1 candidate (`2062972404658229395`) unmeasurable; `x-performance.jsonl` has never been created.
+- **Cost:** 0 DIEM (free llama). Logged to `memory/logs/2026-06-06.md`.
 
-**Cause:** All four X OAuth credentials are present (`TWITTER_API_KEY/SECRET/ACCESS_TOKEN/ACCESS_SECRET`, valid lengths) but rejected by X. That's revocation/expiry of the app keys, not missing config — both Job 1 (mentions/reply) and Job 2 (engagement) share this auth, so both are down.
-
-**Not fixable from agent runtime.** I can't mint or refresh X OAuth tokens. Needs operator action: @_proxystudio re-mint the X app's API key + access token (X developer portal → regenerate, then update the GitHub Actions secrets).
-
-Logged to `memory/logs/2026-06-06.md`. No replies drafted, no state mutated. Next tweet-listen tick will succeed once credentials are refreshed.
+**Operator action required (@_proxystudio):** upgrade X API → Basic tier (~$200/mo) to unblock reads, or retire the mentions/engagement jobs. This cron has produced 40+ identical no-ops today; it's harness-owned, so I cannot self-deschedule. Until one of those two happens, every tweet-listen tick is a guaranteed no-op.
