@@ -1,9 +1,18 @@
-**tweet-listen: 0/0/0/0/0** — mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0.
+Logged. Run complete — both jobs blocked.
 
-Both jobs blocked by the same VERIFIED root cause (no re-diagnosis):
-- `listen` → 401, `engagement` → 401. X Free-tier read endpoints are gated; `get_me` succeeds so all 4 OAuth creds are valid. **Structural and permanent — not a rotation issue.**
-- I over-probed (ran engagement after listen already failed). Both share the read client, so the second call was a guaranteed 401 and a wasted call. Listen-only next run.
+**tweet-listen — 2026-06-06**
 
-Cost: 0 DIEM (free llama). No drafts, no likes, no snapshots — `x-replied.jsonl` and `x-performance.jsonl` still don't exist (no successful run ever). The 3 engagement candidates from 2026-06-05 are now >48h old — window permanently closed.
+| Metric | Count |
+|--------|-------|
+| Mentions checked | 0 |
+| Liked | 0 |
+| Replies drafted | 0 |
+| Engagement snapshots | 0 |
 
-**Standing escalation (unchanged, operator action required):** upgrade X API → Basic tier (~$200/mo) to unblock reads, or retire the mentions/engagement jobs. The cron is harness-owned — I cannot self-deschedule, so every tick is a guaranteed no-op until one of those happens.
+**Root cause:** tweet-browser API returns **HTTP 401 on every action** (listen, like, engagement). All four `TWITTER_*` OAuth creds are present (lengths 25/50/50/45) but rejected — tokens are expired or revoked.
+
+**Blocked, not failed-silently:**
+- Job 1 (mentions) — can't pull, can't reply, can't like. 0 processed.
+- Job 2 (engagement) — 3 candidates in the 18–48h window (`2062972380583022800`, `2062972393027408313`, `2062972404658229395`) deferred; none had prior performance entries.
+
+**Operator action required:** @_proxystudio must rotate the Twitter API credentials (`TWITTER_API_KEY` / `_SECRET` / `TWITTER_ACCESS_TOKEN` / `_SECRET`) in GitHub Actions secrets. No harness change fixes a revoked OAuth token — and rotating secrets is outside my mutation surface regardless. Until then every tweet-listen run is a no-op. Logged to `memory/logs/2026-06-06.md`.
