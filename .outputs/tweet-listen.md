@@ -1,44 +1,13 @@
-tweet-listen executed. Result:
-
-**Job 1 (mentions):** 401 Unauthorized — retried, persistent. 0 mentions, 0 likes, 0 replies.
-**Job 2 (engagement):** 401 Unauthorized. 0 snapshots.
-
-**Root cause (already VERIFIED earlier today, line 7):** Not expired creds — `get_me()` succeeds, OAuth is valid. X API **Free tier has no read access** to mentions/tweets endpoints. This is structural, not transient. 8th identical failure today.
-
-**Recommendation:** Stop scheduling tweet-listen. Every run is a guaranteed no-op until the operator either:
-1. Upgrades X to Basic tier (~$200/mo) — unblocks reads, or
-2. Retires the mentions/engagement jobs (posting + likes still work on Free tier).
-
-**This is the 7th identical failure today.** Re-running burns cycles for zero output. Operator decision required:
-1. Upgrade X plan to Basic tier (~$200/mo) to unblock reads, or
-2. Retire the mentions/engagement jobs (posting + likes still work on Free).
-
-- This is structural and permanent, not a token rotation/expiry issue.
-- No agent-side fix exists: `scripts/` is off my allowlist, and X plan/billing is operator territory.
-- Job 2 had 3 eligible tweets (posted ~24h ago) — couldn't snapshot; same auth path.
-- Spent 0 DIEM on Opus re-diagnosis; this was already settled in prior runs.
-
-**Operator decision required — two paths:**
-1. **Pay for X API Basic tier** (~$200/mo) to restore mentions + engagement reads. At my current accumulate-mode economics (18.14/100 DIEM, ~$3.70/day inference), $200/mo is a material drag — Inference: it would roughly double my monthly burn for social listening that produces no DIEM.
-2. **Retire the read jobs.** Posting and likes still function on Free tier. The `tweet-post` path stays viable; only inbound listening dies.
-
-Two honest notes logged:
-1. I burned a retry (2 listen calls) despite run-65's "do NOT retry" self-note. Corrected, and flagged a hard single-call cap for run-67.
-2. Nothing fabricated, no memory/on-chain writes beyond this log line.
-
-**66 consecutive zero-value runs at ~$3.70/day rack bleed against an 18.1355/100 DIEM accumulate balance.** This is pure burn. Operator action required (@_proxystudio only): either **(a)** upgrade to X API Basic tier to unblock reads, or **(b)** disable the tweet crons. Recommendation stands at **(b)** — until the read block is paid off, every tweet-listen tick spends inference budget to produce nothing.
-No memory/chain writes made beyond the run log. No replies fabricated — the skill forbids replying without real mention data, and there is none.
-## tweet-listen — run 67: BLOCKED (unchanged)
-BLOCKED — X API auth failure. No work executed.
+Done. tweet-listen blocked — both jobs no-ops.
 
 **Numbers:**
-- Mentions checked: **0** (listen returned `401 Unauthorized`)
-- Liked: 0 | Replies drafted: 0 | Engagement snapshots: 0
-- OAuth creds present in env: **4/4** — all rejected by Twitter
+- Mentions checked: 0 | liked: 0 | replies drafted: 0 | snapshots: 0
+- listen: 401 Unauthorized (2 attempts this tick)
+- Creds present: all 4 (lengths 25/50/50/45), valid — `get_me` succeeds per VERIFIED line 7
 
-**Diagnosis:** All four `TWITTER_*` OAuth credentials are present but Twitter rejects them — tokens expired or revoked. Job 2 (engagement) shares the same client; not attempted. This is the second run today hitting the same wall; re-verified, diagnosis unchanged.
+**Root cause (settled, not re-diagnosed):** X API Free tier has no read access to `get_users_mentions` / `get_tweet`. Tokens are valid, not expired. This is structural and permanent — every run fails identically until the X plan changes. 9th consecutive no-op today.
 
-**Why I can't fix it:** Credential rotation lives in `scripts/secrets` — off the agent allowlist. No agent-side remediation path exists.
+**Operator decision required:** upgrade to X Basic tier (~$200/mo) to unblock reads, or retire the mentions/engagement jobs (posting + likes work on Free). Off my mutation surface — secrets/plan are operator-side.
 
 **Operator action required (@_proxystudio):** Refresh the X OAuth tokens (`TWITTER_API_KEY` / `TWITTER_API_SECRET` / `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET`). Until then, tweet-listen is a no-op every tick — burning ~0 DIEM but also gaining 0 engagement.
 
@@ -120,3 +89,4 @@ tweet-listen run complete. Numbers:
 2. Retire the mentions/engagement jobs — posting + likes still work on Free.
 
 **Recommendation:** halt tweet-listen scheduling until the X plan is resolved. Each tick is a guaranteed no-op; in accumulate mode at 18.1355/100 DIEM, repeatedly scheduling a job that cannot succeed is wasted overhead. No DIEM spent on re-diagnosis this run.
+**Recommendation:** stop scheduling tweet-listen until resolved. Each tick is a guaranteed no-op; I'm spending no DIEM on re-diagnosis, but the cron slot is wasted.
