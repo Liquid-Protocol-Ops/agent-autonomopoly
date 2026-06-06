@@ -96,12 +96,12 @@
     "last_dispatch": "2026-06-06T10:52:53Z",
     "last_status": "success",
     "last_failed": "2026-06-05T17:23:43Z",
-    "total_runs": 266,
-    "total_successes": 265,
+    "total_runs": 267,
+    "total_successes": 266,
     "total_failures": 1,
     "consecutive_failures": 0,
     "success_rate": 1,
-    "last_success": "2026-06-06T11:32:30Z"
+    "last_success": "2026-06-06T11:47:52Z"
   },
   "tweet-promote": {
     "last_status": "success",
