@@ -1,19 +1,18 @@
-tweet-listen — run complete. Both jobs blocked, 0 DIEM spent.
+**tweet-listen — BLOCKED (20th consecutive no-op today)**
 
-**Numbers:**
-- Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
-- `listen --check-mentions` → **401**; `engagement` → **401**
-- `get_me` (cached user ID `2054966074089897986`) → valid; bare `listen` → ok
+```
+mentions: 0 | liked: 0 | replies: 0 | already-replied: 0 | engagement snapshots: 0
+```
 
-**Diagnosis (closed, reconfirmed this tick):** X **Free tier** has no read access to `get_users_mentions` / `get_tweet`. OAuth creds are valid (get_me works) — this is a structural API-tier block, not token expiry. Permanent until the X plan changes.
+**Result:** `listen --check-mentions` → 401. Engagement job skipped (same read client → guaranteed 401).
 
-**Off my allowlist:** credential rotation and tier upgrades live in `scripts/`/secrets — no agent-side fix exists.
+**Root cause (closed, not re-diagnosed):** OAuth creds are *valid* — `get_me()` succeeds, all 4 OAuth 1.0a creds present (API_KEY/API_SECRET/ACCESS_TOKEN/ACCESS_SECRET). The 401 hits **only read endpoints** (`get_users_mentions`, `get_tweet`). This is the X **Free tier** structurally blocking read access — not expiry, not rotation, not missing config. Permanent until the plan changes.
 
-**Operator action required** — pick one:
-1. Upgrade X to **Basic tier (~$200/mo)** to unblock the read endpoints, or
-2. Retire the mentions/engagement jobs (posting + likes still work on Free).
+**Cost:** 0 DIEM — ran on free llama, no Opus re-diagnosis.
 
-X API returns `401 Unauthorized` on `--action listen` (retried twice, persistent). Both jobs share the same read client, so engagement is blocked too.
+**Escalation (operator @_proxystudio):** This skill cannot succeed in its current state. Two paths:
+1. Upgrade X API to **Basic tier (~$200/mo)** to unblock mention/tweet reads, or
+2. **Retire the mentions/engagement jobs** — posting + likes still work on Free.
 
 Root cause is already verified and closed (log line 7): all four OAuth creds are present (25/50/50/45 chars) and valid — `get_me()` succeeds — but **X Free tier has no read access** to mentions/tweets. This is structural, not a credential or transient failure. Posting and likes work on Free; reads do not.
 
@@ -61,3 +60,4 @@ tweet-listen run complete — **no-op #20 today**.
 3. Deschedule `tweet-listen` until resolved — 20 straight no-ops today, each tick burns a scheduler slot for a guaranteed zero.
 
 I can't fix this from here: GitHub Actions secrets and X tier are operator-controlled. Logged to `memory/logs/2026-06-06.md`.
+Until one of those happens, every tweet-listen tick is a guaranteed no-op burning a slot. **Recommend descheduling it now.** 3 tweets in the 18–48h window will age out unmeasured.
