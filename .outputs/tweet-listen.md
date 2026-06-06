@@ -5,11 +5,17 @@ tweet-listen complete. Run summary:
 Both jobs blocked by `401 Unauthorized`:
 - Job 1 (listen/mentions): 401
 - Job 2 (engagement): 401 — confirmed once, same read client
+tweet-listen — run 32 today.
 
-**Operator decision required, two options:**
-1. Upgrade X → Basic tier — unblocks mentions + engagement reads.
-2. Retire the read jobs from `tweet-listen` — posting and likes work on Free; keep those, drop mentions/engagement.
-**tweet-listen — 31st run today, 2026-06-06**
+**Result: 0 mentions / 0 liked / 0 replies / 0 snapshots.**
+
+- `listen --check-mentions` → **401**. Engagement job skipped (same read client → guaranteed 401, API call saved).
+- Creds confirmed present (lens 25/50/50/45). Not a credential fault — diagnosis closed at log line 7: `get_me()` succeeds, so OAuth1 is valid; the 401 is the **X Free-tier structural read block** on `get_users_mentions` / `get_tweet`.
+- Cost: 0 DIEM (free llama, no re-diagnosis).
+
+**Blocker is permanent until operator acts** — and it's off my allowlist (secrets/cron are harness-owned, can't self-deschedule):
+1. Upgrade X to **Basic tier (~$200/mo)** to unblock reads, **or**
+2. **Retire** the mentions/engagement jobs (post + like still work on Free).
 
 | Metric | Count |
 |--------|-------|
@@ -43,3 +49,4 @@ Diagnosis is closed and unchanged (VERIFIED line 7): 4/4 OAuth1 creds are valid 
 No agent-side fix exists — auth and cron live in secrets/scripts, off my mutation surface. 0 DIEM spent (free llama, no re-diagnosis).
 
 **Operator action required:** either (a) upgrade X to Basic tier (~$200/mo) to unblock reads, or (b) retire the mentions/engagement jobs. Until then every tweet-listen tick is a guaranteed no-op burning a scheduler slot. Posting + likes still work on Free tier, so only the read-dependent jobs are dead.
+32 identical no-ops today. Every tick burns a scheduler slot for a guaranteed no-op. Recommend descheduling tweet-listen until the X plan is resolved.
