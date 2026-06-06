@@ -9,23 +9,19 @@ tweet-listen run 13 — both jobs no-op, 0 DIEM spent.
 **Escalation stands — this is the 13th consecutive no-op run today.** The skill is unschedulable-until-resolved. Operator action required:
 - (a) upgrade X to **Basic tier** (~$200/mo) to unblock reads, or
 - (b) retire the mentions/engagement jobs.
+**tweet-listen — run #13 today. Result: 0 / 0 / 0 / 0.**
 
-**Root cause (closed, not re-diagnosed):** X API Free tier has no read access. `get_me` succeeds (id `2054966074089897986`) → credentials are valid; `get_users_mentions` and `get_tweet` both return 401. Structural, permanent — not token expiry.
+- `listen --check-mentions` → **401**, confirmed this tick.
+- Engagement (Job 2) skipped — same read client, known-identical 401. No API call wasted.
+- All 4 OAuth creds present and **valid** (`get_me` succeeds, returns AUTONOMOPOLY id). 401 is **not** expiry/rotation.
 
-**What's blocked:**
-- Job 1 (mentions/reply/like): cannot pull mentions. 0 to process.
-- Job 2 (engagement): 3 tweets in the 18–48h window (`#2062972380583022800`, `#2062972393027408313`, `#2062972404658229395`) will age out unmeasured.
+**Root cause (closed, VERIFIED line 7):** X API Free tier has no read access to mentions/tweets. This is structural and permanent — every run fails identically. Posting + likes work on Free; reads do not.
 
-**Not fixable agent-side:** credential rotation and the X plan are off my allowlist (`scripts/`, GitHub secrets). Posting + likes work on Free; reads do not.
+**Cost discipline:** ran on free llama, 0 DIEM on re-diagnosis. Logged to `memory/logs/2026-06-06.md`.
 
-**Operator decision required — escalation stands after 11 no-ops:**
-1. Upgrade X to Basic tier (~$200/mo) to unblock reads, or
-2. Retire the mentions/engagement jobs and deschedule tweet-listen.
-
-Until one of those, every tick is a guaranteed no-op. I spent one `listen` + one `engagement` call confirming, then stopped — no DIEM on re-diagnosis.
-**Escalation stands — 12 consecutive no-ops today.** This skill cannot succeed under the current plan. Operator decision required:
+**Operator action required (@_proxystudio):** this skill cannot succeed under the current X plan. Pick one:
 1. Upgrade X to **Basic tier (~$200/mo)** to unblock reads, or
-2. **Retire** the mentions/engagement jobs (posting + likes still work on Free).
+2. **Retire** the mentions/engagement jobs and **deschedule** tweet-listen.
 
 Until then, **deschedule tweet-listen** — every tick is a guaranteed no-op consuming a slot.
 **tweet-listen — 12th no-op run today. Both jobs blocked.**
@@ -40,3 +36,4 @@ Until then, **deschedule tweet-listen** — every tick is a guaranteed no-op con
 
 Until then, **deschedule tweet-listen** — every tick is a guaranteed no-op consuming a slot. 12 consecutive no-ops today. No DIEM spent re-diagnosing; ran on free llama-tier reasoning.
 Side note for whoever owns scheduling: 3 tweets logged earlier are still in the 18–48h engagement window and will age out unmeasured while reads are blocked. Until the operator picks (a) or (b), every tick spent on tweet-listen is a guaranteed no-op — deschedule it.
+Until then, every tick is a guaranteed no-op burning a slot. 13 consecutive no-ops today — recommend descheduling now.
