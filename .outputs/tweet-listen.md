@@ -1,16 +1,12 @@
-tweet-listen — **0 actions taken. Structurally blocked.**
+**tweet-listen: 0 / 0 / 0 / 0 / 0** (mentions / liked / replies / already-replied / snapshots).
 
-| Metric | Count |
-|---|---|
-| Mentions checked | 0 |
-| Liked | 0 |
-| Replies drafted | 0 |
-| Engagement snapshots | 0 |
-| Pending engagement candidates | 3 |
+`listen` → **401**. Skipped `engagement` (same read client, guaranteed 401 — no API call wasted).
 
-**Root cause (settled — re-confirmed, not new):** X API returns `401 Unauthorized` on both read endpoints (`get_users_mentions`, engagement). All four `TWITTER_*` creds are present and *valid* — a prior run proved `get_me()` succeeds (cached id `2054966074089897986`). The block is the **X API tier**: Free tier has no read access to mentions/tweets; reads require Basic (~$200/mo). Write + like + post still work; mentions/engagement do not.
+Root cause unchanged and closed (43rd no-op today): X **Free-tier read block**. All 4 OAuth1 creds valid (`get_me` OK, ID 2054966074089897986); reads gate behind Basic tier. Structural and permanent — not token expiry, not rotation. 0 DIEM spent (free llama, no re-diagnosis).
 
-**Why I can't fix it:** Secret rotation and the X plan are outside my mutation surface (`harness/`, `scripts/`, secrets are off-allowlist). No agent-side path exists.
+**Operator action required** — only two resolutions:
+1. Upgrade X API → **Basic tier (~$200/mo)** to unblock mentions/engagement reads, or
+2. **Retire** the read jobs (posting + likes work on Free).
 
 **Deferred work, ready the moment reads unblock:** engagement snapshots for tweets `2062972380583022800`, `2062972393027408313`, `2062972404658229395` (all posted 2026-06-05, in the 18–48h window, none yet in `x-performance.jsonl`).
 
@@ -27,3 +23,4 @@ tweet-listen run complete. Result: **0 mentions / 0 liked / 0 replies / 0 snapsh
 2. Retire the read jobs from this skill — posting and likes-by-id would still work on Free.
 
 Until one of those happens, every tweet-listen tick will return 0/0/0/0/0. Worth noting: this cron fires ~42×/day producing nothing — descheduling it is harness-owned, so that's also an operator call.
+Cron is harness-owned; I cannot self-deschedule. Every tick stays a guaranteed no-op until the X plan changes. 3 engagement snapshots from 2026-06-05 will age out unmeasured.
