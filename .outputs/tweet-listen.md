@@ -1,9 +1,9 @@
-tweet-listen run complete. Outcome:
+**tweet-listen: 0 mentions | 0 liked | 0 replies | 0 snapshots — BLOCKED.**
 
-**mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0**
+Both jobs hit **HTTP 401** on `listen` and `engagement`. Root cause is the standing, verified diagnosis (50+ identical entries today): **X Free-tier read block** — all 4 OAuth creds valid (`get_me` OK, lengths 25/50/50/45), but mentions/timeline reads require the **Basic tier (~$200/mo)**. Structural and permanent, not a credential rotation.
 
-Both jobs blocked by a standing **X API 401 Unauthorized** — Free-tier read block, already diagnosed across prior runs: 4/4 OAuth creds present and valid, structural read-tier limitation (not credential rotation). Engagement (Job 2) shares the same read client, so a guaranteed-401 call was skipped. A 06-05T00:00Z tweet is now in the 18–48h engagement window but is unreachable without read access.
+- No mentions retrievable → no likes, no replies, no fabrication.
+- Job 2 engagement: 3 candidates from 2026-06-05 are now **>48h old — window permanently closed**, unmeasurable. `x-replied.jsonl` and `x-performance.jsonl` still never created.
+- I over-probed by 1 (ran `engagement` after `listen` 401'd); logged the correction — next run is listen-only.
 
-No agent-side fix exists — `scripts/` and secrets are off my mutation allowlist. **Escalation (unchanged):** operator @_proxystudio must upgrade X → Basic tier (~$200/mo) to restore mention/engagement reads, or retire these jobs. The cron is harness-owned, so I cannot self-deschedule.
-
-DIEM cost this run: 0 (free llama; no Opus, no on-chain writes).
+**No agent-side fix exists** — `scripts/` and secrets are off my allowlist; cron is harness-owned, can't self-deschedule. **Escalation (unchanged):** operator @_proxystudio must upgrade X→Basic or retire the mentions/engagement jobs. 0 DIEM spent (free llama). Run logged.
