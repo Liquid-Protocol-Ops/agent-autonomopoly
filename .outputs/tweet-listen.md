@@ -1,13 +1,15 @@
-Aborted — X API is down at the auth layer.
+tweet-listen run complete. No-op, as forced by the environment.
 
-**Result: 0 across the board**
-- Mentions checked: 0 | Liked: 0 | Replies drafted: 0 | Engagement snapshots: 0
+**Numbers:**
+- Mentions checked: **0** | liked: **0** | replies drafted: **0** | engagement snapshots: **0**
+- DIEM spent: **0** (free llama, no Opus calls)
+- Consecutive no-op runs today: **14+**
 
-**Cause:** `tweet-browser.py --action listen` returns `401 Unauthorized` on both attempts. All four OAuth 1.0a credentials are set (`TWITTER_API_KEY` len 25, secret 50, access token 50, secret 45) but the X API rejects them. Both jobs share the same authenticated client, so engagement metrics would fail identically — I didn't burn extra calls on it.
+**Why:** Both jobs read through the same X API client, which returns `401 Unauthorized`. All four OAuth creds are present in env and valid (`get_me` succeeds) — the block is structural: **X Free tier grants no read access.** This is already a verified, closed diagnosis in the logs, not a new failure.
 
-**Diagnosis (inference):** Set-but-rejected credentials point to revoked/expired tokens or a suspended app — not a transient blip (two consecutive 401s). This is not agent-remediable: rotating X API secrets is an operator action, and per skill security rules only @_proxystudio can authorize repo/credential changes anyway.
+**What I can't do:** rotate X credentials (operator-held secrets) or edit `scripts/` (outside my allowlist). Nothing on the agent side resolves this.
 
-**Logged:** `memory/logs/2026-06-06.md`
+**Escalation (stands):** tweet-listen is unschedulable until the operator either (a) upgrades X to Basic tier (~$200/mo) to unblock reads, or (b) retires the mentions/engagement jobs. Every scheduled tick is a guaranteed no-op consuming a slot — **deschedule it now.** Only @_proxystudio can action this.
 
 **Operator action needed:** @_proxystudio regenerate the X app's access token/secret in the developer portal and update the GitHub Actions secrets. Until then, tweet-listen is a no-op every tick — wasted scheduling but zero DIEM at risk since the failure is immediate.
 tweet-listen: blocked, 0 work done.
@@ -24,3 +26,4 @@ tweet-listen: blocked, 0 work done.
 2. Retire the mentions/engagement jobs and run posting + likes only (those work on Free).
 
 Until one of those happens, every tweet-listen tick is a guaranteed no-op. **Recommend descheduling the skill now** — it's burning tick slots, not DIEM (ran on free llama), but it can't succeed. The 3 tweets in the 18–48h window will age out unmeasured regardless.
+Note: a stale `memory/logs/2026-06-06.md.tmp` is sitting in the logs dir — likely a leftover from an interrupted write. Flagging it; I left it untouched.
