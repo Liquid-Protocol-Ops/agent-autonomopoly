@@ -1,55 +1,17 @@
-tweet-listen — 42nd no-op today.
+tweet-listen — **0 actions taken. Structurally blocked.**
 
-- **listen:** 401 (1 probe). engagement skipped — same read client, guaranteed 401.
-- **Result:** mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
-- **DIEM spent:** 0 (free llama, no re-diagnosis)
+| Metric | Count |
+|---|---|
+| Mentions checked | 0 |
+| Liked | 0 |
+| Replies drafted | 0 |
+| Engagement snapshots | 0 |
+| Pending engagement candidates | 3 |
 
-**Root cause** (closed, VERIFIED line 7): X **Free-tier read block**. All 4 OAuth1 creds valid (`get_me` OK, ID 2054966074089897986); reads require Basic tier. Structural and permanent — not token expiry.
+**Root cause (settled — re-confirmed, not new):** X API returns `401 Unauthorized` on both read endpoints (`get_users_mentions`, engagement). All four `TWITTER_*` creds are present and *valid* — a prior run proved `get_me()` succeeds (cached id `2054966074089897986`). The block is the **X API tier**: Free tier has no read access to mentions/tweets; reads require Basic (~$200/mo). Write + like + post still work; mentions/engagement do not.
 
-**Operator action required** — this skill cannot succeed until one of:
-1. Upgrade X API → **Basic tier (~$200/mo)** to unblock mentions/engagement reads, or
-2. **Retire** the mentions/engagement jobs (posting + likes work on Free).
-**tweet-listen: BLOCKED.**
+**Why I can't fix it:** Secret rotation and the X plan are outside my mutation surface (`harness/`, `scripts/`, secrets are off-allowlist). No agent-side path exists.
 
-X API returns **401 Unauthorized** on every authenticated call. Confirmed across 3 separate paths: mention pull, retry, and engagement snapshot. All four `TWITTER_*` credentials are present in env but rejected upstream — `init` succeeds only because it makes no API call.
+**Deferred work, ready the moment reads unblock:** engagement snapshots for tweets `2062972380583022800`, `2062972393027408313`, `2062972404658229395` (all posted 2026-06-05, in the 18–48h window, none yet in `x-performance.jsonl`).
 
-Results this run:
-- Mentions checked: **0** (auth failure)
-- Liked: 0 | Replies drafted: 0
-- Engagement snapshots: **0** collected — **3 due** (tweets `2062972380583022800`, `2062972393027408313`, `2062972404658229395`, all posted 2026-06-05, in the 18–48h window, no prior snapshot)
-
-**Root cause:** credentials rejected by X, not missing. Not fixable from here — `scripts/tweet-browser.py` and the Actions secrets are off my mutation surface, and the keys are being refused by X itself.
-
-**Action needed (operator):** refresh the X API credentials in GitHub Actions secrets (`TWITTER_API_KEY` / `TWITTER_API_SECRET` / `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET`). Most likely revoked or app permissions downgraded to read-only.
-
-**Operator action required** — neither is on my mutation surface:
-1. Upgrade X API → Basic tier (~$200/mo) to unblock reads, **or**
-2. Retire the mentions/engagement jobs (posting + likes already work on Free).
-
-Logged to `memory/logs/2026-06-06.md`.
-tweet-listen: **0 mentions / 0 liked / 0 replies / 0 snapshots** — 39th aborted run today.
-
-**Blocker (structural, permanent):** X API Free tier has no read access. Both `listen` and `engagement` return 401. Creds are valid (4/4 present, `get_me()` succeeds, ID `2054966074089897986`) — the 401 is read-endpoint-only, not expired tokens.
-
-**Fix is off my mutation surface.** Operator decision required: upgrade X→Basic (~$200/mo) to unblock mentions/engagement, or retire those two jobs (posting + likes still work on Free). The tweet-listen cron is harness-owned — I can't self-deschedule it, so it will keep firing and failing identically until one of those happens.
-
-0 DIEM spent (free llama). No `memory/` data writes beyond the log entry.
-Cron is harness-owned — I can't self-deschedule. Until the X plan changes, every tweet-listen tick is a guaranteed no-op burning a scheduler slot.
-Cron is harness-owned — I can't self-deschedule. Every tick stays a guaranteed no-op until the X plan changes. Logged.
-- `listen` → 401, `engagement` → 401
-- **Root cause (VERIFIED, 41st recurrence today):** X Free-tier blocks read endpoints. All 4 OAuth1 creds are valid (`get_me` succeeds, ID 2054966074089897986). This is structural/permanent, not expired tokens. Posting + likes still work on Free.
-- **DIEM spent:** 0 (free llama).
-
-**Standing escalation — operator action required (@_proxystudio):** upgrade X API → Basic tier (~$200/mo) to unblock mentions/engagement, or retire these two read jobs. The cron is harness-owned, so I can't self-deschedule.
-
-Note: I over-probed this run (listen + creds dump + engagement). Logged it; next run is a single listen probe then stop until the tier changes.
-tweet-listen run: **BLOCKED, 0 actions taken.**
-
-- **Job 1 (mentions):** `python tweet-browser.py --action listen` → `401 Unauthorized`, twice. All four `TWITTER_*` creds are present but rejected → expired/revoked tokens, not a missing-secret or transient fault.
-- **Job 2 (engagement):** same auth path, would 401 identically. Not attempted.
-- mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
-- Logged to `memory/logs/2026-06-06.md`.
-
-**Operator action required (@_proxystudio):** rotate the X API tokens. No code or credential I can write fixes this from inside the harness — the secrets exist; they're just invalid upstream. Zero DIEM spent on inference here beyond this triage.
-Cron is harness-owned — I cannot self-deschedule. Every tick here is a guaranteed no-op burning a scheduler slot. 42 identical runs today is the cost of leaving it live while blocked.
-Run logged to `memory/logs/2026-06-06.md`. No DIEM spent on drafting against dead auth.
+**Operator decision required (@_proxystudio):** either upgrade X API to Basic tier, or retire the mentions/engagement jobs from this skill so the loop stops attempting a structurally impossible call every run. This is the 4th+ identical block logged today — worth a decision rather than continued retries.
