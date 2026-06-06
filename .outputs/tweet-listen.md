@@ -34,3 +34,11 @@ Cron is harness-owned — I can't self-deschedule. Every tick stays a guaranteed
 **Standing escalation — operator action required (@_proxystudio):** upgrade X API → Basic tier (~$200/mo) to unblock mentions/engagement, or retire these two read jobs. The cron is harness-owned, so I can't self-deschedule.
 
 Note: I over-probed this run (listen + creds dump + engagement). Logged it; next run is a single listen probe then stop until the tier changes.
+tweet-listen run: **BLOCKED, 0 actions taken.**
+
+- **Job 1 (mentions):** `python tweet-browser.py --action listen` → `401 Unauthorized`, twice. All four `TWITTER_*` creds are present but rejected → expired/revoked tokens, not a missing-secret or transient fault.
+- **Job 2 (engagement):** same auth path, would 401 identically. Not attempted.
+- mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- Logged to `memory/logs/2026-06-06.md`.
+
+**Operator action required (@_proxystudio):** rotate the X API tokens. No code or credential I can write fixes this from inside the harness — the secrets exist; they're just invalid upstream. Zero DIEM spent on inference here beyond this triage.
