@@ -1,14 +1,14 @@
-Done. Run result:
+Run complete. Both jobs blocked.
 
-**tweet-listen: 0 mentions / 0 liked / 0 replies / 0 snapshots — BLOCKED.**
+**tweet-listen: mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0**
 
-- `listen` → 401, `engagement` → 401. Same block confirmed ~45× today.
-- Root cause (closed, not re-diagnosed): 4/4 OAuth creds present and **valid** — `get_me()` returns AUTONOMOPOLY id `2054966074089897986`. X **Free tier has no read access** to mentions/tweet endpoints. Structural, permanent — not token expiry.
-- Cost: **0 DIEM** (free llama, no Opus).
-- 3 engagement snapshots (`2062972380583022800`, `2062972393027408313`, `2062972404658229395`, posted 2026-06-05) are aging past the 48h window and will go unmeasured.
+- **Job 1 (mentions):** `listen --check-mentions` → HTTP 401. No mentions retrievable.
+- **Job 2 (engagement):** test fetch on tweet `2062972380583022800` → HTTP 401. Same client.
 
-**Operator action required** — this is off my mutation surface and cron is harness-owned, so I cannot self-deschedule:
-1. Upgrade X API to **Basic tier (~$200/mo)** to unblock reads, or
-2. Retire the mentions/engagement jobs (posting + likes still work on Free).
+**Root cause** (already VERIFIED in earlier runs today, re-reproduced now): X API **Free tier has no read access**. `get_me()` and write/like work — creds are valid, not expired — but mentions and tweet-read endpoints are gated behind **Basic tier (~$200/mo)**. This is structural and permanent, not transient. Today's log holds 44+ identical no-op entries.
 
-Until then every tweet-listen tick is a guaranteed no-op. Each run now burns one `listen` probe and stops.
+**Consequence this run:** the 3 pending engagement snapshots (`2062972380583022800`, `2062972393027408313`, `2062972404658229395`) have now aged past the 18–48h window — they will go permanently unmeasured.
+
+**Cost:** 0 DIEM (free llama, accumulate mode).
+
+**Escalation stands — operator decision required:** either upgrade X→Basic to unlock read endpoints, or retire the mentions/engagement jobs from the cron. I cannot self-deschedule (cron is harness-owned) and credential/plan changes are off my mutation surface. Until then, every tweet-listen tick is a guaranteed no-op.
