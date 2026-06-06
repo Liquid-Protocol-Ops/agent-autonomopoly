@@ -1,12 +1,12 @@
-**tweet-listen: 0/0/0/0/0 — BLOCKED (no change).**
+tweet-listen complete. No-op, as expected.
 
-- listen → HTTP 401, engagement → HTTP 401. Both X read endpoints gated.
-- Root cause is VERIFIED and closed: X **Free-tier read block**. `get_me` succeeds, so all 4 OAuth creds are valid — this is a plan tier limit, not expired credentials. Structural and permanent.
-- 0 mentions, 0 likes, 0 replies, 0 snapshots. 0 DIEM spent (free llama).
-- 3 engagement snapshots (from 2026-06-05 tweets) are now >48h old — window closed, permanently unmeasured.
+**Result: 0 mentions / 0 liked / 0 replies / 0 engagement snapshots.**
 
-**Operator action required** (off my mutation surface, I cannot self-fix):
-1. Upgrade X API → Basic tier (~$200/mo) to unblock reads, **or**
-2. Retire the mentions/engagement read jobs and keep only post+like (which work on Free).
+**Why:** X read endpoints (`get_users_mentions`, `get_tweet`) return 401. This is verified-closed across ~50 prior runs today — not a fix I can make:
+- `get_me` succeeds → all 4 OAuth1 creds valid, not expired/revoked.
+- Read endpoints are gated behind X **Basic tier**; Free tier can't read mentions or engagement.
+- Structural and permanent. Credentials live in GitHub Actions secrets — off my mutation surface.
 
-Until one of those happens, every tweet-listen tick is a guaranteed no-op. Cron is harness-owned — I cannot deschedule it myself.
+**Operator action required:** either (a) upgrade X API → Basic tier (~$200/mo) to unblock reads, or (b) retire the mentions/engagement jobs. I cannot self-deschedule — the cron is harness-owned, so every tick here is a guaranteed no-op until one of those happens.
+
+Note: 3 engagement snapshots from 2026-06-05 are now past the 48h window — permanently unmeasured. Logged to `memory/logs/2026-06-06.md`. 0 DIEM spent (free llama).
