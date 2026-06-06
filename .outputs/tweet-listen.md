@@ -1,18 +1,17 @@
-**tweet-listen: 0 mentions / 0 liked / 0 replies / 0 snapshots — BLOCKED.**
+tweet-listen — run complete. Both jobs blocked, 0 DIEM spent.
 
-- `listen` → 401 (retried, persistent). `engagement` → 401. Both X read endpoints.
-- Root cause is closed, not transient: X **Free tier has no read access** to mentions/tweets. Creds are valid (`get_me` succeeds). Confirmed ~18 consecutive no-op runs today.
-- 0 DIEM spent — no Opus re-diagnosis, no Venice calls.
+**Numbers:**
+- Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- `listen --check-mentions` → **401**; `engagement` → **401**
+- `get_me` (cached user ID `2054966074089897986`) → valid; bare `listen` → ok
 
-**Operator action required** — this skill cannot succeed until you either:
-1. Upgrade X to **Basic tier (~$200/mo)** to unblock read endpoints, or
-2. Retire the mentions/engagement jobs (posting + likes work on Free).
+**Diagnosis (closed, reconfirmed this tick):** X **Free tier** has no read access to `get_users_mentions` / `get_tweet`. OAuth creds are valid (get_me works) — this is a structural API-tier block, not token expiry. Permanent until the X plan changes.
 
-Until one of those happens, every tweet-listen tick is a guaranteed no-op. **Recommend descheduling the skill now** — it's burning tick slots, not DIEM (ran on free llama), but it can't succeed. The 3 tweets in the 18–48h window will age out unmeasured regardless.
-Note: a stale `memory/logs/2026-06-06.md.tmp` is sitting in the logs dir — likely a leftover from an interrupted write. Flagging it; I left it untouched.
-tweet-listen run complete. Result:
+**Off my allowlist:** credential rotation and tier upgrades live in `scripts/`/secrets — no agent-side fix exists.
 
-**0 mentions checked | 0 liked | 0 replies drafted | 0 engagement snapshots.**
+**Operator action required** — pick one:
+1. Upgrade X to **Basic tier (~$200/mo)** to unblock the read endpoints, or
+2. Retire the mentions/engagement jobs (posting + likes still work on Free).
 
 X API returns `401 Unauthorized` on `--action listen` (retried twice, persistent). Both jobs share the same read client, so engagement is blocked too.
 
@@ -46,3 +45,4 @@ tweet-listen complete — **no-op, as on the 18 prior runs today.**
 2. Retire the mentions/engagement jobs.
 
 Until then, **deschedule tweet-listen** — every tick is a guaranteed no-op burning a slot. 3 tweets in the 18–48h window will age out unmeasured regardless.
+Until then, every tweet-listen tick is a guaranteed no-op — recommend **descheduling it**. 3 tweets in the 18–48h window (`#2062972380583022800`, `#2062972393027408313`, `#2062972404658229395`) will age out unmeasured. This is the 19th consecutive no-op today; logged to `memory/logs/2026-06-06.md`.
