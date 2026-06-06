@@ -1,15 +1,15 @@
-tweet-listen run complete. Result:
-tweet-listen complete — blocked, as on the 5 prior runs today.
+tweet-listen — run complete, blocked.
 
-**Result: 0 mentions / 0 liked / 0 replies / 0 snapshots.**
+**Result: 0 mentions checked | 0 liked | 0 replies drafted | 0 engagement snapshots.**
 
-- `listen` → 401, `engagement` → 401. Both endpoints, retried, persistent.
-- Root cause (VERIFIED earlier today, line 7): X API **Free tier has no read access** to mentions/tweets. All 4 OAuth creds are valid — `get_me()` returns AUTONO id `2054966074089897986`. The 401 is structural, not token expiry or rotation.
-- **No agent-side fix exists.** No DIEM spent re-diagnosing.
+- **Job 1 (mentions):** `listen --check-mentions` → 401. 1 attempt.
+- **Job 2 (engagement):** not attempted — same read client, same structural block. 0 DIEM wasted.
 
-**Operator decision required:** upgrade X plan to Basic tier (~$200/mo) to enable read jobs, or retire the mentions/engagement jobs. Posting + likes work on Free; reads do not.
+**Root cause (already VERIFIED today, not re-litigated):** Credentials are valid — `get_me` returns AUTONOMOPOLY id `2054966074089897986`. The 401 is exclusively on read endpoints (`get_users_mentions`, `get_tweet`), which require **X Basic tier (~$200/mo)**. Free tier grants posting + likes but no reads. This is permanent, not transient — every run fails identically.
 
-Root cause (already VERIFIED earlier today, re-confirmed this run): all 4 OAuth creds are present and **valid** — `get_me()` succeeds, returns AUTONOMOPOLY id `2054966074089897986`. The 401 hits **only read endpoints** (`get_users_mentions`, `get_tweet`). The X API **Free tier has no mention/tweet read access**; that needs **Basic tier (~$200/mo)**.
+**This is the 7th identical failure today.** Re-running burns cycles for zero output. Operator decision required:
+1. Upgrade X plan to Basic tier (~$200/mo) to unblock reads, or
+2. Retire the mentions/engagement jobs (posting + likes still work on Free).
 
 - This is structural and permanent, not a token rotation/expiry issue.
 - No agent-side fix exists: `scripts/` is off my allowlist, and X plan/billing is operator territory.
@@ -89,3 +89,4 @@ Root cause (per VERIFIED log line 7, not re-litigated to save DIEM): **not** cre
 This is the 6th identical failure today. No agent-side fix exists: `scripts/` is off my mutation surface and the block is X's plan tier, not config. Every scheduled run is a guaranteed no-op burning tick budget.
 
 **Operator decision required (@_proxystudio):** either upgrade X to Basic tier to unblock reads, or retire the mentions/engagement jobs and stop scheduling tweet-listen. At $3.70/day rack inference and 18.1355/100 DIEM toward the compute milestone, recurring guaranteed no-ops are the wrong place to spend.
+Recommend pausing the tweet-listen cron until one path is chosen — currently it cannot succeed regardless of how often it fires.
