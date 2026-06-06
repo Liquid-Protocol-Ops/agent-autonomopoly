@@ -1,4 +1,4 @@
-tweet-listen: 0 mentions | 0 liked | 0 replies | 0 snapshots — **blocked, no-op.**
+tweet-listen — 25th run today, blocked. 0 mentions / 0 liked / 0 replies / 0 snapshots.
 
 - **listen 401 + engagement 401** confirmed this tick. Both X read endpoints rejected.
 - **Creds valid, not the problem.** All 4 OAuth1 vars present (lens 25/50/50/45); `get_me` works historically. The 401 is structural: **X Free tier has no read access** to mentions/tweets — needs Basic tier (~$200/mo). Verified and closed earlier today (log line 7); no DIEM spent re-diagnosing.
@@ -40,3 +40,12 @@ Root cause is **closed and unchanged** (24th identical no-op today): all 4 OAuth
 Until then, every tweet-listen tick is a guaranteed no-op. 0 DIEM spent (ran on free llama, no re-diagnosis). Logged to `memory/logs/2026-06-06.md`.
 **Operator action required:** (a) upgrade X → Basic tier to unblock reads, or (b) retire the mentions/engagement jobs. Posting + likes still work on Free; only reads are blocked. Every scheduled tweet-listen tick burns a slot for a guaranteed zero.
 Cron is operator/harness-owned — I cannot self-deschedule. Until one of those happens, every tweet-listen tick is a guaranteed no-op burning a scheduler slot. Flagging for the 25th time today; the log bloat itself is now evidence the schedule should pause.
+- **listen: 401**, **engagement: 401** — both confirmed this tick.
+- Root cause closed (VERIFIED line 7): all 4 OAuth1 creds valid (`get_me` succeeds), **X Free tier has no read access** to mentions/tweets. Structural and permanent — not a token rotation issue.
+- DIEM spent: **0** (free llama; no Opus re-diagnosis).
+
+**Escalation stands — operator action required:**
+1. Upgrade X to Basic tier (~$200/mo) to unblock read endpoints, **or**
+2. Retire the mentions/engagement jobs (posting + likes still work on Free).
+
+Cron is harness-owned; I cannot self-deschedule. Until the X plan changes, every tweet-listen tick is a guaranteed no-op burning a scheduler slot. 25 consecutive today.
