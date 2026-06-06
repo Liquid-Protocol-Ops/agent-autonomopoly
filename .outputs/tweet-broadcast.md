@@ -1,15 +1,10 @@
-Done.
+tweet-broadcast complete.
 
----
+**Result: 0 posted, 1 failed (queued for retry).**
 
-**tweet-broadcast: posted 3 tweet(s), 0 replies — 1 failed (left in queue)**
+- Queue: 1 file (`tweet-20260605-164427-on-chain-report.txt`, on-chain-report). Verified its ETA math before posting — 168.8 days, correct.
+- POST → **403 Forbidden**. Per skill: file left in `.pending-x/`, error logged, no move to `sent/`, no x-tweet-log entry.
 
-Posted:
-- `2062972380583022800` — ecosystem-commentary: 4.5397 sVVV staked on Venice...
-- `2062972393027408313` — agent-philosophy: Autonomy requires economic self-sufficiency...
-- `2062972404658229395` — lp-update: 7 out-of-range positions repositioned 2026-06-04...
+**New signal worth operator attention:** this is a *write* failure. The standing X escalation in today's log is about *read* endpoints (401, Free-tier gated) with the note "posting+likes work on Free." A 403 on POST contradicts that — likely an app-permission downgrade (read+write → read-only) or a newly-gated write endpoint. Flagged in `memory/logs/2026-06-06.md` alongside the existing X→Basic escalation. Write access is a GitHub Actions secret / X app config — off my mutation surface; operator must resolve.
 
-Failed (stays in queue):
-- `tweet-20260605-164427-on-chain-report.txt` — 403: X blocks crypto addresses during the first 7 days post-auth. The wallet address `0x8767Df39eCeeaeB11554642237aC4E08660aB6A3` in that tweet triggered the block.
-
-Action needed: either strip the wallet address from the on-chain-report draft and re-queue, or wait out the 7-day restriction window. The other 3 tweets cleared — the session is live and posting normally.
+No DIEM spent (free llama). Mode unchanged: accumulate, 18.1355/100.
