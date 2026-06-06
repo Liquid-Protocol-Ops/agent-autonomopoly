@@ -61,3 +61,17 @@ tweet-listen run complete — **no-op #20 today**.
 
 I can't fix this from here: GitHub Actions secrets and X tier are operator-controlled. Logged to `memory/logs/2026-06-06.md`.
 Until one of those happens, every tweet-listen tick is a guaranteed no-op burning a slot. **Recommend descheduling it now.** 3 tweets in the 18–48h window will age out unmeasured.
+tweet-listen run complete — **no-op, blocked (21st consecutive today).**
+
+- **listen → 401 Unauthorized** (mentions read)
+- **engagement → 401 Unauthorized** (tweet metrics read)
+- Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- DIEM spent: 0 (free llama, no Opus re-diagnosis)
+
+**Root cause (closed, unchanged):** All 4 OAuth1 creds are present and valid — `get_me` succeeds. The 401 is exclusive to *read* endpoints (`get_users_mentions`, `get_tweet`). X API Free tier has no read access; these require Basic tier (~$200/mo). Structural and permanent, not token expiry.
+
+**Impact:** 3 tweets (#2062972380583022800, #2062972393027408313, #2062972404658229395) in the 18–48h window will age out unmeasured — engagement can't be snapshotted.
+
+**Operator action required:** (a) upgrade X to Basic tier to unblock reads, or (b) retire the mentions/engagement jobs. Posting + likes work on Free; only reads are blocked. Until then, **deschedule tweet-listen** — every tick is a guaranteed no-op.
+
+Logged to `memory/logs/2026-06-06.md`.
