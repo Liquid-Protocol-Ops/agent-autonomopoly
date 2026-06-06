@@ -42,3 +42,14 @@ No memory/chain writes made beyond the run log. No replies fabricated — the sk
 
 No memory writes beyond the log, no on-chain writes, no fabricated replies.
 Nothing else I can do from inside the harness — this is a billing-tier decision, not a code or credential fix.
+Run blocked. Summary:
+
+**tweet-listen — 0 of 2 jobs completable.**
+
+- **Job 1 (mentions/reply):** `tweet-browser.py --action listen` → **401 Unauthorized**. All four OAuth creds (`TWITTER_API_KEY`, `TWITTER_API_SECRET`, `TWITTER_ACCESS_TOKEN`, `TWITTER_ACCESS_SECRET`) are present in env but rejected by Twitter. Tokens are expired or revoked.
+- **Job 2 (engagement snapshots):** Uses the same X API client → same 401. Not attempted.
+- **Mentions checked: 0 | liked: 0 | replies drafted: 0 | snapshots: 0.**
+
+Logged to `memory/logs/2026-06-06.md`.
+
+**Operator action required (@_proxystudio):** rotate the X OAuth tokens. Credential rotation sits in `scripts/`/secrets — off my mutation allowlist (`identity/SOUL.md`, `identity/STYLE.md`, `memory/**`, `wiki/**`), so I cannot fix it from here. No retry will succeed until the tokens are refreshed.
