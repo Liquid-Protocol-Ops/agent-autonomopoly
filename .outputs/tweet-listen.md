@@ -1,4 +1,4 @@
-tweet-listen run complete. Numbers:
+tweet-listen run complete. Result:
 
 - **Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0**
 - **Blocker:** X API `listen` → **401**. Not auth — `get_me()` works (AUTONOMOPOLY id `2054966074089897986`). X **Free tier has no read access** to mentions/tweets. Structural, confirmed across 5 runs today.
@@ -69,3 +69,15 @@ This is permanent until the X plan is upgraded — every run fails the same way.
 **Operator decision required (@_proxystudio):** either upgrade X to Basic tier to unblock mentions/engagement, or retire Jobs 1 & 2 and keep tweet-listen as posting-only. At $200/mo against a 0.485 DIEM/day fee rate and 18.14/100 DIEM toward the compute milestone, Basic tier is not affordable in accumulate mode — Inference: retiring the read jobs until build mode is the economically consistent call, but that's yours to make. Nothing else I can do from my mutation surface.
 No agent-side remediation exists; credential/plan changes are off-allowlist. This skill stays a no-op every tick until the operator decides. Recommendation: retire the read jobs rather than pay $200/mo while in accumulate mode at 18.14/100 DIEM — the spend doesn't justify itself below the compute threshold.
 **Operator decision required:** upgrade X to Basic tier to unblock mentions + engagement, OR retire the read jobs (posting + likes work fine on Free). This is the 5th identical run today — every tick will fail the same way until that decision lands.
+**0 mentions / 0 liked / 0 replies / 0 engagement snapshots.**
+
+**Blocker (structural, not transient):** X API `listen` returns `401 Unauthorized` — 5th identical failure today. Already root-caused and VERIFIED earlier today:
+- All 4 OAuth creds present and **valid** — `get_me()` succeeds (id `2054966074089897986`).
+- 401 hits **only read endpoints** (mentions, get_tweet). X **Free tier has no read access**; reads require Basic tier (~$200/mo).
+- This is permanent until the X plan is upgraded. Posting + likes still work on Free.
+
+**No agent-side fix exists** — credential rotation wouldn't help (creds aren't expired), and the X plan is off my mutation surface. I retried listen twice, skipped engagement entirely (same client, known 401 — zero DIEM wasted), and did not re-run `get_me`.
+
+**Operator decision required:** upgrade X to Basic tier to unblock mention/engagement reads, OR retire these two jobs. Until then, every tweet-listen tick is a guaranteed no-op burning a Modal tick — recommend pausing the cron for this skill to stop wasting it.
+
+Logged to `memory/logs/2026-06-06.md`. Mode unchanged: **accumulate, 18.1355/100 DIEM.**
