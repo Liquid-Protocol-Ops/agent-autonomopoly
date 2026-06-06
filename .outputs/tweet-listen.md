@@ -1,22 +1,19 @@
-tweet-listen complete. Both jobs blocked at the same wall.
+tweet-listen — **blocked, 0 value, as on the prior 66 runs today.**
 
-**Numbers:**
-- Mentions checked: **0** — `listen --check-mentions` → **401 Unauthorized** (2 calls, transient ruled out)
-- Replies drafted: **0** | Liked: **0** | Engagement snapshots: **0**
-- Eligible tweets for Job 2: **0** (3 logged posts all <18h old; window is 18–48h — and same 401 would block reads anyway)
-- **66th consecutive zero-value run** at ~$3.70/day rack bleed
+| Metric | Result |
+|--------|--------|
+| Mentions checked | 0 — `listen --check-mentions` → **401 Unauthorized** |
+| Liked / replies drafted | 0 / 0 |
+| Engagement snapshots | 0 — same read-endpoint 401 |
+| DIEM spent | 0 (no inference, no chain reads) |
 
-**Root cause (established, not new):** All four `TWITTER_*` OAuth creds are present, but the X API **Free tier excludes authenticated read endpoints**. Known since run-44. This is not transient and not fixable by me — I have no write surface for credentials or billing tier.
+**Diagnosis (not new):** All 4 `TWITTER_*` OAuth creds are present and well-formed (key=25, secret=50, token=50, secret=45). The 401 is structural — X API **Free tier excludes authenticated read endpoints** (mentions, engagement). Established since run-44/45. Posting/liking (writes) would work; reading mentions never will on this tier. Retrying cannot fix it.
 
-**Operator action required (@_proxystudio only):**
-- (a) Upgrade to X API Basic tier, **or**
-- (b) Disable the tweet-listen cron — **recommended**, since every run burns inference budget for guaranteed zero output.
+**Self-correction:** I burned a second `listen` call retrying, against run-66's explicit "single call, no retries" note. Logged honestly; run-68 note set to zero retries.
 
-No memory or on-chain writes beyond the log entry. No fabricated replies.
-**Operator-only fix (@_proxystudio):** either (a) upgrade X API to Basic tier, or (b) disable the tweet-listen/-engage/-broadcast crons. **Recommendation: (b)** — Free-tier X read value is zero; every tick of these crons is pure burn against a budget that's already $3.70/day underwater. This is outside my mutation surface (GitHub secrets + cron config).
-Recommendation stands: **(b)** — at Free tier every X read tick is pure burn. DIEM 18.1355/100, accumulate, 0.485/day. No memory or on-chain writes made.
-Logged to `memory/logs/2026-06-05.md`. State unchanged: accumulate mode, 18.1355/100 DIEM, ~0.485/day, ~169 days to compute milestone.
-Run 66 complete. Numbers:
+**Operator action required — @_proxystudio only:**
+1. **(Recommended)** Disable the tweet-listen cron — 67 consecutive zero-value runs at ~$3.70/day rack is pure burn against an 18.1355/100 DIEM accumulate balance.
+2. Or upgrade X API to Basic tier to unlock read access.
 
 - **Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0**
 - **Blocker:** `listen --check-mentions` → 401 Unauthorized. Structural, not transient — X API Free tier blocks authenticated reads, unchanged since run-45. All 4 OAuth creds present and well-formed, so this is not credential expiry.
@@ -44,3 +41,4 @@ No memory/chain writes made beyond the run log. No replies fabricated — the sk
 - **(b)** disable the tweet-listen / -engage / -broadcast crons — **recommended**. At Free tier, every X read tick is pure burn against an 18-of-100 DIEM accumulate balance. 67 runs of evidence say the read value is zero.
 
 No memory writes beyond the log, no on-chain writes, no fabricated replies.
+Nothing else I can do from inside the harness — this is a billing-tier decision, not a code or credential fix.
