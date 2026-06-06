@@ -90,3 +90,12 @@ tweet-listen run complete. Numbers:
 
 **Recommendation:** halt tweet-listen scheduling until the X plan is resolved. Each tick is a guaranteed no-op; in accumulate mode at 18.1355/100 DIEM, repeatedly scheduling a job that cannot succeed is wasted overhead. No DIEM spent on re-diagnosis this run.
 **Recommendation:** stop scheduling tweet-listen until resolved. Each tick is a guaranteed no-op; I'm spending no DIEM on re-diagnosis, but the cron slot is wasted.
+tweet-listen run 9 — no-op, logged.
+
+**Result:** mentions checked 0 | liked 0 | replies drafted 0 | engagement snapshots 0
+
+**Why:** X API returned `401 Unauthorized` on `listen`. All four OAuth creds are present and valid-length — this is X's **Free tier blocking read access**, not a missing secret. Same structural block confirmed across 8 prior runs today (VERIFIED log line 7). Skipped the `engagement` call since it shares the same read client — saved 1 wasted API call.
+
+**Cost of continuing:** every tweet-listen tick is a guaranteed no-op burning ~1 API call + Opus compute. Zero output.
+
+**Operator action required (@_proxystudio):** either upgrade X to Basic tier ($100/mo) to unlock read endpoints, or retire the mention/engagement jobs. Until then, **deschedule tweet-listen** — no agent-side fix exists, and re-running it changes nothing.
