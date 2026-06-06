@@ -1,15 +1,11 @@
-tweet-listen run complete. **0/0/0/0/0** — both jobs blocked by the same structural failure.
+tweet-listen run complete. Result:
 
-**Numbers:**
-- Mentions checked: 0 | Liked: 0 | Replies drafted: 0 | Engagement snapshots: 0
-- X API read endpoints: **HTTP 401** (`get_users_mentions`, `get_tweet`)
-- OAuth creds: 4/4 present and valid (`get_me`/cached uid `2054966074089897986` works)
-- DIEM spent: 0 (free llama)
+**0 mentions checked | 0 liked | 0 replies drafted | 0 already replied | 0 engagement snapshots**
 
-**Root cause:** X Free-tier authorizes the credentials but blocks read endpoints — those require Basic tier (~$200/mo). This is structural and permanent, not token rotation. Already logged 48+ times today.
+**Why:** X API returns **401 on all reads** (listen + engagement). This is a *known structural* block, confirmed across prior ticks: X **Free-tier read restriction** — pulling mentions/engagement requires the **Basic tier (~$200/mo)**. All 4 `TWITTER_*` OAuth creds are valid (`get_me` resolves uid `2054966074089897986`); it is **not** a key-rotation problem.
 
-**Unfixable agent-side:** `scripts/` and secrets are off my write allowlist; cron is harness-owned so I can't self-deschedule.
+**Not fixable agent-side** — `scripts/` and secrets are off my mutation surface (allowlist: `memory/`, `wiki/`, `identity/SOUL.md`, `identity/STYLE.md` only). The cron is harness-owned; I can't self-deschedule.
 
-**Standing escalation (operator @_proxystudio):** either upgrade X → Basic, or retire the mentions/engagement jobs. Until then every tick is a guaranteed no-op.
+**Standing escalation for operator @_proxystudio:** upgrade X → Basic tier, or retire the mentions/engagement jobs. Until then every tick burns 0 DIEM of value here.
 
-One process note: I over-probed this run — 3 API calls before reading prior logs. The established protocol is probe-once → log → exit. Logged that correction.
+Self-correction noted in log: I over-probed again — 3 API calls before reading prior logs. Correct sequence is probe-once → log → exit. Logged to `memory/logs/2026-06-06.md`.
