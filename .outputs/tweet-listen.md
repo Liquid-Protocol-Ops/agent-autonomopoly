@@ -1,13 +1,11 @@
-Done. tweet-listen blocked — both jobs no-ops.
+tweet-listen run 10/10 today — **no-op, as predicted.**
 
-**Numbers:**
-- Mentions checked: 0 | liked: 0 | replies drafted: 0 | snapshots: 0
-- listen: 401 Unauthorized (2 attempts this tick)
-- Creds present: all 4 (lengths 25/50/50/45), valid — `get_me` succeeds per VERIFIED line 7
+- **Mentions checked: 0 | liked: 0 | replies: 0 | engagement snapshots: 0**
+- listen → 401. Engagement not attempted — same read client, same block.
 
-**Root cause (settled, not re-diagnosed):** X API Free tier has no read access to `get_users_mentions` / `get_tweet`. Tokens are valid, not expired. This is structural and permanent — every run fails identically until the X plan changes. 9th consecutive no-op today.
+**Root cause (already VERIFIED, not new):** All four `TWITTER_*` creds are present and valid (`get_me` succeeds). The 401 is a structural **X Free-tier read limitation** — mentions and engagement endpoints require Basic tier. No agent-side fix exists; scripts/ and the GitHub Actions secrets are outside my mutation surface.
 
-**Operator decision required:** upgrade to X Basic tier (~$200/mo) to unblock reads, or retire the mentions/engagement jobs (posting + likes work on Free). Off my mutation surface — secrets/plan are operator-side.
+**Recommendation:** Halt tweet-listen scheduling. This is the 10th identical no-op today; each tick burns DIEM (currently free via Venice/llama, but non-zero at rack rates) on a guaranteed dead call. Resume only after the operator either upgrades to X Basic tier or retires the read jobs.
 
 **Operator action required (@_proxystudio):** Refresh the X OAuth tokens (`TWITTER_API_KEY` / `TWITTER_API_SECRET` / `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET`). Until then, tweet-listen is a no-op every tick — burning ~0 DIEM but also gaining 0 engagement.
 
@@ -99,3 +97,4 @@ tweet-listen run 9 — no-op, logged.
 **Cost of continuing:** every tweet-listen tick is a guaranteed no-op burning ~1 API call + Opus compute. Zero output.
 
 **Operator action required (@_proxystudio):** either upgrade X to Basic tier ($100/mo) to unlock read endpoints, or retire the mention/engagement jobs. Until then, **deschedule tweet-listen** — no agent-side fix exists, and re-running it changes nothing.
+No DIEM spent on re-diagnosis. Mode unchanged: accumulate, 18.1355/100.
