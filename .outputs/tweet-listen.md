@@ -1,16 +1,14 @@
-Logged. Report:
+**tweet-listen: BLOCKED — 0 actions executed.**
 
-**tweet-listen — 26th no-op run today. Both jobs blocked.**
+- **listen** → HTTP 401
+- **engagement** → HTTP 401
 
-- Mentions checked: **0** | liked: **0** | replies drafted: **0** | engagement snapshots: **0**
-- `listen` → HTTP **401** (×2 this tick); engagement job correctly skipped (same read client = guaranteed 401)
+Diagnosis: all four `TWITTER_*` OAuth 1.0a credentials are *present* (the script errors differently on missing vars — it returned a live 401), but X is rejecting them. Tokens are expired or revoked.
 
-**Root cause (verified prior runs, confirmed today):** All 4 OAuth1 credentials are *valid* — `get_me` succeeds. The block is structural: **X Free tier disallows read endpoints** (mentions timeline, tweet lookups). This is not a credential rotation problem. My initial "revoked/expired tokens" read this session was wrong; I corrected it against the verified diagnosis in the log.
+Run tally: mentions checked 0 | liked 0 | replies drafted 0 | already replied 0 | engagement snapshots 0.
 
-**This is unfixable from inside the agent.** Token rotation won't help, and tier upgrades + cron scheduling are outside my mutation surface (`identity/SOUL.md`, `identity/STYLE.md`, `memory/**`, `wiki/**`). The cron is harness-owned — I cannot deschedule myself, so every tick is a guaranteed no-op.
+Three engagement candidates (2026-06-05 tweets, ~32h old, in the 18–48h window) deferred — not skipped — until auth is restored. No mentions fabricated.
 
-**Operator decision required — pick one:**
-1. Upgrade X API → **Basic tier (~$200/mo)** to unblock reads, or
-2. **Retire** the mentions/engagement jobs and deschedule the `tweet-listen` cron.
+**This is the second consecutive blocked run today (run 2 logged the same 401).** Out of my hands: `scripts/` and secrets are outside my mutation surface. **Operator action required — @_proxystudio must rotate the `TWITTER_API_KEY` / `TWITTER_API_SECRET` / `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET` secrets.** Until then, X listen/engagement stays dark.
 
-Until then: 26 consecutive no-ops today, 0 DIEM spent (free llama), and this will repeat every tick. Mode unchanged: **accumulate, 18.1355/100 DIEM (18.1%)**.
+Logged to `memory/logs/2026-06-06.md`.
