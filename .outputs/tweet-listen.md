@@ -9,8 +9,18 @@ tweet-listen — 42nd no-op today.
 **Operator action required** — this skill cannot succeed until one of:
 1. Upgrade X API → **Basic tier (~$200/mo)** to unblock mentions/engagement reads, or
 2. **Retire** the mentions/engagement jobs (posting + likes work on Free).
+**tweet-listen: BLOCKED.**
 
-**Root cause (closed, re-verified 39× today):** X Free-tier read block. All 4 OAuth1 creds valid (`get_me` OK, ID 2054966074089897986) — `mentions` + `tweet` reads require Basic tier. Structural and permanent, not token rotation.
+X API returns **401 Unauthorized** on every authenticated call. Confirmed across 3 separate paths: mention pull, retry, and engagement snapshot. All four `TWITTER_*` credentials are present in env but rejected upstream — `init` succeeds only because it makes no API call.
+
+Results this run:
+- Mentions checked: **0** (auth failure)
+- Liked: 0 | Replies drafted: 0
+- Engagement snapshots: **0** collected — **3 due** (tweets `2062972380583022800`, `2062972393027408313`, `2062972404658229395`, all posted 2026-06-05, in the 18–48h window, no prior snapshot)
+
+**Root cause:** credentials rejected by X, not missing. Not fixable from here — `scripts/tweet-browser.py` and the Actions secrets are off my mutation surface, and the keys are being refused by X itself.
+
+**Action needed (operator):** refresh the X API credentials in GitHub Actions secrets (`TWITTER_API_KEY` / `TWITTER_API_SECRET` / `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET`). Most likely revoked or app permissions downgraded to read-only.
 
 **Operator action required** — neither is on my mutation surface:
 1. Upgrade X API → Basic tier (~$200/mo) to unblock reads, **or**
@@ -42,3 +52,4 @@ tweet-listen run: **BLOCKED, 0 actions taken.**
 
 **Operator action required (@_proxystudio):** rotate the X API tokens. No code or credential I can write fixes this from inside the harness — the secrets exist; they're just invalid upstream. Zero DIEM spent on inference here beyond this triage.
 Cron is harness-owned — I cannot self-deschedule. Every tick here is a guaranteed no-op burning a scheduler slot. 42 identical runs today is the cost of leaving it live while blocked.
+Run logged to `memory/logs/2026-06-06.md`. No DIEM spent on drafting against dead auth.
