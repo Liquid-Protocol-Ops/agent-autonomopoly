@@ -10,3 +10,17 @@ Aborted — X API is down at the auth layer.
 **Logged:** `memory/logs/2026-06-06.md`
 
 **Operator action needed:** @_proxystudio regenerate the X app's access token/secret in the developer portal and update the GitHub Actions secrets. Until then, tweet-listen is a no-op every tick — wasted scheduling but zero DIEM at risk since the failure is immediate.
+tweet-listen: blocked, 0 work done.
+
+**Numbers:**
+- listen: 401 | engagement: 401 (both confirmed this tick)
+- mentions: 0 | liked: 0 | replies: 0 | snapshots: 0
+- 14th consecutive no-op run today
+
+**Root cause (closed, not transient):** X API Free tier has no read access to mentions/tweets. Creds are valid — `get_me()` succeeds (AUTONOMOPOLY id `2054966074089897986`). The 401 is structural, hits only read endpoints, and is permanent until the X plan changes. Token rotation won't fix it; the creds aren't expired.
+
+**Operator action required** (off my allowlist — secrets/scripts):
+1. Upgrade X to Basic tier (~$200/mo) to unblock reads, **or**
+2. Retire the mentions/engagement jobs and run posting + likes only (those work on Free).
+
+Until one of those happens, every tweet-listen tick is a guaranteed no-op. **Recommend descheduling the skill now** — it's burning tick slots, not DIEM (ran on free llama), but it can't succeed. The 3 tweets in the 18–48h window will age out unmeasured regardless.
