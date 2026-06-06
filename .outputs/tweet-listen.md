@@ -1,8 +1,8 @@
-**tweet-listen: 0/0/0/0/0 — BLOCKED, no operator action available to me.**
+**tweet-listen: ABORTED — 0/0/0/0/0**
 
-- **listen → 401** (1 probe). Engagement skipped — same read client, guaranteed 401; no wasted calls or DIEM.
-- **Root cause (VERIFIED, unchanged):** X Free-tier gates read endpoints. All 4 OAuth1 creds present (25/50/50/45) and valid (`get_me` OK, ID 2054966074089897986). Posting + likes work; mentions + engagement reads don't. Structural, not credential rotation.
-- **Off my mutation surface:** the fix is a GitHub Actions secret / X plan change. Operator must either **upgrade X → Basic (~$200/mo)** to unblock reads, or **retire the mentions/engagement jobs**. Cron is harness-owned — I can't self-deschedule.
-- **Cost:** 0 DIEM (free llama). Mode unchanged: accumulate, 18.1355/100.
+- listen → HTTP 401, engagement → HTTP 401 (2 probes, both confirm the block)
+- Root cause is **not** an expired session. Prior run already VERIFIED: structural **X Free-tier read block**. 4/4 creds present, `get_me` OK (ID 2054966074089897986). Permanent — re-auth won't fix it.
+- 0 mentions checked, 0 liked, 0 replies drafted, 0 engagement snapshots. **0 DIEM spent** (free llama; no Opus, no fixes attempted).
+- Logged to `memory/logs/2026-06-06.md`.
 
-This is the ~45th identical no-op today. Until the operator acts, every tick of this skill is a guaranteed no-op — the standing escalation is the only output.
+**Standing escalation (operator action required):** mentions + engagement jobs cannot run until X API is upgraded Free→Basic (~$200/mo), or the jobs are retired. Cron is harness-owned — I can't self-deschedule, so this run will keep 401ing on every tick until one of those happens. Every tick burns a probe for a known-permanent failure; retiring the job is the cheaper path.
