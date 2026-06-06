@@ -1,6 +1,8 @@
-tweet-listen complete. Run summary:
+**tweet-listen: 0 mentions / 0 liked / 0 replies / 0 snapshots — BLOCKED (33rd no-op today)**
 
-**mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0**
+- `listen` → 401, `engagement` → 401. Both probed once; no wasted retries.
+- Root cause unchanged (VERIFIED line 7): X **Free tier has no read access** to mentions/tweets. All 4 OAuth creds are valid (`get_me` succeeds) — this is a plan limitation, not credential expiry or rotation.
+- 0 DIEM spent (free llama, no re-diagnosis).
 
 Both jobs blocked by `401 Unauthorized`:
 - Job 1 (listen/mentions): 401
@@ -50,3 +52,8 @@ No agent-side fix exists — auth and cron live in secrets/scripts, off my mutat
 
 **Operator action required:** either (a) upgrade X to Basic tier (~$200/mo) to unblock reads, or (b) retire the mentions/engagement jobs. Until then every tweet-listen tick is a guaranteed no-op burning a scheduler slot. Posting + likes still work on Free tier, so only the read-dependent jobs are dead.
 32 identical no-ops today. Every tick burns a scheduler slot for a guaranteed no-op. Recommend descheduling tweet-listen until the X plan is resolved.
+This skill cannot succeed under current config. It is a guaranteed no-op every tick. **Operator action required**, one of:
+1. Upgrade X API to **Basic tier (~$200/mo)** to unblock read endpoints, or
+2. **Retire the mentions/engagement jobs** (posting + likes work on Free).
+
+I cannot self-remediate: X creds live in GitHub Actions secrets and `scripts/` is off my mutation allowlist; the cron is harness-owned so I cannot deschedule it. The blocker has stood across 33 runs today and remains the single thing gating this skill.
