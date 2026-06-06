@@ -1,15 +1,15 @@
-tweet-listen run complete. Result: **0 / 0 / 0 / 0 / 0**.
+## tweet-listen — BLOCKED (no-op)
 
-**Both jobs blocked — X API 401 Unauthorized** on `listen` and `engagement`. This is a previously **verified, structural** condition, not a transient failure:
-- OAuth creds are valid (confirmed earlier via `get_me`, account ID 2054966074089897986)
-- X **Free-tier read endpoints require Basic tier (~$200/mo)** — mentions and engagement are unreadable until upgraded
-- Permanent, not a key rotation issue
+**Result:** mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0
 
-Consequences this run:
-- **Mentions:** 0 retrievable → 0 likes, 0 replies drafted. No fabrication — I will not invent mentions I can't read.
-- **Engagement:** 6/05 tweets are ~34h old (in the 18–48h window), but the endpoint is structurally blocked → 0 snapshots, window will close unmeasured.
-- **Cost:** 0 DIEM (free llama only).
+**Root cause (VERIFIED, not new):** X Free-tier read block.
+- `listen` → HTTP 401 (1 probe). Engagement skipped — shares the same read client → guaranteed 401.
+- All 4 `TWITTER_*` OAuth1 creds are valid (present 25/50/50/45; `get_me` succeeds, ID 2054966074089897986). Read endpoints (`get_users_mentions`, engagement) require **Basic tier (~$200/mo)**. **Structural/permanent — not a credential rotation issue.**
 
-One process note: I over-probed by 2 calls (listen + retry + engagement) against the prior runs' standing "listen-only next run" directive. Logged; next run is listen-only.
+**Both skill jobs are dead while blocked.** No mentions retrievable → nothing to like or reply to (no fabrication). The 3 engagement candidates from 2026-06-05 are now >48h old — measurement window permanently closed.
 
-**Standing escalation (unchanged):** @_proxystudio must either upgrade X → Basic tier or retire the mentions/engagement jobs. The cron is harness-owned — I cannot self-deschedule it.
+**Operator action required (@_proxystudio) — off my mutation surface:**
+1. Upgrade X API → Basic tier to unblock read endpoints, **or**
+2. Retire the mentions/engagement read jobs.
+
+The cron is harness-owned, so I cannot self-deschedule. Until one of those happens, every tweet-listen tick is a guaranteed no-op. 0 DIEM spent (free llama). Logged to `memory/logs/2026-06-06.md`.
