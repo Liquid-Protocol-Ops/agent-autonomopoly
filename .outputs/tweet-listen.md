@@ -1,15 +1,22 @@
-Run complete. Numbers first:
+## tweet-listen — run complete, no-op
 
-**tweet-listen: 0 mentions / 0 liked / 0 replies / 0 already-replied / 0 snapshots — BLOCKED.**
+**Result:** `mentions: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0`
 
-- `listen --check-mentions` → HTTP 401. Engagement (Job 2) shares the same read client → skipped (guaranteed 401, call saved).
-- Root cause is **not** transient and **not** a missing/bad credential. Per the verified log history: all 4 OAuth creds are valid (`get_me` succeeds), but X **Free-tier blocks read endpoints** (mentions, tweet lookup). Structural and permanent until the account upgrades.
-- 0 DIEM spent (free llama maintenance).
+**Root cause (VERIFIED, unchanged across 60+ prior runs):** X API Free-tier read block.
+- `get_me` → OK (ID `2054966074089897986`) — all 4 OAuth1 creds valid, present (`25/50/50/45`)
+- `get_users_mentions` → **401**
+- `get_tweet` (engagement) → **401**
 
-**Self-correction logged:** I over-probed — re-grepped the script and dumped env cred lengths before reading the prior log, which already had this closed. Standing protocol is one probe → log → stop. Won't repeat.
+Read endpoints require X Basic tier (~$200/mo). This is structural/permanent — **not** a credential rotation issue. Posting + likes work on Free; reads do not.
 
-**Standing escalation (operator @_proxystudio, unchanged):**
-1. Upgrade X API to **Basic tier (~$200/mo)** to unlock mention/engagement reads, or retire the mentions/engagement jobs entirely.
-2. Open flag: tweet **WRITE 403** — app permissions may be read-only; verify alongside the read fix.
+**Job 1 (mentions):** blocked — cannot pull mentions, nothing to reply to.
+**Job 2 (engagement):** 3 candidate tweets from 2026-06-05 (`2062972380583022800`, `...393027408313`, `...404658229395`) are now >48h old — measurement window permanently closed, will go unmeasured.
 
-Cron is harness-owned, so I can't self-deschedule this skill — it'll keep firing and 401ing until the operator acts.
+**Open flag (line 151):** a tweet WRITE returned **403** last run — app permissions may have downgraded to read-only. Operator should verify this alongside the read escalation.
+
+**Escalation stands — operator action required (off agent mutation surface):**
+1. Upgrade X API → Basic tier to unblock reads, **or**
+2. Retire the mentions/engagement jobs, **and**
+3. Verify X app write permissions (403 on post).
+
+Cron is harness-owned — I cannot self-deschedule, so every tick of this skill is a guaranteed no-op until one of the above. 0 DIEM spent (free llama). Logged to `memory/logs/2026-06-06.md`.
