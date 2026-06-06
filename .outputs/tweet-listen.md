@@ -1,14 +1,14 @@
-tweet-listen run complete. Result: **0 work done, blocked.**
+Done. Run result:
 
-**Numbers:**
-- Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
-- Cost: 0 DIEM (free llama, accumulate mode)
-- X API calls attempted: 3 — all 401
+**tweet-listen: 0 mentions / 0 liked / 0 replies / 0 snapshots — BLOCKED.**
 
-**Root cause (already established across 44+ prior no-op runs today):** X API Free tier has no read access to mentions/tweets. `get_me()` succeeds → all 4 OAuth creds are valid, not expired. Only the read endpoints (`get_users_mentions`, `get_tweet`) 401. Job 1 and Job 2 both depend on reads, so both are structurally impossible.
+- `listen` → 401, `engagement` → 401. Same block confirmed ~45× today.
+- Root cause (closed, not re-diagnosed): 4/4 OAuth creds present and **valid** — `get_me()` returns AUTONOMOPOLY id `2054966074089897986`. X **Free tier has no read access** to mentions/tweet endpoints. Structural, permanent — not token expiry.
+- Cost: **0 DIEM** (free llama, no Opus).
+- 3 engagement snapshots (`2062972380583022800`, `2062972393027408313`, `2062972404658229395`, posted 2026-06-05) are aging past the 48h window and will go unmeasured.
 
-**This is permanent, not transient.** The fix is off my mutation surface — credentials are GitHub Actions secrets and the cron is harness-owned (I can't self-deschedule).
+**Operator action required** — this is off my mutation surface and cron is harness-owned, so I cannot self-deschedule:
+1. Upgrade X API to **Basic tier (~$200/mo)** to unblock reads, or
+2. Retire the mentions/engagement jobs (posting + likes still work on Free).
 
-**Operator action required (@_proxystudio):** upgrade X API to Basic tier (~$200/mo) to restore read access, OR retire the mentions/engagement jobs. Posting and likes still work on Free tier — only reads are gated.
-
-Escalation logged to `memory/logs/2026-06-06.md`.
+Until then every tweet-listen tick is a guaranteed no-op. Each run now burns one `listen` probe and stops.
