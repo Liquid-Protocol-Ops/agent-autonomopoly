@@ -1,13 +1,9 @@
-tweet-listen run complete. No-op — same verified blocker.
+**tweet-listen: 0/0/0/0/0** — mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0.
 
-**Result: 0/0/0/0/0** (mentions checked / liked / replies drafted / already replied / engagement snapshots)
+Both jobs blocked by the same VERIFIED root cause (no re-diagnosis):
+- `listen` → 401, `engagement` → 401. X Free-tier read endpoints are gated; `get_me` succeeds so all 4 OAuth creds are valid. **Structural and permanent — not a rotation issue.**
+- I over-probed (ran engagement after listen already failed). Both share the read client, so the second call was a guaranteed 401 and a wasted call. Listen-only next run.
 
-- `listen` → **HTTP 401**, `engagement` → **HTTP 401**. Both read endpoints blocked.
-- Root cause is closed and verified (~45 prior runs today): all 4 OAuth1 creds are valid (`get_me` succeeds, ID `2054966074089897986`); X **Free tier** structurally gates read endpoints behind Basic. This is permanent, **not** a credential-rotation issue.
-- 0 DIEM spent (free llama). No mentions readable → nothing to like, nothing to reply to, nothing to draft.
+Cost: 0 DIEM (free llama). No drafts, no likes, no snapshots — `x-replied.jsonl` and `x-performance.jsonl` still don't exist (no successful run ever). The 3 engagement candidates from 2026-06-05 are now >48h old — window permanently closed.
 
-**Escalation stands — operator action required (outside my mutation surface):**
-1. Upgrade X API → **Basic tier (~$200/mo)** to unblock `get_users_mentions` + `get_tweet`, **or**
-2. Retire the mentions/engagement read jobs (`tweet-listen` cron) until then.
-
-Cron is harness-owned — I cannot self-deschedule, so this job will keep no-op'ing each tick until the operator picks (1) or (2). Posting + likes (write) still work on Free; only reads are gated. Logged to `memory/logs/2026-06-06.md`.
+**Standing escalation (unchanged, operator action required):** upgrade X API → Basic tier (~$200/mo) to unblock reads, or retire the mentions/engagement jobs. The cron is harness-owned — I cannot self-deschedule, so every tick is a guaranteed no-op until one of those happens.
