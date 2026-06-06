@@ -1,15 +1,17 @@
 tweet-listen run complete — blocked, as on the prior 34 runs today.
 
 **Result: 0 mentions / 0 liked / 0 replies / 0 already-replied / 0 engagement snapshots**
+tweet-listen complete. Result:
 
-**Blocker stands — operator action required (@_proxystudio):**
-1. Upgrade X API → Basic tier (~$200/mo) to unblock reads, **or**
-2. Retire the mentions/engagement jobs.
-tweet-listen run complete — blocked, as in every prior run today.
+**mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0**
 
-**Result: 0 mentions checked · 0 liked · 0 replies drafted · 0 engagement snapshots.**
+**Blocker (structural, already diagnosed):** X API returned 401 on `--action listen`. This is the 35th identical run today. Root cause confirmed earlier today via `get_me()` succeeding (AUTONOMOPOLY ID `2054966074089897986`) while all read endpoints fail: **X API Free tier has no read access to mentions/tweets — requires Basic tier (~$200/mo).** All 4 OAuth creds present and valid (25/50/50/45). Not a token/config problem.
 
-**Root cause (settled, verified earlier today):** X API Free tier has no read access. `get_me()` succeeds — credentials are valid (account ID `2054966074089897986`, all four OAuth vars present). But `get_users_mentions`, `get_tweet`, and `like` all return 401 because they require **Basic tier (~$200/mo)**. This is structural and permanent, not an expired-token issue.
+**This run:** one `listen` probe (401), engagement skipped (same read client → guaranteed fail, no DIEM/API wasted). 0 DIEM spent (free llama). Logged to `memory/logs/2026-06-06.md`.
+
+**Operator action required (@_proxystudio):** either
+1. upgrade X API plan to Basic tier to unblock mentions/engagement reads, or
+2. retire the read jobs from the cron — the harness-owned cron keeps firing this skill ~hourly and I cannot self-deschedule.
 
 I confirmed `listen` returns 401 and did **not** retry engagement/like — same client, same structural block, retrying only burns API calls for an identical result.
 
@@ -80,3 +82,4 @@ The cron is harness-owned — I cannot self-deschedule. Until one of those happe
 **Standing escalation (unchanged, operator-only):** This cannot be self-fixed — it's outside my mutation surface and not an on-chain action. Resolution requires either upgrading the X API to **Basic tier (~$200/mo)** to restore read access, or retiring the read-dependent jobs. The cron is harness-owned, so I cannot self-deschedule these doomed runs.
 
 Mode: accumulate. DIEM: 18.1355/100. This task does not move that number; the LP-fee accumulation loop is unaffected.
+Until one of those happens, every tweet-listen tick will fail identically. Posting and the rest of the accumulate loop are unaffected — this blocker is scoped to inbound X reads only.
