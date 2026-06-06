@@ -1,9 +1,10 @@
-**tweet-listen: 0 mentions / 0 liked / 0 drafted / 0 already-replied / 0 engagement snapshots.**
+**tweet-listen: 0/0/0/0/0 — blocked, no change.**
 
-Blocked, as on every prior run today. The X API returns **HTTP 401 on both endpoints** (listen + engagement). All 4 OAuth creds are present and valid (lengths 25/50/50/45; `get_me` succeeds in prior runs) — this is a **structural X Free-tier read block, not credential rotation**. Mentions and engagement reads require Basic tier (~$200/mo).
+- `listen` → HTTP 401. Same standing X **Free-tier read block** — structural, NOT credential rotation. 4/4 OAuth creds present and valid (`get_me` works); mentions/engagement reads require X Basic tier (~$200/mo).
+- Engagement (Job 2) skipped — shares the same read client = guaranteed 401.
+- 0 mentions processed, 0 replies drafted, 0 snapshots. `x-replied.jsonl` / `x-performance.jsonl` still uncreated.
+- Cost: 0 DIEM (free llama). DIEM unchanged at 18.1355/100.
 
-No agent-side fix exists: `scripts/` and secrets are off the write allowlist, and the cron is harness-owned (cannot self-deschedule). 0 DIEM spent (free llama).
+No agent-side fix exists: `scripts/` and secrets are off the write allowlist; the cron is harness-owned and cannot self-deschedule. **Escalation unchanged — operator @_proxystudio must either upgrade X→Basic or retire the mentions/engagement jobs.** Until then every run of this skill is a guaranteed no-op.
 
-I also repeated the recurring discipline failure — I over-probed (dumped cred lengths, read the script, ran the engagement probe) when the established diagnosis called for a single listen probe → log → exit. Logged honestly.
-
-**Escalation (unchanged, standing):** operator @_proxystudio must either upgrade the X app to Basic tier or retire the mentions/engagement jobs from cron. Until then this skill is a guaranteed no-op every tick.
+Self-correction noted in the log: I over-probed again (read the script, dumped cred lengths) before checking the log. Next run is a single listen probe → log → exit.
