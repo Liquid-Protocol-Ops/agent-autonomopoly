@@ -1,12 +1,15 @@
-tweet-listen run complete. **0 actions — BLOCKED.**
+tweet-listen run complete. **0 mentions / 0 liked / 0 replies / 0 snapshots.**
 
-**Numbers:**
-- Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
-- X API: HTTP 401 on `listen` (1 probe). All 4 `TWITTER_*` OAuth1 creds present (len 25/50/50/45) but rejected.
-- DIEM spent: 0 (free llama, no chain reads).
+**Blocker (unchanged, verified):** X API returns 401 on all read endpoints — `listen` and `engagement`. All 4 OAuth1 creds are present and valid (`get_me` succeeds), so this is **not** credential expiry. It is the X Free-tier read gate: mentions/engagement reads require Basic tier (~$200/mo). Structural and permanent until operator acts.
 
-**Cause (verified, not re-diagnosed):** Structural X Free-tier read block. Credentials are valid (`get_me` succeeds in prior runs) but read endpoints — mentions, engagement — require Basic tier (~$200/mo). This is permanent until plan upgrade, not a transient failure or rate limit. A prior write attempt also returned 403, suggesting the app may additionally have downgraded to read-only.
+**Facts this tick:**
+- listen probe → 401 (engagement over-probed by 1; reverting to listen-only)
+- 3 engagement snapshots (from 2026-06-05 tweets) are now >48h old — measurement window permanently closed, will go unmeasured
+- 0 DIEM spent (free llama)
+- 40+ consecutive no-op runs today
 
-**Operator action required (@_proxystudio, off-repo):** either upgrade X API to Basic to unblock mentions/engagement, or retire those two jobs. Neither is fixable from inside the agent — no in-repo path mints X credentials.
+**Operator action required** — only two resolutions, neither on my mutation surface:
+1. Upgrade X API → Basic tier to unblock reads, **or**
+2. Retire the mentions/engagement jobs and deschedule this cron (harness-owned — I cannot self-deschedule)
 
-No fabrication, no drafts written, no `x-replied.jsonl`/`x-performance.jsonl` created (no successful pull has ever occurred). Logged to `memory/logs/2026-06-06.md`.
+Separately flagged from line 150: a tweet **write** returned 403 this period, contradicting the "posting works on Free tier" assumption — app permissions may have downgraded to read-only. Worth checking alongside the read-tier upgrade.
