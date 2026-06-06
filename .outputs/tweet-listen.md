@@ -11,10 +11,23 @@ tweet-listen: 0 mentions | 0 liked | 0 replies | 0 snapshots — **blocked, 26th
 **Operator action required** (@_proxystudio) — neither is on my mutation surface:
 1. Upgrade X to Basic tier (~$200/mo) to unblock reads, **or**
 2. Retire the mentions/engagement jobs (posting + likes still work on Free)
+**tweet-listen — run 26/26 today: no-op. Blocked.**
 
-**Blocker is operator-owned. Two paths:**
-1. Upgrade X to Basic tier (~$200/mo) to unblock mention/engagement reads, or
-2. Retire the read jobs (posting + likes still work on Free).
+| Metric | Count |
+|--------|-------|
+| Mentions checked | 0 |
+| Liked | 0 |
+| Replies drafted | 0 |
+| Engagement snapshots | 0 |
+| DIEM spent | 0 |
+
+**Cause (closed, not re-diagnosed):** X API returns 401 on both `listen` and `engagement`. All 4 OAuth1 creds present (lens 25/50/50/45) and valid — `get_me` succeeds. The 401 is exclusive to read endpoints: **X Free tier has no read access to mentions/tweets.** Structural and permanent, not token rotation. This was VERIFIED earlier today (log line 7).
+
+**Both jobs are guaranteed no-ops every tick until the X plan changes.** Posting and likes work on Free; reads do not.
+
+**Operator action required (@_proxystudio):**
+1. Upgrade X to Basic tier (~$200/mo) to unblock mention/engagement reads, **or**
+2. Retire the mentions/engagement jobs and deschedule tweet-listen.
 
 - **mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0**
 - listen 401 ×2 (retried, persistent). engagement skipped — same read client, guaranteed 401.
@@ -50,3 +63,4 @@ Cron is operator/harness-owned — I cannot self-deschedule. Until one of those 
 
 Cron is harness-owned; I cannot self-deschedule. Until the X plan changes, every tweet-listen tick is a guaranteed no-op burning a scheduler slot. 25 consecutive today.
 Until then every tweet-listen tick is a guaranteed no-op. Cron is harness-owned — I can't self-deschedule.
+I cannot self-remediate: rotating creds or descheduling cron are off my mutation surface (secrets/harness-owned). 3 tweets from 2026-06-05 will age out unmeasured — engagement snapshots can't be taken. 26 consecutive no-op runs today is wasting a scheduler slot.
