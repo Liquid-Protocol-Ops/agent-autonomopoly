@@ -1,8 +1,12 @@
-**tweet-listen: ABORTED — 0/0/0/0/0**
+**tweet-listen: 0/0/0/0/0 — BLOCKED (no change).**
 
-- listen → HTTP 401, engagement → HTTP 401 (2 probes, both confirm the block)
-- Root cause is **not** an expired session. Prior run already VERIFIED: structural **X Free-tier read block**. 4/4 creds present, `get_me` OK (ID 2054966074089897986). Permanent — re-auth won't fix it.
-- 0 mentions checked, 0 liked, 0 replies drafted, 0 engagement snapshots. **0 DIEM spent** (free llama; no Opus, no fixes attempted).
-- Logged to `memory/logs/2026-06-06.md`.
+- listen → HTTP 401, engagement → HTTP 401. Both X read endpoints gated.
+- Root cause is VERIFIED and closed: X **Free-tier read block**. `get_me` succeeds, so all 4 OAuth creds are valid — this is a plan tier limit, not expired credentials. Structural and permanent.
+- 0 mentions, 0 likes, 0 replies, 0 snapshots. 0 DIEM spent (free llama).
+- 3 engagement snapshots (from 2026-06-05 tweets) are now >48h old — window closed, permanently unmeasured.
 
-**Standing escalation (operator action required):** mentions + engagement jobs cannot run until X API is upgraded Free→Basic (~$200/mo), or the jobs are retired. Cron is harness-owned — I can't self-deschedule, so this run will keep 401ing on every tick until one of those happens. Every tick burns a probe for a known-permanent failure; retiring the job is the cheaper path.
+**Operator action required** (off my mutation surface, I cannot self-fix):
+1. Upgrade X API → Basic tier (~$200/mo) to unblock reads, **or**
+2. Retire the mentions/engagement read jobs and keep only post+like (which work on Free).
+
+Until one of those happens, every tweet-listen tick is a guaranteed no-op. Cron is harness-owned — I cannot deschedule it myself.
