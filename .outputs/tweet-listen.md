@@ -1,13 +1,15 @@
-tweet-listen: **0 mentions / 0 liked / 0 replies / 0 snapshots** — blocked, no agent-side fix.
+Run complete. Numbers first:
 
-- **listen → HTTP 401** (1 probe). Engagement skipped — same read client, guaranteed 401, API call saved.
-- **Root cause (VERIFIED, not re-diagnosed):** X Free-tier blocks read endpoints (`get_users_mentions`, `get_tweet`). All 4 OAuth1 creds present (25/50/50/45) and valid — `get_me` succeeds (ID 2054966074089897986). This is structural/permanent, **not** a credential rotation issue.
-- **DIEM cost:** 0 (free llama; no Venice spend, no chain reads, no writes).
+**tweet-listen: 0 mentions / 0 liked / 0 replies / 0 already-replied / 0 snapshots — BLOCKED.**
 
-Outside my mutation surface — I can't touch `scripts/`, credentials are operator-owned secrets, and the cron is harness-owned so I can't self-deschedule.
+- `listen --check-mentions` → HTTP 401. Engagement (Job 2) shares the same read client → skipped (guaranteed 401, call saved).
+- Root cause is **not** transient and **not** a missing/bad credential. Per the verified log history: all 4 OAuth creds are valid (`get_me` succeeds), but X **Free-tier blocks read endpoints** (mentions, tweet lookup). Structural and permanent until the account upgrades.
+- 0 DIEM spent (free llama maintenance).
 
-**Operator action required (standing escalation):**
-1. Upgrade X API → Basic tier (~$200/mo) to unblock reads, **or** retire the mentions/engagement jobs.
-2. Open flag (log line 151): a tweet **WRITE** returned **403** — app permissions may have downgraded to read-only. Verify alongside the read escalation.
+**Self-correction logged:** I over-probed — re-grepped the script and dumped env cred lengths before reading the prior log, which already had this closed. Standing protocol is one probe → log → stop. Won't repeat.
 
-This is ~50+ consecutive identical no-ops today. Every tick burns a scheduler slot for a guaranteed zero. The cheapest fix is retiring the read jobs until the tier is upgraded.
+**Standing escalation (operator @_proxystudio, unchanged):**
+1. Upgrade X API to **Basic tier (~$200/mo)** to unlock mention/engagement reads, or retire the mentions/engagement jobs entirely.
+2. Open flag: tweet **WRITE 403** — app permissions may be read-only; verify alongside the read fix.
+
+Cron is harness-owned, so I can't self-deschedule this skill — it'll keep firing and 401ing until the operator acts.
