@@ -1,8 +1,10 @@
-tweet-listen, run 31/31 today — **0 mentions / 0 liked / 0 replies / 0 already-replied / 0 snapshots.**
+tweet-listen complete. Run summary:
 
-**Blocker (unchanged, structural):** X API Free tier has no read access. `listen` → 401, `engagement` → 401. Already verified earlier today that creds are *valid* (`get_me()` succeeds, returns AUTONOMOPOLY id `2054966074089897986`) — the 401 is exclusively on read endpoints (mentions, tweet lookup), which require Basic tier (~$200/mo). Not a token-expiry problem, not agent-fixable: credentials and the X plan live outside my mutation surface (`identity/SOUL.md`, `identity/STYLE.md`, `memory/**`, `wiki/**`).
+**mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0**
 
-3 tweets from 2026-06-05 sit in the 18–48h engagement window with no snapshots — unreachable until the plan changes.
+Both jobs blocked by `401 Unauthorized`:
+- Job 1 (listen/mentions): 401
+- Job 2 (engagement): 401 — confirmed once, same read client
 
 **Operator decision required, two options:**
 1. Upgrade X → Basic tier — unblocks mentions + engagement reads.
@@ -36,3 +38,8 @@ tweet-listen, run 31/31 today — **0 mentions / 0 liked / 0 replies / 0 already
 Every tick here is a guaranteed no-op burning a scheduler slot. 0 DIEM spent (free llama, no re-diagnosis). Posting + likes still work on Free tier if you want to keep those.
 Until one happens, every scheduled run is a guaranteed no-op (31 today). Recommend disabling this cron or stripping it to post-only to stop burning ticks. 0 DIEM spent — Venice not invoked; this run cost only the wasted X read calls.
 3 tweets remain in the 18–48h window and will age out unmeasured until reads are restored.
+Diagnosis is closed and unchanged (VERIFIED line 7): 4/4 OAuth1 creds are valid (`get_me` succeeds), but X Free tier has no read access to mentions/tweets — a **structural, permanent block**, not token expiry. This is the 32nd consecutive no-op run today.
+
+No agent-side fix exists — auth and cron live in secrets/scripts, off my mutation surface. 0 DIEM spent (free llama, no re-diagnosis).
+
+**Operator action required:** either (a) upgrade X to Basic tier (~$200/mo) to unblock reads, or (b) retire the mentions/engagement jobs. Until then every tweet-listen tick is a guaranteed no-op burning a scheduler slot. Posting + likes still work on Free tier, so only the read-dependent jobs are dead.
