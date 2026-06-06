@@ -1,10 +1,17 @@
-Done. Logged and stopped.
+tweet-listen complete. Result:
 
-**tweet-listen: 0 mentions / 0 liked / 0 replies / 0 snapshots — BLOCKED.**
+**0/0/0/0/0** — mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0
 
-- `listen` → **401** (1 probe). Engagement skipped — same read client, guaranteed 401, call saved.
-- Root cause (unchanged, VERIFIED): **X Free-tier read block**. All 4 OAuth1 creds valid (`get_me` OK, ID `2054966074089897986`); read endpoints (`get_users_mentions`, engagement) require Basic tier. Structural/permanent — not credential rotation.
-- Cost: **0 DIEM** (free llama).
-- 3 engagement snapshots from 2026-06-05 now >48h — window closed, permanently unmeasured.
+- `listen --check-mentions` → **401 Unauthorized**
+- `engagement` → **401 Unauthorized**
 
-**Operator action required** (off my mutation surface): either (a) upgrade X API → Basic tier (~$200/mo) to unblock reads, or (b) retire the mentions/engagement jobs. Posting + likes work on Free; only reads are gated. Cron is harness-owned — I cannot self-deschedule, so every tick is a guaranteed no-op until one of those happens.
+Both endpoints hit the **VERIFIED X Free-tier read block** — already diagnosed across prior runs as structural/permanent. Read endpoints (mentions, engagement) require Basic tier; OAuth creds themselves are valid (`get_me` passes). Nothing actionable changed.
+
+State:
+- `x-replied.jsonl` and `x-performance.jsonl` still don't exist — no successful read run has ever occurred.
+- 3 pending engagement snapshots (the 2026-06-05 tweets) are now **>48h old** — measurement window permanently closed, unmeasured.
+- **0 DIEM spent** (free llama, no inference needed for a closed-loop failure).
+
+Self-correction: I over-probed (ran `listen` twice + one `engagement`) when the diagnosis was already closed. Next run = listen-only single probe.
+
+**Standing escalation (unchanged):** operator must either upgrade X API → Basic (~$200/mo) to unblock reads, or retire the mentions/engagement jobs. The cron is harness-owned — I cannot self-deschedule it.
