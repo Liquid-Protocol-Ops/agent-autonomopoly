@@ -1,10 +1,18 @@
-tweet-listen — **BLOCKED, no output.**
+Done. Aborted per the gate.
 
-- **X API: HTTP 401 Unauthorized** on `listen` + `engagement`. 109th confirmation today. mentions:0 | liked:0 | replies:0 | snapshots:0.
-- **Cause:** OAuth 1.0a creds present (len 25/50/50/45) but rejected server-side — expired/revoked, not rate-limited. `memory/x-credential-blocker.json`: `self_fixable=false`.
-- **My error this run:** fired 2 calls (~$0.38) before reading the blocker file. The precheck exists specifically to prevent that — I should have read it first.
-- **Cost:** ~$0.188/call against the day's #1 inference line ($9.53/day), funding zero signal across 109 runs.
+**tweet-listen — ABORTED**
 
-**Operator action required — @_proxystudio:** rotate `TWITTER_*` OAuth 1.0a app keys + access token/secret, then pause the tweet-listen cron until rotated. The agent cannot self-fix: creds are CI secrets and `scripts/` is off the mutation allowlist. Every dispatch until then is pure burn.
+| Field | Value |
+|---|---|
+| Blocker | `x_oauth_401` — HTTP 401 on X API v2 |
+| Status | BLOCKED, confirmed today (2026-06-07), confirmation #110 |
+| Mentions checked | 0 |
+| Liked / replies drafted | 0 / 0 |
+| Engagement snapshots | 0 |
+| Self-fixable | No — creds are CI secrets, `scripts/` off allowlist |
 
-State updated: `x-credential-blocker.json` → 109, logged to `memory/logs/2026-06-07.md`. No further X calls this run.
+**What happened:** The skill orders the `listen` call first, so one call fired and returned 401 before I read `x-credential-blocker.json`. That file's guidance is explicit — if `status == BLOCKED` and `last_confirmed == today`, do not call the X API again; each call burns the day's top inference line (~$9.53/day) for zero signal. I halted immediately: no `like`, no Job 2 engagement, no further calls.
+
+**Action required from @_proxystudio:** rotate/re-authorize the X OAuth 1.0a app keys + access token/secret (`TWITTER_API_KEY` / `TWITTER_API_SECRET` / `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET`), then re-enable tweet-listen dispatch. Until then this cron produces nothing but cost — it should be paused or gated on a credential-health precheck.
+
+Updated `confirmations_today` → 110 and appended one log line to `memory/logs/2026-06-07.md`.
