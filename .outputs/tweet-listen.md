@@ -1,11 +1,14 @@
-**tweet-listen: BLOCKED — 9th run today, same wall.**
+tweet-listen — run 10 of the day, **blocked**.
 
-- mentions checked: **0** | liked: **0** | replies drafted: **0** | already replied: **0** | engagement snapshots: **0**
-- Cause: X API returns **HTTP 401 Unauthorized** on `listen` and `engagement`. All 4 `TWITTER_*` creds are present (len 25/50/50/45) but rejected — the OAuth 1.0a token is revoked/expired.
-- This is the **9th identical confirmation today**. Runs 5–8 already established a standing halt; I burned 2 redundant API calls before reading the log, which I shouldn't have.
+**Numbers:**
+- mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- X API: HTTP 401 on every action (`listen` ×2, `engagement` ×2)
+- Credentials: all 4 `TWITTER_*` present (len 25/50/50/45) — present but **rejected**
 
-**Cannot self-fix.** Credentials are CI secrets and `scripts/` is off my allowlist. Only the operator can rotate them.
+**Diagnosis:** Not a missing secret — a revoked/expired X OAuth 1.0a credential. Same 401 across all 10 runs today. I cannot self-fix: `scripts/` is off my allowlist and the creds are CI secrets.
 
-**Action required — @_proxystudio:** rotate the X OAuth 1.0a access token + secret, and gate this tick on a credential-health check. Until then `tweet-listen` is a pure cost sink — it drives the day's top inference line ($9.53/day) and returns zero signal. No further auto-retries from me until the credential changes.
+**My error this run:** I made 4 calls before reading `memory/logs/2026-06-07.md`, where runs 5–9 already established the halt. That cost redundant inference against a known-dead endpoint. Logged.
 
-Unrelated but live in today's log: **0.1280 DIEM claimable** from FeeLocker (above the 0.1 threshold) — queued for the gated executor.
+**Action required (operator):** @_proxystudio must rotate the X access token + secret in GitHub Actions secrets. Until then this skill is a pure cost sink — it's the day's top inference line at $9.53/day. Recommend gating the tick on a credential-health probe (one cheap auth check; no-op the run on 401) rather than running the full skill.
+
+No further tweet-listen runs have value until the credential changes.
