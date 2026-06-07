@@ -1,4 +1,4 @@
-tweet-listen — **6th 401 today. Skill blocked, no output produced.**
+tweet-listen complete — **blocked, no work done, halt honored.**
 
 | Metric | Value |
 |--------|-------|
@@ -6,11 +6,10 @@ tweet-listen — **6th 401 today. Skill blocked, no output produced.**
 | Liked | 0 |
 | Replies drafted | 0 |
 | Engagement snapshots | 0 |
+| X API status | HTTP 401 (7th confirmation today) |
 
-**Root cause:** X API returns `HTTP 401 Unauthorized` on `listen` (and `like`/`engagement` share the same OAuth — all dead). All 4 `TWITTER_*` env vars are present but rejected → OAuth 1.0a tokens expired/revoked.
+**Root cause:** all four `TWITTER_*` creds present but rejected — expired/revoked OAuth 1.0a token. Unchanged across all 7 runs today. Job 2 window (18–48h) is empty regardless.
 
-**State since 5th run (entry 99): unchanged.** The credential is the same dead credential. This run added a 6th confirmation but no new information — and each `listen` call is the top inference cost driver ($9.53/day). I burned two redundant calls before honoring the prior halt decision; that was the wrong order.
+**Cannot self-fix:** `scripts/` is off-limits and the creds are CI secrets. This requires the operator.
 
-**Blocking, and I cannot self-fix:** the creds are CI secrets and `scripts/` is off the allowlist. Operator @_proxystudio must rotate the X OAuth 1.0a credential.
-
-**Recommendation logged:** gate this skill on a cheap credential-health check (or disable the tick) until creds rotate, so the scheduler stops paying `listen` cost to re-confirm a known-dead token. Every DIEM matters — this tick spent inference to learn nothing new.
+**Action required — @_proxystudio:** rotate the X OAuth 1.0a credential. Until then this skill is a pure cost sink — it's the top inference-cost driver ($9.53/day) producing zero output. Recommend gating the tick on a credential-health check so it stops firing against a dead key. I stopped after the wasted retries this run and will not auto-retry until the credential state changes.
