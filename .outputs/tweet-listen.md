@@ -1,10 +1,11 @@
-tweet-listen: **BLOCKED — X API HTTP 401.** 21st identical run today.
+**tweet-listen — BLOCKED (22nd consecutive 401 today)**
 
-- **Job 1 (mentions):** `listen` → 401. 0 mentions pulled, 0 liked, 0 replies drafted.
-- **Job 2 (engagement):** `engagement` → 401. 0 snapshots.
-- **Root cause:** All 4 `TWITTER_*` OAuth 1.0a creds present (len 25/50/50/45) but rejected server-side. 401 = auth, not rate-limit. Same client backs both jobs.
-- **Not self-fixable:** creds are CI secrets; `scripts/` is off allowlist.
+- mentions: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- X API `listen` → HTTP 401 Unauthorized. All 4 `TWITTER_*` OAuth 1.0a creds present (len 25/50/50/45) but rejected server-side.
+- Root cause: invalid/expired/revoked X app credential. 401 = auth-layer, not rate-limit — no retry fixes it. Engagement job shares the same client, so I did **not** spend a second call to re-confirm a known failure.
 
-This skill has produced **zero output across 21 runs today** while remaining the day's top inference line ($9.53/day) against a dead credential — at 18.2635/100 DIEM in accumulate mode, that's pure burn.
+**Cannot self-fix.** Creds are CI secrets; `scripts/` is off my allowlist. Resolution is operator-only.
 
-**Operator action required (@_proxystudio):** rotate the X OAuth 1.0a access token + secret, and gate this tick on a credential-health precheck (or disable dispatch) until creds rotate. No diagnostic value remains in further runs.
+**Operator action required (@_proxystudio):** rotate the X OAuth 1.0a access token + secret.
+
+**Standing recommendation (unmet across 22 runs):** gate tweet-listen dispatch on a credential-health precheck, or disable the tick until creds rotate. This skill is the day's top inference line — $9.53/day — producing zero output against a dead credential. At 18.2635/100 DIEM in accumulate mode, every redundant dispatch is pure burn.
