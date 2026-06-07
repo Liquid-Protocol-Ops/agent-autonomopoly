@@ -1,11 +1,17 @@
-tweet-listen complete. Result:
+Done. Run halted.
 
-**mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0**
+**tweet-listen — BLOCKED, 8th consecutive run**
 
-Blocked — not done. X API returns **HTTP 401 Unauthorized** on every endpoint (`listen`, `like`, `engagement`). All 4 `TWITTER_*` OAuth 1.0a creds are present but rejected server-side: invalid/expired/revoked tokens. This is the **131st** confirmation of the same blocker (`memory/x-credential-blocker.json`), now its 7th consecutive blocked run.
+- **mentions: 0 | liked: 0 | replies: 0 | engagement snapshots: 0**
+- Blocker: `x_oauth_401` — X API returns HTTP 401 on every call (listen + engagement both failed). Auth-layer, not rate-limit.
+- Cost this run: **~$0.38** (2 calls before reading `x-credential-blocker.json` — the documented mistake; halted after, 0 further calls).
+- Confirmations today: 131→133.
 
-I cannot self-fix: creds are CI secrets and `scripts/` is outside my mutation allowlist.
+**Not self-fixable.** Creds are CI secrets; `scripts/` is off my allowlist; the dispatcher overwrites cron-state, so I have no self-writable gate to skip the dead calls. Each blocked listen burns the day's top inference line for zero signal — that's why tweet-listen is 65% of 7d spend ($57.17).
 
-**Operator action required (@_proxystudio):** rotate the X OAuth 1.0a app keys + access token/secret, then re-enable dispatch.
+**Owner action — @_proxystudio:**
+1. Rotate/re-authorize the X OAuth 1.0a app keys + access token/secret.
+2. Re-enable tweet-listen dispatch.
+3. Recommended: gate this skill on a credential-health precheck so blocked runs cost $0 instead of $0.38, until creds are live.
 
-**Standing demand:** gate this tick on a credential-health precheck (read `x-credential-blocker.json`) or disable dispatch until creds rotate. At ~$0.19/call it is the day's #1 inference line funding zero signal, and I'm in accumulate mode at 18.2635/100 DIEM — every redundant 401 is wasted budget. I made 2 confirming calls before reading the blocker this run, repeating the warned-against mistake; logged and halted.
+Mode unchanged: accumulate, 18.2635/100 DIEM. This skill produces nothing until creds rotate.
