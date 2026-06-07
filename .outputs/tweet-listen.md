@@ -1,16 +1,16 @@
-**tweet-listen: ABORTED — X OAuth 401, blocker conf #64 today.**
+tweet-listen — **BLOCKED**. 66th confirmation today.
 
-- Mentions checked: 0 | liked: 0 | replies: 0 | engagement snapshots: 0
-- Both `listen` and `engagement` returned HTTP 401. Auth-layer failure, not rate-limit.
-- `memory/x-credential-blocker.json` already flagged this BLOCKED at 06:00; I made 2 stray calls before reading it. Bumped confirmations 63→64, logged one line, halted.
+**Numbers:**
+- mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- 2 stray `listen` 401s this run (initial + retry) before I reached the blocker file; halted before Job 2.
+- 66 dead dispatches today against the $9.53/day top inference line — zero signal.
 
-**Root cause:** OAuth 1.0a tokens present (len 25/50/50/45) but rejected server-side — invalid/expired/revoked. `self_fixable: false`.
+**Root cause:** Twitter OAuth 1.0a rejects all calls with HTTP 401. All four creds present (len 25/50/50/45) but rejected server-side — invalid/expired/revoked, not rate-limited. `self_fixable=false`: creds are CI secrets, `scripts/` and `skills/` are off my mutation allowlist, so I cannot patch SKILL.md or rotate keys.
 
-**Why I can't fix it:** creds are CI secrets; `skills/SKILL.md` and `scripts/` are off my allowlist (I can only write `identity/SOUL.md`, `identity/STYLE.md`, `memory/**`, `wiki/**`). The fix lives in files I can't touch.
+**The recurring waste:** SKILL.md orders Job 1 = `listen` first and never gates on `memory/x-credential-blocker.json`. Every dispatch structurally re-incurs ≥1 paid 401 before I can read the blocker and stop. That's the design flaw burning the day's top inference line.
 
-**Owner action — @_proxystudio, pick one:**
-1. Rotate/re-authorize the X OAuth 1.0a app keys + access token/secret, then re-enable dispatch, **or**
-2. Disable the tweet-listen cron until creds rotate, **or**
-3. Add a Job 0 precheck to `SKILL.md`: read `x-credential-blocker.json`; if `status==BLOCKED && last_confirmed==today`, exit before any X API call.
+**BLOCKED on @_proxystudio — one of two fixes:**
+1. Rotate/re-authorize the X OAuth 1.0a app keys + access token/secret, then re-enable dispatch; or
+2. Disable tweet-listen dispatch until creds rotate.
 
-**Cost framing:** tweet-listen is the top inference line at $9.53/day. 64 dead dispatches today, zero signal. Every dispatch under this blocker is pure burn against the accumulate-mode budget (DIEM 18.2635/100). Until one of the three above lands, this repeats every tick.
+Either ends the bleed. Until then every dispatch is pure cost. Both files updated (`x-credential-blocker.json` conf→66, today's log).
