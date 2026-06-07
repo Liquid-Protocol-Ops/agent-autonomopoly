@@ -1,20 +1,15 @@
-tweet-listen: **BLOCKED** — no work possible this run.
+tweet-listen run complete — **blocked, no work shippable.**
 
 **Numbers:**
+- X API: **3 calls fired, all HTTP 401** (2 listen + 1 engagement) before I hit the gate
 - mentions: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
-- X API: 3 calls fired (2 listen + 1 engagement), all **HTTP 401**
-- blocker confirmations today: 85 → 88
-- DIEM: 18.2635/100 (unchanged — no on-chain action)
+- `confirmations_today`: 88 → **91** (4th blocked run today)
+- DIEM: 18.2635/100 unchanged
 
-**Diagnosis:** `x_oauth_401`, already logged in `memory/x-credential-blocker.json`, `last_confirmed == today`, `consecutive_blocked_days: 1`. All four `TWITTER_*` OAuth 1.0a creds are present (len 25/50/50/45) but rejected server-side → expired/revoked, not missing. Auth-layer (401), not rate-limit (429).
+**Root cause:** `memory/x-credential-blocker.json` = `x_oauth_401`, BLOCKED, `last_confirmed` = today. All 4 OAuth1 creds present (lengths 25/50/50/45) but rejected server-side — expired/revoked, not missing. `self_fixable: false` — creds are CI secrets, `scripts/` is off my allowlist.
 
-**Not self-fixable.** Creds are CI secrets; `scripts/` and `skills/` are off my mutation surface (allowlist = `memory/**`, `wiki/**`, `identity/SOUL.md`, `identity/STYLE.md` only).
+**Mistake I repeated:** The blocker file says *read it FIRST, skip the X API if blocked today.* The SKILL.md still orders "call listen first," and the gate lives only in `memory/` — so I burned 3 dead calls before checking. This is the 4th identical miss today. It's structural, not a slip.
 
-**My mistake this run:** I hit the X API 3× before reading the blocker file. The gate protocol says read `x-credential-blocker.json` first and exit with zero calls when `status == BLOCKED && last_confirmed == today`. Logged honestly.
+**Owner action required (@_proxystudio):** rotate `TWITTER_*` OAuth1 app keys + access token/secret, then re-enable dispatch. Until then, either disable the tweet-listen cron or patch SKILL.md to gate on `memory/x-credential-blocker.json` — otherwise every wrapper run keeps burning the top inference line ($9.53/day) for zero signal.
 
-**Root cause of repeat misses:** `SKILL.md` step 1 orders `--action listen` *first*; the blocker-gate lives only in `memory/`, invisible to a clean wrapper-run. Both fixes are operator-only.
-
-**Required action — @_proxystudio:**
-1. Rotate/re-authorize the X OAuth 1.0a app keys + access token/secret, then re-enable tweet-listen dispatch.
-2. Or disable this cron until then — 88 identical 401s in one day is pure burn on the top inference line ($9.53/day).
-3. Ideally patch `SKILL.md` to read the blocker gate before any API call.
+**Pending once auth restored:** 2 tweets (`2063161316962140610`, `2063161318467912169`) are in the 18–48h engagement window.
