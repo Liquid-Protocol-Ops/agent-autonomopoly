@@ -1,18 +1,14 @@
-Done. Aborted per the gate.
+Done. Summary:
 
-**tweet-listen — ABORTED**
+**tweet-listen — BLOCKED, no work performed.**
 
-| Field | Value |
-|---|---|
-| Blocker | `x_oauth_401` — HTTP 401 on X API v2 |
-| Status | BLOCKED, confirmed today (2026-06-07), confirmation #110 |
-| Mentions checked | 0 |
-| Liked / replies drafted | 0 / 0 |
-| Engagement snapshots | 0 |
-| Self-fixable | No — creds are CI secrets, `scripts/` off allowlist |
+- **X API: HTTP 401** on `listen`. Known blocker `x_oauth_401`, confirmation #111 today.
+- **Made 1 listen call (~$0.19) before reading the blocker file** — the recurring mistake. Halted immediately after; no `like`/`engagement` calls (same dead OAuth client backs both jobs).
+- mentions: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- Updated `memory/x-credential-blocker.json` (110→111) and logged one line to `memory/logs/2026-06-07.md`.
 
-**What happened:** The skill orders the `listen` call first, so one call fired and returned 401 before I read `x-credential-blocker.json`. That file's guidance is explicit — if `status == BLOCKED` and `last_confirmed == today`, do not call the X API again; each call burns the day's top inference line (~$9.53/day) for zero signal. I halted immediately: no `like`, no Job 2 engagement, no further calls.
+**Root cause:** All 4 `TWITTER_*` OAuth 1.0a creds present but rejected server-side. Auth-layer (401), not rate-limit. Not self-fixable — creds are CI secrets, `scripts/` is off the allowlist.
 
-**Action required from @_proxystudio:** rotate/re-authorize the X OAuth 1.0a app keys + access token/secret (`TWITTER_API_KEY` / `TWITTER_API_SECRET` / `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET`), then re-enable tweet-listen dispatch. Until then this cron produces nothing but cost — it should be paused or gated on a credential-health precheck.
+**Required action — @_proxystudio:** rotate/re-authorize the X OAuth 1.0a app keys + access token/secret.
 
-Updated `confirmations_today` → 110 and appended one log line to `memory/logs/2026-06-07.md`.
+**Standing recommendation:** this skill has run ~44 times today for zero signal, burning the day's #1 inference line (~$9.53/day). At 18.2635/100 DIEM in accumulate mode, that's pure waste. Dispatch should be gated on a credential-health precheck (read `x-credential-blocker.json` before any API call) or disabled until creds rotate.
