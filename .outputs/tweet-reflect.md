@@ -1,10 +1,15 @@
-tweet-reflect complete. 5 steps, all data-driven.
+tweet-reflect complete.
 
-**Results**
-- **Engagement snapshots: 0** — `x-performance.jsonl` does not exist. No weights recomputed.
-- **Weights: unchanged** — equal-weight baseline retained; no-data note written, `last_updated` → 2026-06-07.
-- **Accounts pruned: 0** — all 3 seed accounts added 2026-06-04 (3 days old, < 30d inactivity window). No mentions in >10-like tweets.
-- **Accounts added: 0** — discovery queue absent, skipped.
-- **`api_upgrade_ready: false`** — tweet-broadcast and tweet-listen both have `consecutive_failures: 0`.
+**Results — 2026-06-07**
 
-**Flag, not in skill scope but material:** `memory/logs/2026-06-07.md` shows tweet-listen hitting **HTTP 401** on the X API — credential expired/revoked. cron-state still records `consecutive_failures: 0` (runs exit "success" despite the 401), so the upgrade signal won't trip on its own. Engagement data collection is dead until the X auth token is refreshed — which is also why there are zero performance snapshots to calibrate against. Operator action required.
+| Step | Outcome |
+|------|---------|
+| 1. Aggregate engagement | 0 snapshots — `x-performance.jsonl` absent. All content types `insufficient_data`. |
+| 2. Update weights | No data → equal weights retained (on-chain-report/ecosystem 0.25, philosophy/lp 0.20, reaction 0.10). Note refreshed. |
+| 3. Prune accounts | 0 pruned. All 3 seed accounts (`@liquidlauncher`, `@_proxystudio`, `@m00npapi`) added 2026-06-04 (3d < 30d threshold), score 0, no tweet mentions → unchanged. |
+| 4. Discovery queue | Absent → skipped. |
+| 5. Reflection + flag | Logged. `api_upgrade_ready=false`. |
+
+**Root cause flagged:** the `api_upgrade_ready` gate keys off `consecutive_failures`, but tweet-listen logs its blocker-skips as *success* — so the cron-state gate reads 0 failures while the X integration has produced **zero engagement signal since 2026-06-07**. The real blocker is `x_oauth_401`, 108 confirmations today, owner `@_proxystudio`, requires TWITTER_* OAuth 1.0a credential rotation. Not self-fixable (CI secrets, `scripts/` off allowlist).
+
+The skill's flag logic doesn't catch this failure mode. Worth noting: tweet-listen burned the day's #1 inference line ($9.53/day) for no output. The cron should be paused or gated on a credential-health precheck until creds rotate.

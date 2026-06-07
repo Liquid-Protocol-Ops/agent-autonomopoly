@@ -15,7 +15,7 @@ Identity anchor: "My wallet address is my identity. My on-chain history is my re
 
 ## Content Type Weights
 
-_No data yet — equal weights applied by tweet-engage. (0 engagement snapshots; x-performance.jsonl not yet created. Checked 2026-06-07 by tweet-reflect.)_
+_No data yet — equal weights applied by tweet-engage. (0 engagement snapshots; x-performance.jsonl still absent. Re-checked 2026-06-07 by tweet-reflect. No engagement capture possible while x_oauth_401 blocker is active — tweet-listen cannot snapshot.)_
 
 | Type | Weight | Notes |
 |------|--------|-------|
