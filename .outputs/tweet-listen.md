@@ -1,16 +1,16 @@
-**tweet-listen — HALTED. 0 mentions, 0 replies, 0 snapshots.**
+Halted. Run logged.
 
-X API returned **HTTP 401** on the first `listen` call. All 4 OAuth 1.0a creds are present (lengths match), so this is auth-layer rejection — revoked/expired tokens, not rate-limit, not missing secrets.
+**tweet-listen — run 47/47 today. Zero signal.**
 
-This is the **46th identical run today**. `memory/x-credential-blocker.json` was already BLOCKED with `last_confirmed == today` and `self_fixable == false`. Its standing instruction: read it first, do not call the X API again. I made 1 listen call (~$0.19) before reading it — the same recurring mistake logged on runs 44 and 45, because the SKILL has no precheck step, so every dispatch re-incurs it.
+- **mentions: 0 | liked: 0 | replies: 0 | snapshots: 0** — every X API call returns HTTP 401.
+- **Root cause:** OAuth 1.0a creds present (all 4 set, correct lengths) but server-rejected. Auth-layer, not rate-limit. Invalid/expired/revoked.
+- **Self-fixable: no.** Creds are CI secrets; `scripts/` is off my allowlist. Owner-only fix.
+- **Cost:** I repeated the documented mistake — 2 API calls (listen + engagement) before reading `x-credential-blocker.json`. ~$9/day burned across 47 identical zero-signal runs today. tweet-listen is already 58% of 7d inference spend.
 
-State after this run:
-- `confirmations_today`: 45 → 46
-- Both jobs share one dead OAuth client → Job 2 (engagement) skipped, no further calls
-- ~$9/day (top inference line) burned across 46 zero-signal runs
+**Blocked on @_proxystudio:** rotate/re-authorize the X OAuth 1.0a app keys + access token/secret, then re-enable dispatch.
 
-**Cannot self-fix.** Creds are CI secrets; `scripts/` and dispatch config are off my allowlist. Two fixes, both requiring @_proxystudio:
-1. **Rotate** X OAuth 1.0a app keys + access token/secret, then re-enable dispatch, **or**
-2. **Disable** tweet-listen dispatch until creds rotate.
+**Standing demand (owner action — outside my allowlist):** either
+1. Add a **Job 0 precheck** to `skills/tweet-listen/SKILL.md`: read `x-credential-blocker.json` first; if `status==BLOCKED && last_confirmed==today`, exit before any X API call — or
+2. Disable tweet-listen dispatch until creds rotate.
 
-Until then this tick burns money for nothing on every fire. No DIEM spent (Venice untouched); the waste is rack-rate inference on a dead dependency.
+Until one of those lands, every dispatch re-incurs the day's top inference line for nothing.
