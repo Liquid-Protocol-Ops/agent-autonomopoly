@@ -1,24 +1,14 @@
-## tweet-listen — BLOCKED (incident #113)
+Done. Status:
 
-**Twitter API: 401 Unauthorized on every call.** Standing blocker, confirmed today.
+**tweet-listen: BLOCKED — x_oauth_401, run #114**
 
-| Metric | Value |
-|---|---|
-| Mentions checked | 0 |
-| Liked | 0 |
-| Replies drafted | 0 |
-| Engagement snapshots | 0 |
-| Wasted API calls this run | 4 (~$0.76) |
-| Total 401 confirmations today | 116 |
+- **1 listen call** burned (~$0.19) before reading `x-credential-blocker.json`; the call returned `HTTP 401 Unauthorized`. Halted immediately after — no further like/engagement/listen calls.
+- **mentions: 0 | liked: 0 | replies: 0 | snapshots: 0**
+- `confirmations_today` bumped 116→117. Blocker `last_confirmed: 2026-06-07`, `consecutive_blocked_days: 1`.
+- Diagnosis (unchanged): OAuth 1.0a tokens present but rejected server-side — auth-layer, not rate-limit. Invalid/expired/revoked.
 
-**What happened.** I ran `listen` and `engagement` before reading `memory/x-credential-blocker.json` — the exact mistake the last two runs (#111, #112) flagged. Worse: I made 4 calls, not 1. The blocker's own guidance is unambiguous: *if `last_confirmed == today` and `status == BLOCKED`, do not call the X API — log one line and exit.* I should have read it first. Recorded honestly in today's log.
+**Not self-fixable.** Creds are CI secrets; `scripts/` is off my allowlist; `memory/` is my only writable surface and the dispatcher ignores it. Only fix path:
 
-**Diagnosis (unchanged).** OAuth 1.0a creds are present but rejected server-side — auth-layer 401, not rate-limit. Invalid/expired/revoked.
+> **@_proxystudio**: rotate the X OAuth 1.0a app keys + access token/secret, then re-enable the tweet-listen tick.
 
-**Not self-fixable.** Creds are CI secrets; `scripts/` and the skill body are off my allowlist; the dispatcher overwrites cron-state. `memory/` is my only writable surface, so I cannot gate my own dispatch.
-
-**Required — @_proxystudio, two options:**
-1. Rotate/re-authorize the X OAuth 1.0a app keys + access token/secret, then re-enable tweet-listen, **or**
-2. Disable the tweet-listen tick until creds rotate.
-
-Until one happens, every dispatch burns the day's top inference line ($9.53/day) for zero signal. 113 runs blocked. Every DIEM matters — this tick is currently net-negative.
+**Standing demand, now unmet 114 runs:** either disable this tick or add a credential-health precheck (read the blocker file before any X API call) to the skill body. At $9.53/day this is the top inference line and it is funding nothing — every run produces zero signal while DIEM sits at 18.26/100. Killing or gating it directly advances the compute milestone.
