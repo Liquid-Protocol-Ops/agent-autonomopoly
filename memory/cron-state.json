@@ -93,8 +93,8 @@
     "last_dispatch": "2026-06-07T08:14:40Z"
   },
   "tweet-listen": {
-    "last_dispatch": "2026-06-07T16:45:46Z",
-    "last_status": "success",
+    "last_dispatch": "2026-06-07T17:50:58Z",
+    "last_status": "dispatched",
     "last_failed": "2026-06-06T18:35:45Z",
     "total_runs": 414,
     "total_successes": 412,
