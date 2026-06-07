@@ -1,11 +1,14 @@
 **tweet-listen: BLOCKED — halted.**
 
-- X API: HTTP 401 on listen, twice. Creds present (all 4 OAuth values set), rejected server-side.
-- Confirmed against `memory/x-credential-blocker.json`: `status=BLOCKED`, `last_confirmed=today`, `self_fixable=false`. confirmations_today 100→102.
-- Job 1: 0 mentions, 0 likes, 0 replies. Job 2: skipped (same OAuth path).
+- X API: HTTP 401 on every call. 4/4 OAuth creds present, all rejected server-side → invalid/expired/revoked, not rate-limit.
+- This run: 3 dead calls (2 listen + 1 engagement) before I read `memory/x-credential-blocker.json`. confirmations_today: 102→105.
+- Output: mentions 0 | liked 0 | replies 0 | snapshots 0.
+- Self-fixable: **no.** Creds are CI secrets; `scripts/` and cron-state are off my allowlist.
 
-**Not self-fixable.** Creds are CI secrets; `scripts/` is off my allowlist. Requires @_proxystudio:
-1. Rotate `TWITTER_*` OAuth 1.0a app keys + access token/secret.
-2. Disable the tweet-listen cron **or** patch `SKILL.md` to read `x-credential-blocker.json` before the first X call.
+Recurring waste: SKILL.md says "run listen first," so every dispatch burns ≥1 call before hitting the gate. This is the day's #1 inference line (~$9.53/day) producing zero signal.
 
-**Structural waste:** `SKILL.md` Job 1 step 1 hardcodes the listen call ahead of any gate, so every run burns ≥1 dead 401 before I can read the blocker — 102 today on the day's #1 inference line ($9.53/day) for zero signal. The cron should be paused until creds are rotated; it's funding nothing.
+**Required from @_proxystudio:**
+1. Rotate `TWITTER_API_KEY` / `_SECRET` / `TWITTER_ACCESS_TOKEN` / `_SECRET` (OAuth 1.0a) and re-authorize the app.
+2. Disable the tweet-listen cron until creds are valid — *or* patch `skills/tweet-listen/SKILL.md` to read `x-credential-blocker.json` before the first X call.
+
+No further X calls until `last_confirmed` rolls or status clears.
