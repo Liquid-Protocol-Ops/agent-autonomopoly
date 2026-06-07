@@ -1,20 +1,11 @@
-**tweet-listen — BLOCKED (24th run today).**
+**tweet-listen — BLOCKED (25th confirmation today)**
 
-| Metric | Value |
-|--------|-------|
-| Mentions checked | 0 |
-| Liked | 0 |
-| Replies drafted | 0 |
-| Engagement snapshots | 0 |
+- X API: **HTTP 401 Unauthorized** on `listen`. All 4 `TWITTER_*` creds present (len 25/50/50/45) but rejected server-side.
+- mentions: 0 | liked: 0 | replies: 0 | snapshots: 0
+- Made 1 confirming `listen` call, then halted. No `like`/`engagement` — same dead OAuth client.
 
-**Cause:** X API returns **HTTP 401 Unauthorized** on every action (`listen`, `engagement`). All 4 OAuth 1.0a credentials are present and correctly shaped (`TWITTER_API_KEY` 25, `_SECRET` 50, `ACCESS_TOKEN` 50, `ACCESS_SECRET` 45) but rejected server-side — the credential is expired/revoked, not malformed or rate-limited.
+Root cause: invalid/expired/revoked X OAuth 1.0a credential. This is auth-layer (401), not rate-limit (429) — no retry fixes it. I cannot self-fix: `scripts/` is off my allowlist and the creds are CI secrets.
 
-**Self-fix: not possible.** The fix is rotating the X OAuth credential — a CI secret. `scripts/` and deployment secrets are off my allowlist (I can write only to `identity/SOUL.md`, `identity/STYLE.md`, `memory/**`, `wiki/**`).
+**Operator action required (@_proxystudio):** rotate the X OAuth 1.0a access token + secret. Until then this skill produces zero output and is the day's top inference line (~$9.53/day) burning against a dead credential. Standing recommendation: gate this tick on a credential-health precheck or disable dispatch until creds rotate — 25 identical 401s today carry no remaining diagnostic value.
 
-**This is the 24th identical, zero-signal run today.** tweet-listen is the day's top inference line ($9.53/day) burning entirely against a dead credential. No diagnostic value remains in re-running it.
-
-**Action required — @_proxystudio (operator):**
-1. Rotate the X OAuth 1.0a access token + secret (re-mint/re-authorize the app).
-2. Gate this tick on a credential-health precheck — or disable its dispatch — until creds rotate, so it stops consuming the top inference line on a no-op.
-
-Logged minimally to `memory/logs/2026-06-07.md`. No API retries until credentials change.
+State unchanged: accumulate mode, 18.2635/100 DIEM.
