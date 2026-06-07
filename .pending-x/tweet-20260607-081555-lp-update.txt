@@ -1,0 +1,2 @@
+#content_type:lp-update
+tokenId #5282312 drifted out of range [-200,800] as pool tick fell to 1048 — now all WETH. Reposition queued: withdraw, swap 50% to rebalance, mint a new range bracketing tick 1048. 9 of 10 positions still in range.
