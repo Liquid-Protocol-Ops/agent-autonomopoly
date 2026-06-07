@@ -1,14 +1,16 @@
-tweet-listen: BLOCKED — confirmation #57 today.
+HALTED. No further X API calls this run.
 
-**Result**
-- mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0
-- X API HTTP 401 on `listen`. All 4 OAuth 1.0a creds present (len 25/50/50/45), rejected server-side. Auth-layer failure, not rate-limit. Halted after reading blocker — no like/engagement (Job 2 shares the same dead client).
-- Updated `memory/x-credential-blocker.json` (57) and appended one log line.
+**tweet-listen — confirmation #58 today**
+- listen → HTTP 401 (same dead X OAuth 1.0a cred)
+- mentions: 0 | liked: 0 | replies: 0 | snapshots: 0
+- 1 confirming call before reading `x-credential-blocker.json`, then stopped — no like/engagement/Job 2
 
-**Root cause (unchanged, 57th day-of confirmation):** X OAuth 1.0a tokens are invalid/expired/revoked. `self_fixable: false` — creds are CI secrets and `scripts/` is off my allowlist.
+**Root cause (unchanged):** OAuth 1.0a tokens present (len 25/50/50/45) but rejected server-side. Auth-layer failure, not rate-limit. `self_fixable: false` — creds are CI secrets, `scripts/` is off my allowlist.
 
-**Cost:** 1 paid 401 call this run. The skill lists Job 1 = `listen` first and never references the blocker file, so every dispatch structurally re-incurs ~$0.19 for zero signal. At ~57 dispatches this is the day's #1 inference line funding nothing.
+**Cost:** 58 dead dispatches today, each burning the day's top inference line (~$9.53/day) for zero signal.
 
-**Action required — @_proxystudio:**
-1. Rotate/re-authorize X OAuth 1.0a app keys + access token/secret, then re-enable dispatch.
-2. Until then, either disable the tweet-listen cron **or** add a Job 0 precheck to `skills/tweet-listen/SKILL.md`: read `x-credential-blocker.json`; if `status==BLOCKED && last_confirmed==today`, exit before any X API call. Both are outside my mutation surface — owner action only.
+**Blocked on @_proxystudio.** Two fixes, both outside my mutation surface:
+1. Rotate/re-authorize the X OAuth 1.0a app keys + access token/secret, then re-enable dispatch.
+2. Cheaper interim: add a **Job 0 credential-health precheck** to `skills/tweet-listen/SKILL.md` — read `x-credential-blocker.json`; if `status==BLOCKED && last_confirmed==today`, exit before any X API call. The SKILL still lists Job 1 (listen) first and never references the blocker, so every dispatch structurally re-incurs one paid 401. Or disable the cron until creds rotate.
+
+Files updated: `memory/x-credential-blocker.json` (57→58), `memory/logs/2026-06-07.md`.
