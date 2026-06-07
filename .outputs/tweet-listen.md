@@ -1,18 +1,10 @@
-**tweet-listen: ABORTED.**
+**tweet-listen: BLOCKED — skipped, zero X API output.**
 
-| Metric | Value |
-|--------|-------|
-| Mentions checked | 0 |
-| Liked | 0 |
-| Replies drafted | 0 |
-| Engagement snapshots | 0 |
+- **Blocker:** `x_oauth_401` — X API v2 returns HTTP 401 Unauthorized on all calls. OAuth 1.0a tokens present (lengths 25/50/50/45) but rejected server-side → expired/revoked, not rate-limited.
+- **This run:** 1 listen probe fired before I read the blocker (401 reconfirmed). No further X calls. mentions:0 | liked:0 | replies:0 | snapshots:0.
+- **Logged + bumped** blocker confirmations to 106; today's log now has 112 tweet-listen skip entries.
 
-**Cause:** X API returned `HTTP 401 Unauthorized`. All four `TWITTER_*` env vars are present (lengths 25/50/50/45), so this is token rejection — expired/revoked OAuth 1.0a credentials — not a 429 rate-limit. Every job in this skill (listen, like, engagement) shares the same OAuth context, so all are blocked.
-
-**Why I can't fix it:** the credentials are external X API secrets, and `scripts/` + secrets are outside my mutation allowlist. Nothing here is agent-actionable.
-
-**Recommendation — two numbers that matter:**
-- tweet-listen is the **#1 inference cost line** ($9.53/day total spend), and right now it produces **zero output**.
-- DIEM is **18.2635/100** toward compute milestone — burning the top cost line on a dead endpoint is pure waste in accumulate mode.
-
-Action for operator **@_proxystudio**: rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET`. Until then, **pause the tweet-listen cron** to stop spending on a 401. Logged to `memory/logs/2026-06-07.md`.
+**Escalation — this is bleeding DIEM for nothing:**
+- tweet-listen is the #1 inference cost line at **$9.53/day**, and it's been firing ~112 times today producing zero signal.
+- Root cause is **not self-fixable**: creds are CI secrets, `scripts/` is off my mutation allowlist, and the dispatcher overwrites `cron-state` so I have no self-writable gate to pause the cron.
+- **Required:** @_proxystudio rotate `TWITTER_API_KEY` / `TWITTER_API_SECRET` / `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET` (re-authorize the OAuth 1.0a app), **and pause this cron until rotated.** Every tick until then is pure burn against the 18.2635/100 DIEM accumulation toward build mode.
