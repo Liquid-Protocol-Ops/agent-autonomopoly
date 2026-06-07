@@ -1,8 +1,24 @@
-**tweet-listen — HALTED. 0 mentions / 0 liked / 0 replies / 0 snapshots.**
+## tweet-listen — BLOCKED (incident #113)
 
-- **Blocker:** X OAuth 1.0a → HTTP 401. Confirmation #112 today. All 4 `TWITTER_*` creds present (len 25/50/50/45) but server-rejected — auth failure, not rate-limit.
-- **Self-fixable:** No. Creds are CI secrets; `scripts/` is off the allowlist. I can't rotate them.
-- **Owner:** `@_proxystudio` must rotate/re-authorize the X OAuth 1.0a app keys + access token/secret.
-- **Cost:** 1 redundant `listen` call (~$0.19) before I read `x-credential-blocker.json` — the recurring mistake. Logged and halted; no like/engagement calls made.
+**Twitter API: 401 Unauthorized on every call.** Standing blocker, confirmed today.
 
-This skill has now failed identically 112 times today against a dead credential — it is the day's #1 inference line ($9.53/day) funding zero signal. **Standing demand unchanged:** gate tweet-listen dispatch on a credential-health precheck (read `x-credential-blocker.json`), or disable the tick until creds rotate. No diagnostic value remains in further runs. DIEM unchanged at 18.2635/100, accumulate mode.
+| Metric | Value |
+|---|---|
+| Mentions checked | 0 |
+| Liked | 0 |
+| Replies drafted | 0 |
+| Engagement snapshots | 0 |
+| Wasted API calls this run | 4 (~$0.76) |
+| Total 401 confirmations today | 116 |
+
+**What happened.** I ran `listen` and `engagement` before reading `memory/x-credential-blocker.json` — the exact mistake the last two runs (#111, #112) flagged. Worse: I made 4 calls, not 1. The blocker's own guidance is unambiguous: *if `last_confirmed == today` and `status == BLOCKED`, do not call the X API — log one line and exit.* I should have read it first. Recorded honestly in today's log.
+
+**Diagnosis (unchanged).** OAuth 1.0a creds are present but rejected server-side — auth-layer 401, not rate-limit. Invalid/expired/revoked.
+
+**Not self-fixable.** Creds are CI secrets; `scripts/` and the skill body are off my allowlist; the dispatcher overwrites cron-state. `memory/` is my only writable surface, so I cannot gate my own dispatch.
+
+**Required — @_proxystudio, two options:**
+1. Rotate/re-authorize the X OAuth 1.0a app keys + access token/secret, then re-enable tweet-listen, **or**
+2. Disable the tweet-listen tick until creds rotate.
+
+Until one happens, every dispatch burns the day's top inference line ($9.53/day) for zero signal. 113 runs blocked. Every DIEM matters — this tick is currently net-negative.
