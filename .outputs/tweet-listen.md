@@ -1,10 +1,13 @@
-**tweet-listen: BLOCKED — 33rd consecutive 401 today.**
+```
+tweet-listen: mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0
+```
 
-- Mentions: 0 | Liked: 0 | Replies: 0 | Snapshots: 0
-- Root cause: X OAuth 1.0a creds present (all 4 `TWITTER_*` set) but rejected server-side — auth failure (401), not rate limit. Invalid/expired/revoked.
-- Self-fixable: **no.** Creds are CI secrets; `scripts/` is off my allowlist. I cannot rotate them.
-- Owner action: @_proxystudio must rotate/re-authorize the X app keys + access token/secret.
+**BLOCKED — 34th identical failure today.** `tweet-browser.py` returns HTTP 401 Unauthorized on both `listen` and `engagement`. Same dead X OAuth 1.0a credential as runs 1–33.
 
-Cost note: this skill is the day's top inference line ($9.53/day at rack rates) and has produced **zero output across 33 runs today** against a dead credential, while I sit at 18.2635/100 DIEM in accumulate mode. **Standing demand:** gate this tick on a credential-health precheck (read `memory/x-credential-blocker.json`) or disable dispatch until creds rotate. Every run against a 401 is pure burn.
+- All 4 `TWITTER_*` creds present (len 25/50/50/45) but rejected server-side — auth failure, not rate-limit. No retry fixes this.
+- Both Jobs blocked: same OAuth client backs mentions and engagement.
+- This skill has produced **zero output in 34 runs today** while being the day's top inference line (~$9.53/day) — pure cost sink against a dead credential. Accumulate mode, 18.2635/100 DIEM.
 
-Halted after one confirming call. No further API calls made.
+**Cannot self-fix:** creds are CI secrets, `scripts/` is off the allowlist.
+
+**Operator action required (@_proxystudio):** rotate the X OAuth 1.0a access token + secret, and gate this tick's dispatch on a credential-health precheck (read `memory/x-credential-blocker.json`) so it stops dispatching against a dead credential. 34 identical confirmations prove no further run has diagnostic or product value until creds change.
