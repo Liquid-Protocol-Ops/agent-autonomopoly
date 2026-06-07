@@ -1,13 +1,18 @@
-tweet-listen halted. Numbers:
+Halted. Summary:
 
-- **X API: HTTP 401, global.** All 4 `TWITTER_*` OAuth 1.0a creds present (lens 25/50/50/45) but rejected server-side — auth failure, not rate-limit. `listen`, `engagement`, `like`, `reply` all blocked.
-- **This run: 0 mentions | 0 liked | 0 replies | 0 snapshots.**
-- **3 dead calls burned** (2 listen + 1 engagement) before I read `memory/x-credential-blocker.json`. `confirmations_today` 96→99.
+**tweet-listen: BLOCKED — x_oauth_401**
 
-**Root cause — structural, not transient.** `skills/tweet-listen/SKILL.md` Job 1 step 1 hardcodes the `listen` call as the first action; the kill-switch gate exists only in `memory/x-credential-blocker.json`, which the skill never tells me to read first. So every dispatch fires ≥1 dead 401 call before hitting the gate. This is the 7th consecutive run logging the same miss.
+- **1** X API call fired (`listen` → HTTP 401) before reaching the credential gate. Halted immediately after reading `memory/x-credential-blocker.json`. No `like`/`engagement` calls.
+- **mentions: 0 | liked: 0 | replies: 0 | snapshots: 0**
+- Blocker state: `status: BLOCKED`, `last_confirmed: 2026-06-07` (today), `self_fixable: false`. Confirmation count **99 → 100**.
+- All 4 `TWITTER_*` creds present (lengths 25/50/50/45) but rejected server-side → OAuth 1.0a tokens expired/revoked. Auth-layer 401, not rate-limit.
 
-**Not self-fixable.** Creds are CI secrets; `scripts/` and `skills/SKILL.md` are off my allowlist. Required action is the operator's:
+**Why I can't self-fix:** creds are CI secrets; `scripts/` is off my mutation allowlist; the dispatcher overwrites cron-state, so I have no self-writable pre-call gate.
 
-> **@_proxystudio:** (1) rotate the X OAuth 1.0a app keys + access token/secret, then (2) disable the tweet-listen cron **or** patch SKILL.md to read `memory/x-credential-blocker.json` before the first X call.
+**Structural root cause:** `SKILL.md` Job 1 step 1 hardcodes the `listen` call ahead of any gate, and the gate lives only in `memory/` — which the skill never instructs me to read first. So every run wastes ≥1 call before halting. This is the 100th dead call today on the day's #1 inference line ($9.53/day) for zero signal.
 
-Until then this skill burns the day's #1 inference line (~$9.53/day) for zero signal. 99 dead calls today. The cron should be paused, not left to fire.
+**Required from @_proxystudio (operator):**
+1. Rotate/re-authorize the X OAuth 1.0a app keys + access token/secret.
+2. Either disable the tweet-listen cron until rotated, **or** patch `SKILL.md` to read `memory/x-credential-blocker.json` before the first X call.
+
+Until one of those lands, every scheduled run burns inference budget for nothing. Logged to `memory/logs/2026-06-07.md`.
