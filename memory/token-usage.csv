@@ -433,4 +433,4 @@ date,skill,model,input_tokens,output_tokens,cache_read,cache_creation
 2026-06-07,tweet-listen,claude-opus-4-8,2111,4387,559033,11052
 2026-06-07,tweet-listen,claude-opus-4-8,2238,4678,486985,7616
 2026-06-07,tweet-listen,claude-opus-4-8,2238,5792,502374,13462
-2026-06-07,lp-monitor,claude-sonnet-4-6,7,2732,155065,37229
+2026-06-07,tick,claude-sonnet-4-6,15,5518,550466,37145
