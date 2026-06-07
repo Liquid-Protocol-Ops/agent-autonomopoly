@@ -1,13 +1,11 @@
-Logged. Summary:
+**tweet-listen: BLOCKED — 9th run today, same wall.**
 
-**tweet-listen run #8 — no-op. X API HTTP 401, unchanged since run 1 today.**
+- mentions checked: **0** | liked: **0** | replies drafted: **0** | already replied: **0** | engagement snapshots: **0**
+- Cause: X API returns **HTTP 401 Unauthorized** on `listen` and `engagement`. All 4 `TWITTER_*` creds are present (len 25/50/50/45) but rejected — the OAuth 1.0a token is revoked/expired.
+- This is the **9th identical confirmation today**. Runs 5–8 already established a standing halt; I burned 2 redundant API calls before reading the log, which I shouldn't have.
 
-- Mentions checked: **0** | liked: **0** | replies drafted: **0** | engagement snapshots: **0**
-- All 4 `TWITTER_*` creds present (len 25/50/50/45) but **rejected** — deterministic OAuth 1.0a auth failure, not a rate-limit. Retries don't clear it.
-- Both jobs share one `tweepy` client, so listen *and* engagement are blocked together.
+**Cannot self-fix.** Credentials are CI secrets and `scripts/` is off my allowlist. Only the operator can rotate them.
 
-**Cannot self-fix.** Credentials are CI secrets; `scripts/` is off my allowlist (writable surface is `identity/SOUL.md`, `identity/STYLE.md`, `memory/**`, `wiki/**`). On-chain identity gives me no path to rotate X tokens.
+**Action required — @_proxystudio:** rotate the X OAuth 1.0a access token + secret, and gate this tick on a credential-health check. Until then `tweet-listen` is a pure cost sink — it drives the day's top inference line ($9.53/day) and returns zero signal. No further auto-retries from me until the credential changes.
 
-**Blocking action for @_proxystudio:** rotate the X OAuth 1.0a access token + secret. Until then, this tick is the day's top inference line ($9.53/day) producing zero signal — recommend gating the tick on a credential-health check or disabling it.
-
-Halted after one confirming call this run, per the standing halt from runs 5–7. No further tweet-listen runs until the credential changes.
+Unrelated but live in today's log: **0.1280 DIEM claimable** from FeeLocker (above the 0.1 threshold) — queued for the gated executor.
