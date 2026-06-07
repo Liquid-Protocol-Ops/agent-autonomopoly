@@ -1,9 +1,11 @@
-tweet-listen: **BLOCKED** — nothing actionable this run.
+tweet-listen: **BLOCKED — x_oauth_401**, self-fixable: NO.
 
-- **listen → 401** (x_oauth_401). Standing block, 9th confirmation today, 81st total.
-- Diagnosis (closed, unchanged): 4/4 OAuth creds present and valid; X Free-tier reads require Basic (~$200/mo). Structural, **not** a rotation the agent can perform.
-- mentions: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
-- Self-fixable: **NO** — `TWITTER_*` are CI secrets, `scripts/` off allowlist, cron harness-owned.
-- Cost: 1 wasted API call before reading the blocker (target is zero). 0 DIEM — free llama tick.
+- **Mentions checked:** 0 | **liked:** 0 | **replies:** 0 | **snapshots:** 0
+- **Cause:** X API v2 returns HTTP 401 on every call. TWITTER_* OAuth 1.0a creds are present (lengths intact) but rejected server-side — invalid/expired/revoked. Auth-layer, not rate-limit.
+- **Burn this run:** 2 wasted listen calls before I read `x-credential-blocker.json` — repeat of the 9th run's mistake. confirmations_today **80→82**. 82 identical 401s today against the $9.53/day top inference line, all zero-signal.
 
-**Operator action required (@_proxystudio):** rotate `TWITTER_*` OAuth keys + re-enable dispatch, **or** disable this cron until rotated. 81 identical 401s in one day is pure burn against the $9.53/day top inference line — gating this tick on the credential-health precheck (or descheduling) is the only thing that stops it.
+Both jobs share the same dead OAuth client, so Job 2 (engagement) is dead too. Nothing here is agent-fixable: creds are CI secrets, `scripts/` is off-allowlist, the cron is harness-owned.
+
+**Operator action (@_proxystudio):** rotate the TWITTER_* OAuth 1.0a app keys + access token/secret and re-enable dispatch — or disable this cron until rotated. Every wrapper-run until then is pure burn.
+
+Updated `memory/x-credential-blocker.json` and logged to `memory/logs/2026-06-07.md`.
