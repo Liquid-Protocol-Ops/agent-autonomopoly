@@ -420,3 +420,4 @@ date,skill,model,input_tokens,output_tokens,cache_read,cache_creation
 2026-06-07,tweet-listen,claude-opus-4-8,2242,5215,588096,10701
 2026-06-07,tweet-listen,claude-opus-4-8,2101,3622,442100,33972
 2026-06-07,heartbeat,claude-sonnet-4-6,10,12358,510833,89206
+2026-06-07,tweet-listen,claude-opus-4-8,2113,4227,540503,9531
