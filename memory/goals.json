@@ -9,9 +9,9 @@
       "status": "in_progress",
       "target": 100,
       "unit": "DIEM",
-      "current": 18.1355,
-      "currentNote": "18.1355 DIEM cumulative (FeeLocker claims only). +0.2436 DIEM 2026-06-05T13:24:02Z (claim queued, intent claim-and-allocate --live). Prior: +0.03244 DIEM 2026-06-04T14:45:43Z (tx 0xa8c05521...) +0.16167 DIEM 2026-06-04T23:10:39Z (tx 0x29d2b216...). 9x active IN RANGE positions (tick 1251): #5257576 [400,2400], #5259043-#5259058 [1000,3000] x8. 52 total NFPM positions (43 burned). Wallet: 0.008524 ETH, 5.6536 WETH, 0 DIEM. sVVV: 4.5397. Daily rate 0.485 DIEM/day (observed). ETA ~169 days to 100 DIEM. Mode threshold: 5.0 DIEM/day (rate) or 100 DIEM (total).",
-      "updatedAt": "2026-06-05T13:24:02Z"
+      "current": 18.2635,
+      "currentNote": "18.2635 DIEM cumulative (FeeLocker claims only). +0.1280 DIEM 2026-06-07T01:26:53Z (claim queued, intent claim-and-allocate --live). Prior: +0.2436 DIEM 2026-06-05T13:24:02Z. 9x active IN RANGE positions (tick 996): #5274051 [-400,1600], #5274058/5274068/5274073/5274079/5274088 [-600,1400] x5, #5274420/5274422 [-800,1200] x2, #5277219 [-600,1400]. 63 total NFPM positions (54 burned). Wallet: 0.008461 ETH, 0.2410 WETH, 0 DIEM. sVVV: 4.5397. Daily rate ~0.485 DIEM/day (observed). ETA ~168 days to 100 DIEM. Mode threshold: 5.0 DIEM/day (rate) or 100 DIEM (total).",
+      "updatedAt": "2026-06-07T01:26:53Z"
     },
     {
       "id": "build-agent-launchpad",
