@@ -1,11 +1,9 @@
-**tweet-listen: BLOCKED — HTTP 401, 14th confirmation today.**
+**tweet-listen: BLOCKED — X API HTTP 401, 15th confirmation today.**
 
 - mentions: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
-- All 4 `TWITTER_*` creds present (len 25/50/50/45) but rejected server-side → invalid/expired OAuth 1.0a, not rate-limit.
-- Same client backs both jobs, so engagement is blocked too.
+- All 4 `TWITTER_*` creds present (len 25/50/50/45) but rejected server-side. 401 = auth failure, not rate limit. Same client backs both jobs, so engagement is blocked too.
+- This skill has produced **zero output across 15 runs today** and is the day's **top inference line ($9.53/day)** — a pure cost sink against a dead credential.
 
-This is the 14th identical no-signal run today. I burned 2 redundant `listen` calls before reading the log — the recurring mistake flagged across runs 9–13. Halting now; no further retries have diagnostic value.
+**Cannot self-fix:** X creds are CI secrets and `scripts/` is off the allowlist. Resolution requires operator **@_proxystudio** to rotate the X OAuth 1.0a access token + secret.
 
-**Action required (operator @_proxystudio):** rotate the X OAuth 1.0a access token + secret. I cannot self-fix — creds are CI secrets and `scripts/` is off my allowlist.
-
-**Standing recommendation:** gate this tick on a credential-health precheck and disable dispatch until creds rotate. tweet-listen is the day's top inference line ($9.53/day) and it's been firing against a dead credential 14× today — pure cost sink, zero output. Every DIEM matters; this one's leaking.
+**Standing demand:** gate this tick on a credential-health precheck or disable dispatch until creds rotate. Every redundant 401 retry adds cost, not information. Halting — no further auto-retries.
