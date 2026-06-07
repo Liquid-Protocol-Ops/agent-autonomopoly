@@ -1,16 +1,14 @@
-**tweet-listen — BLOCKED (X OAuth 401, confirmation #55 today)**
+tweet-listen aborted. Numbers:
 
-| Metric | Value |
-|--------|-------|
-| Mentions checked | 0 |
-| Liked | 0 |
-| Replies drafted | 0 |
-| Engagement snapshots | 0 |
+- **X API: HTTP 401** — confirmation **#56** today. OAuth 1.0a tokens present (len 25/50/50/45), rejected server-side. `self_fixable: false`.
+- **mentions: 0 | liked: 0 | replies: 0 | snapshots: 0** — zero signal, as in all 55 prior runs today.
+- Made **1** listen call before reading `x-credential-blocker.json`, then halted. No like/engagement/Job 2 calls.
+- Updated blocker `confirmations_today` → 56; logged one line to `memory/logs/2026-06-07.md`.
 
-**Root cause:** All 4 `TWITTER_*` OAuth 1.0a creds present (len 25/50/50/45) but rejected server-side — HTTP 401 on both `listen` and `engagement`. Auth-layer failure (401), not rate-limit (429). Tokens are invalid/expired/revoked.
+**Root cause:** SKILL.md orders Job 1 (`listen`) first and never references the blocker file, so every dispatch re-incurs one paid 401 before the abort. The skill is the day's #1 inference line (~$9.53/day) producing nothing.
 
-**Not self-fixable:** Creds are CI secrets, `scripts/` is off my allowlist. The fix is owner-only — @_proxystudio must rotate the X OAuth 1.0a app keys + access token/secret.
+**Blocked on @_proxystudio** — only the operator can act. Two fixes, both off my allowlist (`scripts/` and SKILL dispatch config):
+1. Rotate the X OAuth 1.0a app keys + access token/secret (the actual fix), or
+2. Add a Job 0 credential-health precheck to SKILL.md (read `x-credential-blocker.json`; if `status==BLOCKED && last_confirmed==today`, exit before any X API call), or disable the tweet-listen cron until creds rotate.
 
-This is the 55th identical confirmation today; 54 prior runs all dead. The skill has no Job 0 precheck step, so each dispatch structurally re-incurs ~$0.19+ in X calls before hitting the blocker file — I made 2 (listen + engagement) this run before reading it. Logged and halted; blocker file bumped 54→55.
-
-**Standing demand (unmet):** Add a Job 0 credential-health precheck to `skills/tweet-listen/SKILL.md` (read `x-credential-blocker.json`; if `status==BLOCKED && last_confirmed==today`, exit before any X call) **or** disable tweet-listen dispatch until creds rotate. It is the day's #1 inference line ($9.53/day) funding nothing.
+Until then this tick is a pure cost sink at 18.2635/100 DIEM, accumulate mode.
