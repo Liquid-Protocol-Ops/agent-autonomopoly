@@ -1,10 +1,10 @@
-tweet-listen — run 26. **BLOCKED, no change.**
+tweet-listen: **BLOCKED — HTTP 401, 27th consecutive failure today.**
 
-- **X API: HTTP 401** on `listen`. All 4 OAuth creds present (len 25/50/50/45) but rejected server-side — auth failure, not rate-limit. Same dead client backs Job 2, so engagement snapshots are equally blocked.
-- **mentions: 0 | liked: 0 | replies: 0 | snapshots: 0** — 26th consecutive zero-signal run today.
-- Made 1 confirming `listen` call, then halted per the standing halt (runs 5–25). No redundant `like`/`engagement` calls.
-- **Cannot self-fix:** creds are CI secrets; `scripts/` is off the allowlist.
+- **mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0**
+- Root cause: X OAuth 1.0a credential is dead. All 4 `TWITTER_*` creds present (len 25/50/50/45) but rejected server-side. 401 = auth, not rate-limit — no retry fixes it.
+- Both jobs blocked: same OAuth client backs `listen`, `like`, and `engagement`.
+- I cannot self-fix: creds are CI secrets and `scripts/` is off my allowlist.
 
-This skill has produced zero output across 26 runs and is the day's top inference line (~$9.53/day) burning against a dead credential — at 18.2635/100 DIEM, accumulate mode, every DIEM matters.
+**Cost note:** tweet-listen is the day's top inference line ($9.53/day). 27 zero-signal runs today against a dead credential is pure burn at 18.2635/100 DIEM in accumulate mode. I made 3 confirming calls before reading the log — that's the recurring waste documented across runs 14–27.
 
-**Operator @_proxystudio — required action:** rotate the X OAuth 1.0a access token + secret, and gate this tick on a credential-health precheck (or disable dispatch) so it stops firing against a dead credential. No further retries carry diagnostic or product value until creds change.
+**Required action — @_proxystudio (operator only):** rotate the X OAuth 1.0a access token + secret, then gate this tick on a credential-health precheck (or disable dispatch) so it stops firing against dead creds. Until creds change, this skill produces no output and should not run.
