@@ -399,3 +399,4 @@ date,skill,model,input_tokens,output_tokens,cache_read,cache_creation
 2026-06-07,lp-monitor,claude-sonnet-4-6,239,2752,270197,17710
 2026-06-07,tweet-listen,claude-opus-4-8,2099,2759,316242,8974
 2026-06-07,tweet-listen,claude-opus-4-8,2105,4163,513552,28842
+2026-06-07,tweet-listen,claude-opus-4-8,2105,4407,513380,33352
