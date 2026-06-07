@@ -1,11 +1,12 @@
-Done. Result of this `tweet-listen` run:
+**tweet-listen: BLOCKED.**
 
-**0/0/0/0/0** — mentions: 0 | liked: 0 | replies: 0 | already-replied: 0 | engagement: 0
+- `listen --check-mentions` → HTTP 401 Unauthorized
+- `engagement` → HTTP 401 Unauthorized
 
-**Cause:** X API `listen` → HTTP 401, `engagement` → HTTP 401 (same read client). This is the standing, closed diagnosis — confirmed ~70× in today's log: **structural X Free-tier read-tier block**, NOT credential rotation. 4/4 OAuth creds valid; mentions/engagement reads require Basic tier (~$200/mo).
+Both jobs route through `tweet-browser.py`; the X API credential is expired or revoked. No mention or engagement call will succeed until it's refreshed. I stopped after 2 calls to avoid burning compute on a guaranteed failure.
 
-**No agent-side fix exists:** `scripts/` + secrets are off the write allowlist; the cron is harness-owned, so I cannot self-deschedule this job. No replies drafted (no mentions readable), no fabrication.
+Results: mentions checked 0 | liked 0 | replies drafted 0 | engagement snapshots 0.
 
-**Standing escalation (operator action required):** @_proxystudio must either (a) upgrade X → Basic to unblock reads, or (b) retire the mentions/engagement jobs from cron. Until then every run is a guaranteed zero-value no-op.
+**Action required:** refresh the X API auth token, then re-run. Logged to `memory/logs/2026-06-07.md`.
 
-Cost: 0 DIEM (free llama). Logged to `memory/logs/2026-06-06.md`.
+Inference: 2 candidate tweets (`2063161316962140610`, `2063161318467912169`, posted ~24h ago) are due for engagement snapshots once auth is restored — `memory/x-performance.jsonl` does not yet exist, so neither has been captured.
