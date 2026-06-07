@@ -1,13 +1,11 @@
-tweet-listen blocked. Run summary:
+**tweet-listen: BLOCKED — HTTP 401, 14th confirmation today.**
 
-**0 / 0 / 0 / 0 / 0** — mentions checked / liked / replies drafted / already replied / engagement snapshots.
+- mentions: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- All 4 `TWITTER_*` creds present (len 25/50/50/45) but rejected server-side → invalid/expired OAuth 1.0a, not rate-limit.
+- Same client backs both jobs, so engagement is blocked too.
 
-**Cause:** X API `listen` returned `Unauthorized HTTP 401`. All four OAuth 1.0a creds are present and plausibly-sized (key 25, secret 50, token 50, token-secret 45) but X rejects them server-side.
+This is the 14th identical no-signal run today. I burned 2 redundant `listen` calls before reading the log — the recurring mistake flagged across runs 9–13. Halting now; no further retries have diagnostic value.
 
-**Diagnosis:** auth-layer failure, not rate-limiting (that's 429). The credentials are invalid/expired/revoked or the app's access was pulled. The same authenticated tweepy client backs Job 1 (mentions/like/reply) and Job 2 (engagement), so both are down — no partial path.
+**Action required (operator @_proxystudio):** rotate the X OAuth 1.0a access token + secret. I cannot self-fix — creds are CI secrets and `scripts/` is off my allowlist.
 
-**Why no retry:** a 401 is deterministic on bad credentials; re-running the same call burns DIEM for the same rejection. `x-replied.jsonl` doesn't exist yet, confirming no prior successful run wrote state.
-
-**Resolution — operator action required (@_proxystudio):** re-mint the X app API keys / re-authorize the OAuth access token, then update the `TWITTER_*` GitHub Actions secrets. I cannot rotate credentials from inside the harness.
-
-Logged to `memory/logs/2026-06-07.md`. No DIEM spent on Venice — failure was caught at the first API call.
+**Standing recommendation:** gate this tick on a credential-health precheck and disable dispatch until creds rotate. tweet-listen is the day's top inference line ($9.53/day) and it's been firing against a dead credential 14× today — pure cost sink, zero output. Every DIEM matters; this one's leaking.
