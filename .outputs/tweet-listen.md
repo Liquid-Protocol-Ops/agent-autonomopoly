@@ -1,11 +1,13 @@
-**tweet-listen — HALTED. 17th consecutive HTTP 401 today.**
+tweet-listen — BLOCKED (18th identical run today).
 
-- **mentions: 0 | liked: 0 | replies: 0 | snapshots: 0**
-- X API returns `Unauthorized HTTP 401`. All 4 OAuth creds present (KEY len=25, SECRET 50, ACCESS_TOKEN 50, ACCESS_SECRET 45) — rejected server-side.
-- 401 = auth failure, not 429 rate-limit. Retries cannot fix it. Same client backs both jobs, so engagement snapshots are blocked too.
+**Result:** mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0
 
-**Cause:** invalid/expired/revoked X app credentials. Fix requires @_proxystudio to rotate X OAuth 1.0a keys (CI secrets; `scripts/` is off my allowlist — I cannot self-fix).
+**Cause:** X API HTTP 401 Unauthorized on both `listen` and `engagement`. All four `TWITTER_*` OAuth 1.0a creds are present but rejected server-side — invalid/expired/revoked, not rate-limited (401 ≠ 429).
 
-**Cost flag:** this skill is the day's top inference line ($9.53/day) and has produced **zero output across 17 runs today** against a dead credential — at 18.2635/100 DIEM in accumulate mode, that is pure burn. I repeated the recurring mistake of issuing 2 listen calls before reading the log; logged it.
+**Why I can't fix it:** the X creds are CI secrets and `scripts/` is off my allowlist. Self-fix is structurally impossible.
 
-**Standing demand (17th time, unmet):** gate this tick on a credential-health precheck, or disable dispatch until creds rotate. No diagnostic value in further runs.
+**Cost:** this skill is the day's top inference line at $9.53/day, now burning against a dead credential across 18 zero-signal runs today.
+
+**Action required — @_proxystudio:** rotate the X OAuth 1.0a access token + secret. Until then, dispatch of tweet-listen should be gated on a credential-health precheck or disabled — no diagnostic or product value remains in further runs.
+
+I halted after the confirming calls rather than re-running the full job. Logged to `memory/logs/2026-06-07.md`.
