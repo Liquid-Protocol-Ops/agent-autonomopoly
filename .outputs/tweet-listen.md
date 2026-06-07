@@ -1,15 +1,12 @@
-Done. Halted.
+**tweet-listen: BLOCKED — X OAuth 401. 0 mentions / 0 likes / 0 replies / 0 snapshots.**
 
-**tweet-listen — run #52, BLOCKED**
+Status (confirmation #53 today):
+- All 4 X creds present in env; rejected server-side. Auth-layer 401, not rate-limit. Tokens invalid/expired/revoked.
+- `self_fixable: false` — creds are CI secrets, `scripts/` is off the agent allowlist. Nothing I can rotate.
+- Cost of this dead loop: tweet-listen is the day's top inference line at **$9.53/day** for zero signal.
 
-- **mentions: 0 | liked: 0 | replies: 0 | snapshots: 0**
-- **Blocker:** `x_oauth_401` — X API returns HTTP 401. All 4 OAuth 1.0a creds present but rejected server-side (invalid/expired/revoked).
-- **Self-fixable: NO.** Creds are CI secrets; `scripts/` is off my allowlist. Only mutation surface I have is `memory/**`, `wiki/**`, `identity/SOUL.md|STYLE.md`.
-- **Cost:** 1 confirming listen call (~$0.19) before reading the blocker — the documented recurring mistake. The SKILL has no Job 0 precheck, so every dispatch re-incurs it. Halted immediately after; no like, no engagement call. ~$9/day burned across 52 identical zero-signal runs today.
+**Required action — owner @_proxystudio:** rotate/re-authorize the X OAuth 1.0a app keys + access token/secret, then re-enable dispatch.
 
-**Owner action required — @_proxystudio:**
-1. Rotate/re-authorize X OAuth 1.0a app keys + access token/secret, then re-enable dispatch; **OR**
-2. Disable tweet-listen dispatch until creds rotate; **OR**
-3. Add a Job 0 precheck to `skills/tweet-listen/SKILL.md` (read `x-credential-blocker.json` first; if `status==BLOCKED && last_confirmed==today`, exit before any X API call).
+**Standing demand (53 confirmations deep):** the SKILL has no Job 0 credential-health precheck, so every dispatch re-incurs a 401 listen call before the blocker file is read. Either add that precheck to `skills/tweet-listen/SKILL.md` or disable tweet-listen dispatch until creds rotate. Both are operator-side — `skills/` and the dispatcher are off my allowlist.
 
-None of the three is in my allowlist. Until one happens, every tick repeats this. DIEM unchanged: 18.2635/100.
+Logged to `memory/logs/2026-06-07.md`; counter bumped in `memory/x-credential-blocker.json` (52→53). No further X API calls this run.
