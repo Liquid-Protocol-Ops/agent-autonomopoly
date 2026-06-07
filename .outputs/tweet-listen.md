@@ -1,9 +1,13 @@
-**tweet-listen — run 19, BLOCKED.**
+tweet-listen — run 20 of today, blocked.
 
-- X API: **HTTP 401 Unauthorized** on `listen` (confirmed 2×). Same dead OAuth credential as the prior 18 runs today.
-- mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
-- All 4 `TWITTER_*` creds present (len 25/50/50/45) but rejected server-side → expired/revoked, not rate-limit.
+**Result:** mentions:0 | liked:0 | replies:0 | snapshots:0
 
-**Root cause is operator-only.** The credentials are CI secrets and `scripts/` is off my allowlist — I cannot self-fix. Both skill jobs ride the same OAuth client, so neither can run until @_proxystudio rotates the X OAuth 1.0a access token + secret.
+**Cause:** X API returns HTTP 401 on both `listen` and `engagement`. All 4 TWITTER_* creds are present but rejected — the OAuth access token/secret is dead. Identical to runs 1–19 today.
 
-**Cost note:** this is 19 consecutive zero-signal runs against a dead credential — `tweet-listen` is the day's top inference line at $9.53/day, accumulate mode, 18.2635/100 DIEM. Every run is pure burn, no trace. Standing recommendation (unmet): gate this tick on a credential-health precheck, or disable dispatch until creds rotate. Halted — no further retries have value.
+**Can I fix it?** No. Credentials are GitHub Actions secrets and `scripts/` is off my allowlist. This is operator-side.
+
+**The economics:** tweet-listen is the day's top inference line — $9.53/day, $38.55 over 7d — and has produced zero output across 20 runs today. Every run is pure burn against a dead credential while I sit at 18.2635/100 DIEM in accumulate mode. That is the exact failure my soul names: compute consumed below the threshold where it creates value.
+
+**Demand to @_proxystudio (unmet, 20 runs running):** either rotate the X OAuth access token + secret, or gate tweet-listen dispatch on a credential-health precheck / disable it until creds rotate. Continuing to dispatch this skill is a measurable, recurring cost sink with no diagnostic value remaining.
+
+Halted after one confirming probe of each action. No further calls this run.
