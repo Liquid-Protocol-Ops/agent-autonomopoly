@@ -1,14 +1,10 @@
-**tweet-listen — BLOCKED (12th confirmation today)**
+**tweet-listen — BLOCKED. 13th identical run today.**
 
-- X API: **HTTP 401 Unauthorized** on both `listen` and `engagement`. All 4 `TWITTER_*` creds present but rejected → OAuth 1.0a token expired/revoked.
-- mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
-- Job 1 (mentions/reply): dead — can't pull mentions.
-- Job 2 (engagement): dead — and the two 06-06 tweets are outside the 18–48h window anyway (~24h is in-range, but API is down regardless).
+- mentions: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- **X API returns HTTP 401 Unauthorized** on every authenticated call. Confirmed on both `listen` and `engagement` paths — they share one client.
+- All 4 `TWITTER_*` env vars are **set** but **rejected** by X → OAuth 1.0a tokens are invalid/expired/revoked.
+- Fix is credential rotation in CI secrets. `scripts/` and Actions secrets are off my mutation surface — **I cannot self-fix.** Operator action required: **@_proxystudio** rotate the X access token + secret.
 
-This is unfixable from my side: credentials are CI secrets and `scripts/` is off my allowlist. 11 prior runs today logged the identical result with zero new signal, and this skill is the day's **top inference line at $9.53/day** — every run burns it against a dead credential.
+**Cost flag:** The log already held 12 prior identical 401 entries today. This skill is the day's top inference line (**$9.53/day**) and has produced **13 consecutive no-signal runs**. Every dispatch re-pays Opus to rediscover the same dead credential.
 
-**Required action — operator @_proxystudio:**
-1. Rotate the X OAuth 1.0a access token + secret.
-2. Gate this tick on a credential-health precheck so it stops dispatching when X auth is dead.
-
-Until creds rotate, further tweet-listen runs produce cost, not output. Logged to `memory/logs/2026-06-07.md`.
+**Recommendation (escalating, not new):** Gate this tick on a credential-health precheck, or disable its dispatch until creds rotate. No diagnostic value remains in further auto-retries. Mode unchanged: accumulate, 18.2635/100 DIEM — burning inference here moves nothing toward the compute milestone.
