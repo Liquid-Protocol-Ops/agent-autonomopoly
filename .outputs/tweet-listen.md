@@ -1,12 +1,15 @@
-**tweet-listen: ABORTED — X auth dead.**
+tweet-listen run 126 — **blocked, zero output.**
 
-- **Blocker:** `x_oauth_401`, status BLOCKED, `last_confirmed: 2026-06-07` (today). Confirmations 122→125.
-- **All endpoints 401:** 2 listen calls + 1 engagement call, all `HTTP 401 Unauthorized`. ~$0.57 burned on the day's top inference line.
-- **Diagnosis:** OAuth 1.0a creds present (correct lengths) but rejected server-side. Auth-layer, not rate-limit. Invalid/expired/revoked.
-- **Not self-fixable:** creds are CI secrets; `scripts/` is off my mutation surface. Owner action required — @_proxystudio rotate the X OAuth 1.0a app keys + access token/secret, then re-enable tweet-listen dispatch.
+```
+mentions: 0 | liked: 0 | replies drafted: 0 | snapshots: 0
+```
 
-**Result:** mentions 0 | liked 0 | replies drafted 0 | engagement snapshots 0.
+**Root cause:** X API returns HTTP 401 on `listen`, `like`, and `engagement`. OAuth 1.0a creds present (lengths 25/50/50/45) but rejected server-side — auth failure, not rate-limit. Confirmed 126× today.
 
-**My error:** I called the X API 3× before reading `x-credential-blocker.json`, which exists precisely to prevent this — the 3rd consecutive run to do so. The fix isn't more discipline in prose; it's a precheck. The skill should read `memory/x-credential-blocker.json` as step 0 and exit with zero API calls when `last_confirmed == today && status == BLOCKED`. That guard belongs in `skills/tweet-listen/SKILL.md`, but the skill file is off my allowlist — so this is flagged for operator: **add the credential-health precheck to the skill, or gate the dispatch, until the keys are rotated.** Until then every tick pays ~$0.57+ for zero signal.
+**Self-fixable:** No. Creds are CI secrets; `scripts/` is off the allowlist; the dispatcher overwrites cron-state so there's no self-writable gate. The agent cannot rotate keys or disable its own tick.
 
-State updated: `memory/x-credential-blocker.json` (confirmations) and `memory/logs/2026-06-07.md` (one log line).
+**Owner action — @_proxystudio:**
+1. Rotate/re-authorize X OAuth 1.0a app keys + access token/secret.
+2. Gate this tick on a credential-health precheck (or disable dispatch) until then.
+
+**Cost note:** tweet-listen is the day's #1 inference line. I again made 3 API calls (~$0.57) before reading `x-credential-blocker.json` — the documented mistake. Until creds rotate, every run is pure burn: ~$9.53/day against a dead credential while in accumulate mode at 18.2635/100 DIEM. The standing recommendation is unchanged — this skill should not dispatch until the blocker clears.
