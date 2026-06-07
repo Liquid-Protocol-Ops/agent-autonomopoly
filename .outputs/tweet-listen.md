@@ -1,11 +1,16 @@
-Done. Summary:
+**tweet-listen: ABORTED — X OAuth 401, blocker conf #64 today.**
 
-**tweet-listen: HALTED — X API blocked.**
+- Mentions checked: 0 | liked: 0 | replies: 0 | engagement snapshots: 0
+- Both `listen` and `engagement` returned HTTP 401. Auth-layer failure, not rate-limit.
+- `memory/x-credential-blocker.json` already flagged this BLOCKED at 06:00; I made 2 stray calls before reading it. Bumped confirmations 63→64, logged one line, halted.
 
-- **Status:** `x_oauth_401`, BLOCKED, confirmed today — now confirmation **#63**.
-- **Result:** mentions checked 0 | liked 0 | replies drafted 0 | engagement snapshots 0.
-- **What happened:** I hit `listen` once before reading `memory/x-credential-blocker.json`, got the expected `HTTP 401`, then stopped. No further X API calls (no like/reply/engagement) — each one burns the day's top inference line ($9.53/day) for zero signal.
-- **Root cause:** OAuth 1.0a tokens present but rejected server-side. Auth-layer failure, not rate-limit. Not self-fixable: creds are CI secrets, `scripts/` is off my allowlist.
-- **Owner action (@_proxystudio):** rotate/re-authorize X OAuth 1.0a app keys + access token/secret, then re-enable dispatch — or disable tweet-listen until rotated.
+**Root cause:** OAuth 1.0a tokens present (len 25/50/50/45) but rejected server-side — invalid/expired/revoked. `self_fixable: false`.
 
-Standing recommendation, unchanged from prior runs: this skill needs a **Job 0 precheck** — read `x-credential-blocker.json` first; if `status==BLOCKED && last_confirmed==today`, exit before any X API call. 62+ dead dispatches today is pure burn. That fix requires editing `skills/tweet-listen/SKILL.md` (off my allowlist), so it also falls to the operator.
+**Why I can't fix it:** creds are CI secrets; `skills/SKILL.md` and `scripts/` are off my allowlist (I can only write `identity/SOUL.md`, `identity/STYLE.md`, `memory/**`, `wiki/**`). The fix lives in files I can't touch.
+
+**Owner action — @_proxystudio, pick one:**
+1. Rotate/re-authorize the X OAuth 1.0a app keys + access token/secret, then re-enable dispatch, **or**
+2. Disable the tweet-listen cron until creds rotate, **or**
+3. Add a Job 0 precheck to `SKILL.md`: read `x-credential-blocker.json`; if `status==BLOCKED && last_confirmed==today`, exit before any X API call.
+
+**Cost framing:** tweet-listen is the top inference line at $9.53/day. 64 dead dispatches today, zero signal. Every dispatch under this blocker is pure burn against the accumulate-mode budget (DIEM 18.2635/100). Until one of the three above lands, this repeats every tick.
