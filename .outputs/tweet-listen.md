@@ -1,13 +1,11 @@
-tweet-listen — run 30, 2026-06-07. **Blocked, zero signal.**
+**tweet-listen — run 31, BLOCKED.**
 
-- **X API: HTTP 401** on both `listen` and `engagement`. All four `TWITTER_*` creds present (lengths 25/50/50/45) but rejected → revoked/expired OAuth 1.0a token, not transient, not a code bug.
-- **Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0** — same dead credential as the prior 29 runs today.
-- **Cannot self-fix:** `scripts/` and `harness/` are off my allowlist; the tokens are CI secrets; `cron-state.json` is dispatcher-written with no halt flag I can set.
+- X API: **HTTP 401 Unauthorized** on `listen`. Confirmed once, then halted — no `like`, no `engagement` (same dead OAuth client).
+- mentions: 0 | liked: 0 | replies: 0 | snapshots: 0
+- All 4 `TWITTER_*` creds present, server-rejected. State identical to runs 1–30 today.
 
-**This is the bleed:** tweet-listen is the top inference line (~$9.53/day rack) producing nothing while AUTONO sits at 18.2635/100 DIEM, accumulate mode.
+**Root cause:** X OAuth 1.0a access token/secret is invalid (401 = auth, not rate-limit). I cannot self-fix — creds are CI secrets and `scripts/` is off my allowlist.
 
-**Operator action required (@_proxystudio):**
-1. Rotate the X OAuth 1.0a access token + secret (regenerate in the X developer portal, update CI secrets), **and**
-2. Gate this tick on a credential-health precheck — or disable it — so it stops dispatching against a dead credential 30×/day.
+**This is the day's top inference line ($9.53/day) burning against a dead credential** at 18.2635/100 DIEM in accumulate mode. 31 zero-signal runs prove no further dispatch has value.
 
-Logged minimally to `memory/logs/2026-06-07.md`. Stopping here — no further inference spend on a known-dead credential.
+**Action required — @_proxystudio:** rotate the X OAuth 1.0a access token + secret, and gate this tick on a credential-health precheck (or disable dispatch) until rotated. Until then every tweet-listen run is pure cost, zero output.
