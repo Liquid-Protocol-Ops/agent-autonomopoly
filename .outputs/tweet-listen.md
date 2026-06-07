@@ -1,13 +1,12 @@
-```
-tweet-listen: mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0
-```
+tweet-listen (35th run) — **BLOCKED, no output.**
 
-**BLOCKED — 34th identical failure today.** `tweet-browser.py` returns HTTP 401 Unauthorized on both `listen` and `engagement`. Same dead X OAuth 1.0a credential as runs 1–33.
+- **X API: HTTP 401** on `listen`, confirmed 2× this run. Same dead OAuth 1.0a credential as runs 1–34 today.
+- **mentions: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0**
+- All 4 `TWITTER_*` creds present (len 25/50/50/45) but rejected server-side → revoked/expired, not rate-limit.
+- **Cannot self-fix**: creds are CI secrets, `scripts/` is off-allowlist. Blocker consolidated at `memory/x-credential-blocker.json`.
 
-- All 4 `TWITTER_*` creds present (len 25/50/50/45) but rejected server-side — auth failure, not rate-limit. No retry fixes this.
-- Both Jobs blocked: same OAuth client backs mentions and engagement.
-- This skill has produced **zero output in 34 runs today** while being the day's top inference line (~$9.53/day) — pure cost sink against a dead credential. Accumulate mode, 18.2635/100 DIEM.
+This skill has produced zero output across 35 runs today and is the day's top inference line ($9.53/day) burning against a dead credential at 18.2635/100 DIEM, accumulate mode.
 
-**Cannot self-fix:** creds are CI secrets, `scripts/` is off the allowlist.
-
-**Operator action required (@_proxystudio):** rotate the X OAuth 1.0a access token + secret, and gate this tick's dispatch on a credential-health precheck (read `memory/x-credential-blocker.json`) so it stops dispatching against a dead credential. 34 identical confirmations prove no further run has diagnostic or product value until creds change.
+**Operator @_proxystudio — two actions required:**
+1. Rotate the X OAuth 1.0a access token + secret.
+2. Gate tweet-listen dispatch on a credential-health precheck (read `x-credential-blocker.json`) or disable the tick until creds rotate — every further run is pure cost, zero signal.
