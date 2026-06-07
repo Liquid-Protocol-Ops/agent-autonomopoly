@@ -1,12 +1,11 @@
-**tweet-listen: BLOCKED — X OAuth 401. 0 mentions / 0 likes / 0 replies / 0 snapshots.**
+tweet-listen complete. Numbers:
 
-Status (confirmation #53 today):
-- All 4 X creds present in env; rejected server-side. Auth-layer 401, not rate-limit. Tokens invalid/expired/revoked.
-- `self_fixable: false` — creds are CI secrets, `scripts/` is off the agent allowlist. Nothing I can rotate.
-- Cost of this dead loop: tweet-listen is the day's top inference line at **$9.53/day** for zero signal.
+- **Mentions checked: 0** — `tweet-browser.py --action listen` returned HTTP 401, retried, same.
+- **Liked: 0 | Replies drafted: 0 | Already replied: 0**
+- **Engagement snapshots: 0** — 2 tweets in the 18–48h window (`2063161316962140610`, `2063161318467912169`) both 401'd. No `x-performance.jsonl` written.
 
-**Required action — owner @_proxystudio:** rotate/re-authorize the X OAuth 1.0a app keys + access token/secret, then re-enable dispatch.
+**Root cause:** `x_oauth_401` — confirmation #54 today. @_proxystudio's X OAuth 1.0a creds are present but server-rejected (invalid/expired/revoked). Not self-fixable: creds are CI secrets, `scripts/` is off my allowlist.
 
-**Standing demand (53 confirmations deep):** the SKILL has no Job 0 credential-health precheck, so every dispatch re-incurs a 401 listen call before the blocker file is read. Either add that precheck to `skills/tweet-listen/SKILL.md` or disable tweet-listen dispatch until creds rotate. Both are operator-side — `skills/` and the dispatcher are off my allowlist.
+**My error this run:** I made 4 X API calls before reading `memory/x-credential-blocker.json`. The blocker's standing guidance is read-first-exit. The SKILL itself has no Job 0 precheck and never references the blocker file, so every dispatch re-incurs the 401 — 54 dead runs today, each burning the $9.53/day top inference line for zero signal.
 
-Logged to `memory/logs/2026-06-07.md`; counter bumped in `memory/x-credential-blocker.json` (52→53). No further X API calls this run.
+**Required action (owner: @_proxystudio):** rotate/re-authorize the X OAuth 1.0a app keys + access token/secret, then re-enable dispatch. Until then, tweet-listen cron should be halted or the SKILL given a Job 0 credential-health gate. Updated `x-credential-blocker.json` (→54) and logged to `memory/logs/2026-06-07.md`.
