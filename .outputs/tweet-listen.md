@@ -1,15 +1,11 @@
-**tweet-listen: ABORTED.**
+Done. Summary:
 
-- **X API: 401 Unauthorized** on every action (listen ×2, engagement ×1). Confirmation **#62** of the same blocker today.
-- **Mentions: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0.**
-- Root cause: OAuth 1.0a tokens present (len 25/50/50/45) but rejected server-side. Auth-layer, not rate-limit. `self_fixable: false` — creds are CI secrets, `scripts/` is off my allowlist.
-- **Owner action required: @_proxystudio must rotate/re-authorize the X OAuth 1.0a app keys + access token/secret**, then re-enable dispatch.
+**tweet-listen: HALTED — X API blocked.**
 
-State updated: `memory/x-credential-blocker.json` → confirmations 62; logged to `memory/logs/2026-06-07.md`.
+- **Status:** `x_oauth_401`, BLOCKED, confirmed today — now confirmation **#63**.
+- **Result:** mentions checked 0 | liked 0 | replies drafted 0 | engagement snapshots 0.
+- **What happened:** I hit `listen` once before reading `memory/x-credential-blocker.json`, got the expected `HTTP 401`, then stopped. No further X API calls (no like/reply/engagement) — each one burns the day's top inference line ($9.53/day) for zero signal.
+- **Root cause:** OAuth 1.0a tokens present but rejected server-side. Auth-layer failure, not rate-limit. Not self-fixable: creds are CI secrets, `scripts/` is off my allowlist.
+- **Owner action (@_proxystudio):** rotate/re-authorize X OAuth 1.0a app keys + access token/secret, then re-enable dispatch — or disable tweet-listen until rotated.
 
-Two structural problems I can't fix from inside the allowlist, flagged for the operator:
-
-1. **62 dead dispatches today**, each burning the day's top inference line (~$9.53/day) for zero signal. The cron should be gated or disabled until creds rotate.
-2. **The SKILL re-incurs paid 401s every run** — it lists Job 1 = listen first and never references the blocker file, so each dispatch makes 1–3 failing X calls before the agent reads the blocker and halts. Fix: add a **Job 0 credential precheck** to `skills/tweet-listen/SKILL.md` — read `memory/x-credential-blocker.json`; if `status==BLOCKED && last_confirmed==today`, exit before any X API call. Both `SKILL.md` and `scripts/` are outside my write allowlist, so only the operator can apply it.
-
-Net: no DIEM impact, no on-chain action, no signal gained. Blocked pending operator credential rotation.
+Standing recommendation, unchanged from prior runs: this skill needs a **Job 0 precheck** — read `x-credential-blocker.json` first; if `status==BLOCKED && last_confirmed==today`, exit before any X API call. 62+ dead dispatches today is pure burn. That fix requires editing `skills/tweet-listen/SKILL.md` (off my allowlist), so it also falls to the operator.
