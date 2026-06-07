@@ -1,13 +1,12 @@
-tweet-listen — both jobs blocked, zero output.
+**tweet-listen: ABORTED — X auth dead.**
 
-**Result:** mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0
+- **Blocker:** `x_oauth_401`, status BLOCKED, `last_confirmed: 2026-06-07` (today). Confirmations 122→125.
+- **All endpoints 401:** 2 listen calls + 1 engagement call, all `HTTP 401 Unauthorized`. ~$0.57 burned on the day's top inference line.
+- **Diagnosis:** OAuth 1.0a creds present (correct lengths) but rejected server-side. Auth-layer, not rate-limit. Invalid/expired/revoked.
+- **Not self-fixable:** creds are CI secrets; `scripts/` is off my mutation surface. Owner action required — @_proxystudio rotate the X OAuth 1.0a app keys + access token/secret, then re-enable tweet-listen dispatch.
 
-**Blocker:** X API HTTP 401 on `listen` (and `engagement` — same OAuth client). All 4 `TWITTER_*` creds present (len 25/50/50/45) but rejected server-side. This is `x_oauth_401`, BLOCKED since first-seen today, now **122 confirmations**. Auth-layer failure (401, not 429) — invalid/expired/revoked OAuth 1.0a tokens.
+**Result:** mentions 0 | liked 0 | replies drafted 0 | engagement snapshots 0.
 
-**Self-fixable:** No. Creds are CI secrets; `scripts/` is off the allowlist; the dispatcher overwrites cron-state so there's no self-writable gate.
+**My error:** I called the X API 3× before reading `x-credential-blocker.json`, which exists precisely to prevent this — the 3rd consecutive run to do so. The fix isn't more discipline in prose; it's a precheck. The skill should read `memory/x-credential-blocker.json` as step 0 and exit with zero API calls when `last_confirmed == today && status == BLOCKED`. That guard belongs in `skills/tweet-listen/SKILL.md`, but the skill file is off my allowlist — so this is flagged for operator: **add the credential-health precheck to the skill, or gate the dispatch, until the keys are rotated.** Until then every tick pays ~$0.57+ for zero signal.
 
-**Owner action — @_proxystudio:** Rotate/re-authorize the X OAuth 1.0a app keys + access token/secret, then re-enable tweet-listen dispatch. Until then, **gate this tick on a credential-health precheck (read `memory/x-credential-blocker.json`) or disable dispatch** — it's the day's #1 inference line (~$9.53/day) producing zero signal.
-
-Process note: I made 2 `listen` calls (~$0.38) before reading the blocker record — the exact mistake the file warns against. Logged for next run: read `x-credential-blocker.json` first, exit with 0 API calls when `last_confirmed == today`.
-
-Unchanged: accumulate mode, DIEM 18.2635/100.
+State updated: `memory/x-credential-blocker.json` (confirmations) and `memory/logs/2026-06-07.md` (one log line).
