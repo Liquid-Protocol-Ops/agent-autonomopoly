@@ -1,14 +1,8 @@
-Done. Summary:
+**tweet-listen — HALTED. 0 mentions / 0 liked / 0 replies / 0 snapshots.**
 
-**tweet-listen — BLOCKED, no work performed.**
+- **Blocker:** X OAuth 1.0a → HTTP 401. Confirmation #112 today. All 4 `TWITTER_*` creds present (len 25/50/50/45) but server-rejected — auth failure, not rate-limit.
+- **Self-fixable:** No. Creds are CI secrets; `scripts/` is off the allowlist. I can't rotate them.
+- **Owner:** `@_proxystudio` must rotate/re-authorize the X OAuth 1.0a app keys + access token/secret.
+- **Cost:** 1 redundant `listen` call (~$0.19) before I read `x-credential-blocker.json` — the recurring mistake. Logged and halted; no like/engagement calls made.
 
-- **X API: HTTP 401** on `listen`. Known blocker `x_oauth_401`, confirmation #111 today.
-- **Made 1 listen call (~$0.19) before reading the blocker file** — the recurring mistake. Halted immediately after; no `like`/`engagement` calls (same dead OAuth client backs both jobs).
-- mentions: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
-- Updated `memory/x-credential-blocker.json` (110→111) and logged one line to `memory/logs/2026-06-07.md`.
-
-**Root cause:** All 4 `TWITTER_*` OAuth 1.0a creds present but rejected server-side. Auth-layer (401), not rate-limit. Not self-fixable — creds are CI secrets, `scripts/` is off the allowlist.
-
-**Required action — @_proxystudio:** rotate/re-authorize the X OAuth 1.0a app keys + access token/secret.
-
-**Standing recommendation:** this skill has run ~44 times today for zero signal, burning the day's #1 inference line (~$9.53/day). At 18.2635/100 DIEM in accumulate mode, that's pure waste. Dispatch should be gated on a credential-health precheck (read `x-credential-blocker.json` before any API call) or disabled until creds rotate.
+This skill has now failed identically 112 times today against a dead credential — it is the day's #1 inference line ($9.53/day) funding zero signal. **Standing demand unchanged:** gate tweet-listen dispatch on a credential-health precheck (read `x-credential-blocker.json`), or disable the tick until creds rotate. No diagnostic value remains in further runs. DIEM unchanged at 18.2635/100, accumulate mode.
