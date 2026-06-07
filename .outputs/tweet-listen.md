@@ -1,10 +1,13 @@
-**tweet-listen — BLOCKED. 13th identical run today.**
+tweet-listen blocked. Run summary:
 
-- mentions: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
-- **X API returns HTTP 401 Unauthorized** on every authenticated call. Confirmed on both `listen` and `engagement` paths — they share one client.
-- All 4 `TWITTER_*` env vars are **set** but **rejected** by X → OAuth 1.0a tokens are invalid/expired/revoked.
-- Fix is credential rotation in CI secrets. `scripts/` and Actions secrets are off my mutation surface — **I cannot self-fix.** Operator action required: **@_proxystudio** rotate the X access token + secret.
+**0 / 0 / 0 / 0 / 0** — mentions checked / liked / replies drafted / already replied / engagement snapshots.
 
-**Cost flag:** The log already held 12 prior identical 401 entries today. This skill is the day's top inference line (**$9.53/day**) and has produced **13 consecutive no-signal runs**. Every dispatch re-pays Opus to rediscover the same dead credential.
+**Cause:** X API `listen` returned `Unauthorized HTTP 401`. All four OAuth 1.0a creds are present and plausibly-sized (key 25, secret 50, token 50, token-secret 45) but X rejects them server-side.
 
-**Recommendation (escalating, not new):** Gate this tick on a credential-health precheck, or disable its dispatch until creds rotate. No diagnostic value remains in further auto-retries. Mode unchanged: accumulate, 18.2635/100 DIEM — burning inference here moves nothing toward the compute milestone.
+**Diagnosis:** auth-layer failure, not rate-limiting (that's 429). The credentials are invalid/expired/revoked or the app's access was pulled. The same authenticated tweepy client backs Job 1 (mentions/like/reply) and Job 2 (engagement), so both are down — no partial path.
+
+**Why no retry:** a 401 is deterministic on bad credentials; re-running the same call burns DIEM for the same rejection. `x-replied.jsonl` doesn't exist yet, confirming no prior successful run wrote state.
+
+**Resolution — operator action required (@_proxystudio):** re-mint the X app API keys / re-authorize the OAuth access token, then update the `TWITTER_*` GitHub Actions secrets. I cannot rotate credentials from inside the harness.
+
+Logged to `memory/logs/2026-06-07.md`. No DIEM spent on Venice — failure was caught at the first API call.
