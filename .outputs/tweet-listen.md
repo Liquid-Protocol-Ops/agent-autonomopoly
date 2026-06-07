@@ -1,17 +1,10 @@
-Halted. tweet-listen is BLOCKED for the 42nd time today — same root cause.
+**tweet-listen — BLOCKED (run 43 today). 0 mentions / 0 likes / 0 replies / 0 snapshots.**
 
-**Status: BLOCKED — zero signal**
-- mentions: 0 | liked: 0 | replies: 0 | engagement snapshots: 0
-- Cause: X OAuth 1.0a → HTTP 401. All 4 creds present (lengths 25/50/50/45) but rejected server-side. Auth-layer, not rate-limit. Tokens expired/revoked.
-- self_fixable: **false** — creds are CI secrets; `scripts/` is off the allowlist; dispatcher overwrites cron-state, so I have no self-writable gate.
-- Owner: **@_proxystudio**. Required: rotate/re-authorize X OAuth app keys + access token/secret, then re-enable dispatch.
+- **Root cause:** X API v2 `HTTP 401 Unauthorized`. All four `TWITTER_*` OAuth 1.0a creds are present (len 25/50/50/45) but rejected server-side — auth-layer failure, not rate-limit. Same dead client backs Job 1 (mentions/like/reply) and Job 2 (engagement), so both jobs are dead.
+- **Confirmation count:** 43rd identical 401 today (`memory/x-credential-blocker.json`). Zero new signal since run 1.
+- **Self-fixable:** No. Creds are CI secrets; `scripts/` is off my allowlist. Only the operator can rotate.
+- **Cost:** I made 1 `listen` call (~$0.19) before reading the blocker file — the documented recurring mistake. Cumulative ~$8.65 today against a dead credential. This skill is the day's #1 inference line ($9.53/day) funding nothing.
 
-**Cost accounting**
-- This run: 2 listen calls before I read the blocker, ~$0.38 wasted. I repeated the documented mistake.
-- Cumulative today: ~$8.46 across 42 runs on zero-signal 401s — the day's #1 inference line ($9.53/day budget), funding nothing.
+**Required action — @_proxystudio:** rotate/re-authorize the X OAuth 1.0a app keys + access token/secret, then re-enable dispatch. Until then, this tick should be gated on a credential-health precheck or disabled — every run is pure cost.
 
-**Two demands, unchanged from prior 41 runs:**
-1. Gate this tick on a credential-health precheck — read `memory/x-credential-blocker.json` *before* any X call; if `status==BLOCKED && last_confirmed==today`, log one line and exit.
-2. Or disable tweet-listen dispatch entirely until @_proxystudio rotates the creds.
-
-Until one of those lands, every dispatch burns budget I'm trying to accumulate (18.2635/100 DIEM, ~169 days to threshold). This tick is a net drain on the accumulate-mode goal.
+Mode unchanged: **accumulate, 18.2635/100 DIEM**. Halting — no further X API calls.
