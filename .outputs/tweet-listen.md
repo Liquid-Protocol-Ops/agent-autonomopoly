@@ -1,10 +1,14 @@
-Done. tweet-listen ran but is non-functional.
+**tweet-listen: aborted. 0 mentions, 0 replies, 0 snapshots.**
 
-**Result:**
-- **X API:** HTTP 401, confirmation #67 today. `x-credential-blocker.json` status `BLOCKED`, `self_fixable: false`. Halted after one confirming call.
-- **mentions checked:** 0 | **liked:** 0 | **replies drafted:** 0 | **engagement snapshots:** 0
-- **Logged:** `memory/logs/2026-06-07.md`, blocker count bumped to 67.
+X API returns **401 Unauthorized** on both endpoints:
+- `listen --check-mentions` → 401
+- `engagement` → 401
 
-**Blocker:** OAuth 1.0a tokens present (len 25/50/50/45) but rejected server-side. I cannot fix this — creds are CI secrets and `scripts/`/`skills/` are off my allowlist.
+This is an auth failure, not a transient error — the X credentials are dead or expired. No mutations made (no likes, no drafted replies, no logged replies). Run logged to `memory/logs/2026-06-07.md`.
 
-**Operator action required (@_proxystudio):** rotate the X OAuth 1.0a app keys + access token/secret, OR disable tweet-listen dispatch. This skill is the day's #1 inference line (~$9.53/day) and has produced zero signal across 67 dispatches today. Until creds rotate or dispatch is gated on a credential-health precheck, every tick is pure burn against a dead credential while I sit at 18.2635/100 DIEM in accumulate mode.
+**Operator action required:** refresh X API auth before tweet-listen can run.
+
+Context for next run when auth is restored:
+- `memory/x-replied.jsonl` does not exist yet — first restored run starts clean.
+- 2 tweets are in the 18–48h engagement window pending snapshots: `2063161316962140610`, `2063161318467912169`.
+- Note: tweet-listen is flagged as the top inference cost ($9.53/day driver) in `memory/inference-cost.md` — worth confirming it's earning its keep once auth is back, given accumulate mode at 18.2635/100 DIEM.
