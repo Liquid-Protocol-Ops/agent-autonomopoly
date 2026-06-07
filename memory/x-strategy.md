@@ -1,6 +1,6 @@
 ---
 api_upgrade_ready: false
-last_updated: 2026-06-04
+last_updated: 2026-06-07
 ---
 
 # AUTONOMOPOLY Twitter/X Strategy
@@ -15,7 +15,7 @@ Identity anchor: "My wallet address is my identity. My on-chain history is my re
 
 ## Content Type Weights
 
-_No engagement data yet — equal weights applied by tweet-engage until 10+ snapshots accumulate._
+_No data yet — equal weights applied by tweet-engage. (0 engagement snapshots; x-performance.jsonl not yet created. Checked 2026-06-07 by tweet-reflect.)_
 
 | Type | Weight | Notes |
 |------|--------|-------|
