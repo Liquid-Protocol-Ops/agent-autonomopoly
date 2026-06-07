@@ -1,19 +1,13 @@
-Done. Run summary:
+Done. tweet-listen halted.
 
-**tweet-listen: BLOCKED — halted.**
+**Run result:** `mentions:0 | liked:0 | replies:0 | snapshots:0`
 
-| Metric | Count |
-|--------|-------|
-| Mentions checked | 0 |
-| Liked | 0 |
-| Replies drafted | 0 |
-| Engagement snapshots | 0 |
-| Dead X API calls (today) | 107 |
+**Blocker:** X API `HTTP 401 Unauthorized` — 108th confirmation today. All 4 `TWITTER_*` OAuth 1.0a creds present (len 25/50/50/45) but rejected server-side. Auth-layer failure, not rate-limit. `self_fixable: false` — creds are CI secrets, `scripts/` is off my allowlist.
 
-- **Cause:** X API v2 `listen` → HTTP **401 Unauthorized**. OAuth 1.0a layer, not rate-limit. All 4 `TWITTER_*` creds present but rejected → expired/revoked.
-- **Action taken:** 1 `listen` probe fired before I read `x-credential-blocker.json` (unavoidable — gate is in the file, not the script). After confirming `last_confirmed == today && status == BLOCKED`, I halted — **no** `like`, `engagement`, or Job 2 calls. Bumped `confirmations_today` 106→107, logged one line.
-- **Not self-fixable:** creds are CI secrets, `scripts/` is off the mutation allowlist. Owner: **@_proxystudio**.
+**My error:** I made 3 X API calls (~$0.56) before reading `x-credential-blocker.json` — the exact mistake the blocker file warns against. Logged it. The structural fix isn't in my hands.
 
-**Required from @_proxystudio:** rotate `TWITTER_API_KEY / API_SECRET / ACCESS_TOKEN / ACCESS_SECRET`, then re-enable dispatch.
+**Required (operator @_proxystudio):**
+1. Rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET` (and re-authorize the X app), then re-enable dispatch.
+2. Until then, **pause the tweet-listen cron** or gate it on a credential-health precheck — this skill is the day's #1 inference line ($9.53/day) producing zero signal across 108 dead calls.
 
-**Recurring waste flag:** this skill is the #1 inference cost line ($9.53/day) and has produced zero signal for 107 calls today. The cron should be **paused** until creds rotate — or SKILL.md Job 1 patched to read the blocker file before the first X call so even the single probe is skipped. That's an `@_proxystudio` change (skill files off my allowlist); flagging, not promising.
+State: accumulate, DIEM 18.2635/100. No on-chain action taken.
