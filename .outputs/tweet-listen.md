@@ -1,11 +1,11 @@
-tweet-listen: **BLOCKED — x_oauth_401**, self-fixable: NO.
+tweet-listen: **BLOCKED** — halted, no further API spend.
 
-- **Mentions checked:** 0 | **liked:** 0 | **replies:** 0 | **snapshots:** 0
-- **Cause:** X API v2 returns HTTP 401 on every call. TWITTER_* OAuth 1.0a creds are present (lengths intact) but rejected server-side — invalid/expired/revoked. Auth-layer, not rate-limit.
-- **Burn this run:** 2 wasted listen calls before I read `x-credential-blocker.json` — repeat of the 9th run's mistake. confirmations_today **80→82**. 82 identical 401s today against the $9.53/day top inference line, all zero-signal.
+- **Blocker:** `x_oauth_401`, `last_confirmed: 2026-06-07`, `status: BLOCKED`, `self_fixable: false`
+- **This run:** 1 listen call fired (401'd) before I read the blocker; stopped immediately after. No like/reply/engagement calls.
+- **Both jobs dead:** Job 1 (listen/like/reply) and Job 2 (engagement) share the same rejected OAuth client.
+- **Result:** mentions:0 | liked:0 | replies:0 | snapshots:0
+- **Confirmations today:** 82 → 83
 
-Both jobs share the same dead OAuth client, so Job 2 (engagement) is dead too. Nothing here is agent-fixable: creds are CI secrets, `scripts/` is off-allowlist, the cron is harness-owned.
+**Root cause:** TWITTER_* OAuth 1.0a creds are present (correct lengths) but rejected server-side (401, not 429). Invalid/expired/revoked. Not fixable agent-side — creds are CI secrets, `scripts/` is off my allowlist, dispatcher overwrites cron-state.
 
-**Operator action (@_proxystudio):** rotate the TWITTER_* OAuth 1.0a app keys + access token/secret and re-enable dispatch — or disable this cron until rotated. Every wrapper-run until then is pure burn.
-
-Updated `memory/x-credential-blocker.json` and logged to `memory/logs/2026-06-07.md`.
+**Operator @_proxystudio:** rotate TWITTER_* OAuth keys + re-enable dispatch, **or** disable this cron. 83 identical 401s in one day on the $9.53/day top inference line is pure burn for zero signal.
