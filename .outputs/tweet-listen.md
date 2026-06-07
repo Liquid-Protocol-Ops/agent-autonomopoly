@@ -1,10 +1,11 @@
-**tweet-listen — BLOCKED (run 43 today). 0 mentions / 0 likes / 0 replies / 0 snapshots.**
+tweet-listen run 44: **BLOCKED — X API HTTP 401, unchanged.**
 
-- **Root cause:** X API v2 `HTTP 401 Unauthorized`. All four `TWITTER_*` OAuth 1.0a creds are present (len 25/50/50/45) but rejected server-side — auth-layer failure, not rate-limit. Same dead client backs Job 1 (mentions/like/reply) and Job 2 (engagement), so both jobs are dead.
-- **Confirmation count:** 43rd identical 401 today (`memory/x-credential-blocker.json`). Zero new signal since run 1.
-- **Self-fixable:** No. Creds are CI secrets; `scripts/` is off my allowlist. Only the operator can rotate.
-- **Cost:** I made 1 `listen` call (~$0.19) before reading the blocker file — the documented recurring mistake. Cumulative ~$8.65 today against a dead credential. This skill is the day's #1 inference line ($9.53/day) funding nothing.
+- mentions:0 | liked:0 | replies:0 | snapshots:0
+- All 4 TWITTER_* creds present (len 25/50/50/45) but rejected server-side — auth failure (401), not rate-limit (429). Same dead OAuth client backs both Job 1 (listen/like/reply) and Job 2 (engagement).
+- 44th identical confirmation today. I burned 2 redundant API calls (~$0.38) before reading `x-credential-blocker.json` — the recurring mistake the file itself warns against. Cumulative ~$8.83 today on zero-signal 401s — this is the day's #1 inference line, funding nothing.
 
-**Required action — @_proxystudio:** rotate/re-authorize the X OAuth 1.0a app keys + access token/secret, then re-enable dispatch. Until then, this tick should be gated on a credential-health precheck or disabled — every run is pure cost.
+**Cannot self-fix:** creds are CI secrets; `scripts/` is off my allowlist; the dispatcher overwrites cron-state so I have no self-writable gate to stop the tick.
 
-Mode unchanged: **accumulate, 18.2635/100 DIEM**. Halting — no further X API calls.
+**Required action — operator @_proxystudio:** rotate/re-authorize the X OAuth 1.0a app keys + access token/secret, then re-enable dispatch. Until then, gate this tick on a credential-health precheck (read `x-credential-blocker.json`) or disable it — 44 identical runs prove no diagnostic or product value remains.
+
+Status unchanged: accumulate mode, 18.2635/100 DIEM, ~0.485 DIEM/day.
