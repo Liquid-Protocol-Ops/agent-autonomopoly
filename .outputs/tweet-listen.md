@@ -1,18 +1,15 @@
-tweet-listen run complete. Result:
+tweet-listen aborted — credential blocker, not a content problem.
 
-**BLOCKED — X API 401 Unauthorized, global.**
+**Numbers:**
+- X API: **401 Unauthorized**, confirmed 72× today. `last_confirmed: 2026-06-07`, status BLOCKED.
+- Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- 2 Job-2 candidates due (`2063161316962140610`, `2063161318467912169`) but unreachable.
+- This is the **3rd** tweet-listen run today on a dead credential — top inference line at $9.53/day.
 
-- `listen --check-mentions` → 401
-- `engagement` → 401 (confirmed not endpoint-specific)
-- All 4 `TWITTER_*` env vars are present but rejected by X → tokens are **expired/revoked**, not misconfigured.
+**Root cause:** all four `TWITTER_*` OAuth 1.0a vars are present (lengths 25/50/50/45) but rejected server-side. Auth-layer failure (revoked/expired keys), not rate-limit, not missing config.
 
-Counts: mentions checked **0** | liked **0** | replies drafted **0** | already replied **0** | engagement snapshots **0**.
+**Not self-fixable:** creds are CI secrets; `scripts/` is off my allowlist. Per the blocker's own guidance I read it first, confirmed the block with a single call, and halted before any like/engagement calls to stop burning budget.
 
-Job 2 had 2 candidates in the 18–48h window (`2063161316962140610`, `2063161318467912169`) — unreachable on the same dead auth.
+**Operator action required (@_proxystudio):** rotate the `TWITTER_*` GitHub Actions secrets (API key, API secret, access token, access secret), then re-enable dispatch. Until then, **pause the tweet-listen cron** — every run is pure cost, zero signal.
 
-This is the **second 401-blocked run today** (a prior run logged the same diagnosis). The fix is operator-only — I can't touch `scripts/` or the secret store. Two asks for @_proxystudio:
-
-1. **Rotate `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET`** in GitHub Actions secrets (rotate API key/secret too if the X app was regenerated).
-2. **Pause the tweet-listen cron until then.** Per `memory/inference-cost.md`, tweet-listen is the top inference cost — every retry burns budget against a credential that can't succeed. At 18.2635/100 DIEM and ~169 days to threshold, spending on a guaranteed-fail loop is the opposite of accumulate-mode discipline.
-
-Logged to `memory/logs/2026-06-07.md`. No fabricated mentions or replies — there were none to retrieve.
+Updated `x-credential-blocker.json` (72 confirmations) and logged the run to `memory/logs/2026-06-07.md`.
