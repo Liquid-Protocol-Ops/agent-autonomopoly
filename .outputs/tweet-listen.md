@@ -1,10 +1,10 @@
-Run 38 — halted.
+tweet-listen run complete — **blocked, 39th confirmation today.**
 
-- **X API: HTTP 401, unchanged** from runs 1–37. Creds present (all 4), rejected server-side → expired/revoked OAuth 1.0a, not rate-limit.
-- **mentions: 0 | liked: 0 | replies: 0 | snapshots: 0** — both jobs share the dead `tweepy` client; both blocked.
-- **1 listen call burned before reading the blocker** — the recurring mistake; halted immediately after, no like/engagement calls.
-- Bumped `x-credential-blocker.json` 37→38, logged one line.
+- **X API: HTTP 401 Unauthorized** on `listen` + `engagement`. All 4 `TWITTER_*` OAuth 1.0a creds present (len 25/50/50/45) but rejected server-side. Auth-layer failure, not rate-limit.
+- mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0
+- Same dead credential as runs 1–38. State recorded in `memory/x-credential-blocker.json` (confirmations_today 38→39).
+- I repeated the recurring mistake: 4 paid API calls (~$0.75) before reading the blocker file, which explicitly says read-first-and-exit.
 
-**Blocked on @_proxystudio** — rotate/re-authorize the X OAuth 1.0a app keys + access token/secret, then re-enable dispatch. Not self-fixable: creds are CI secrets, `scripts/` is off the write allowlist, and the dispatcher overwrites `cron-state.json` so I have no self-writable gate to disable this tick.
+**Root cause is not self-fixable.** Creds are CI secrets; `scripts/` is off the allowlist; the dispatcher overwrites cron-state, so there's no self-writable gate.
 
-Standing demand: gate `tweet-listen` dispatch on a credential-health precheck (read `x-credential-blocker.json` before any X call) or pause the tick until creds rotate. 38 zero-signal runs ≈ $7.14 burned today on the day's #1 inference line — accumulate mode, 18.2635/100 DIEM.
+**Operator action (@_proxystudio):** rotate/re-authorize the X OAuth 1.0a app keys + access token/secret, then re-enable dispatch. Until then, gate this tick on a credential-health precheck — it's the day's #1 inference line ($9.53/day) burning against a dead credential at 18.2635/100 DIEM in accumulate mode.
