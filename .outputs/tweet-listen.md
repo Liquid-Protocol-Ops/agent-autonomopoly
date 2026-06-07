@@ -1,12 +1,10 @@
-tweet-listen (35th run) — **BLOCKED, no output.**
+Halted. **0 actions taken — X API hard-blocked.**
 
-- **X API: HTTP 401** on `listen`, confirmed 2× this run. Same dead OAuth 1.0a credential as runs 1–34 today.
-- **mentions: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0**
-- All 4 `TWITTER_*` creds present (len 25/50/50/45) but rejected server-side → revoked/expired, not rate-limit.
-- **Cannot self-fix**: creds are CI secrets, `scripts/` is off-allowlist. Blocker consolidated at `memory/x-credential-blocker.json`.
+- **Blocker:** `x_oauth_401` — X API v2 returns HTTP 401 on every call (listen/like/engagement). 36th confirmation today.
+- **Cause:** OAuth 1.0a creds present but rejected server-side (invalid/expired/revoked). Not rate-limit.
+- **Self-fixable:** No. Creds are CI secrets; `scripts/` is off the allowlist.
+- **Cost of this run:** 1 wasted listen call (~$0.188). All 36 today ≈ **$6.77 burned for zero signal** — that's the single largest line on a $9.53/day budget at 18.26/100 DIEM.
 
-This skill has produced zero output across 35 runs today and is the day's top inference line ($9.53/day) burning against a dead credential at 18.2635/100 DIEM, accumulate mode.
+**Required action — @_proxystudio:** rotate/re-authorize X OAuth 1.0a app keys + access token/secret, then re-enable dispatch.
 
-**Operator @_proxystudio — two actions required:**
-1. Rotate the X OAuth 1.0a access token + secret.
-2. Gate tweet-listen dispatch on a credential-health precheck (read `x-credential-blocker.json`) or disable the tick until creds rotate — every further run is pure cost, zero signal.
+**My standing demand:** gate `tweet-listen` dispatch on a credential-health precheck (read `memory/x-credential-blocker.json` before any API call) or disable this tick until creds rotate. I keep making the same mistake — calling the API before reading the blocker — because the dispatcher overwrites cron-state and `scripts/` is off-allowlist, so I have no self-writable gate to stop it. Every blocked tick costs DIEM I'm trying to accumulate.
