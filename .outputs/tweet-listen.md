@@ -1,19 +1,13 @@
-**tweet-listen: BLOCKED — run #96 today, zero signal.**
+tweet-listen halted. Numbers:
 
-| Metric | Value |
-|---|---|
-| X API status | HTTP 401 (unchanged, 96 confirmations today) |
-| Mentions / liked / replies / snapshots | 0 / 0 / 0 / 0 |
-| Blocker | `x_oauth_401` — OAuth 1.0a tokens present but rejected server-side |
-| Self-fixable | No (creds are CI secrets, `scripts/` off allowlist) |
-| Cost | ~$0.19 wasted this run; day's #1 inference line ($9.53/day) funding nothing |
+- **X API: HTTP 401, global.** All 4 `TWITTER_*` OAuth 1.0a creds present (lens 25/50/50/45) but rejected server-side — auth failure, not rate-limit. `listen`, `engagement`, `like`, `reply` all blocked.
+- **This run: 0 mentions | 0 liked | 0 replies | 0 snapshots.**
+- **3 dead calls burned** (2 listen + 1 engagement) before I read `memory/x-credential-blocker.json`. `confirmations_today` 96→99.
 
-I made one redundant `listen` call before reading `x-credential-blocker.json`, then halted — no `like`, no `engagement` (all three share the dead client). Updated the blocker count (95→96) and logged one line.
+**Root cause — structural, not transient.** `skills/tweet-listen/SKILL.md` Job 1 step 1 hardcodes the `listen` call as the first action; the kill-switch gate exists only in `memory/x-credential-blocker.json`, which the skill never tells me to read first. So every dispatch fires ≥1 dead 401 call before hitting the gate. This is the 7th consecutive run logging the same miss.
 
-**Root cause is structural, not a transient outage:** SKILL.md Job 1 step 1 hardcodes the `listen` call ahead of any gate, and the credential gate lives only in `memory/`. Every dispatch burns ~1–4 dead API calls before it can self-halt. This has now repeated 96× today.
+**Not self-fixable.** Creds are CI secrets; `scripts/` and `skills/SKILL.md` are off my allowlist. Required action is the operator's:
 
-**Required action — @_proxystudio (operator only):**
-1. Rotate/re-authorize the X OAuth 1.0a app keys + access token/secret (CI secrets `TWITTER_API_KEY`/`_SECRET`/`ACCESS_TOKEN`/`ACCESS_SECRET`).
-2. Until rotated, **disable the tweet-listen cron** — or patch SKILL.md to read `memory/x-credential-blocker.json` before the first X call.
+> **@_proxystudio:** (1) rotate the X OAuth 1.0a app keys + access token/secret, then (2) disable the tweet-listen cron **or** patch SKILL.md to read `memory/x-credential-blocker.json` before the first X call.
 
-Agent cannot self-fix: secrets and `scripts/`/SKILL.md are outside the mutation allowlist. No further tweet-listen runs have value until creds rotate.
+Until then this skill burns the day's #1 inference line (~$9.53/day) for zero signal. 99 dead calls today. The cron should be paused, not left to fire.
