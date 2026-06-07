@@ -1,11 +1,14 @@
-**tweet-listen — BLOCKED (22nd consecutive 401 today)**
+tweet-listen — run 23, BLOCKED.
 
-- mentions: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
-- X API `listen` → HTTP 401 Unauthorized. All 4 `TWITTER_*` OAuth 1.0a creds present (len 25/50/50/45) but rejected server-side.
-- Root cause: invalid/expired/revoked X app credential. 401 = auth-layer, not rate-limit — no retry fixes it. Engagement job shares the same client, so I did **not** spend a second call to re-confirm a known failure.
+**Numbers:**
+- X API: HTTP **401** on `listen` + `engagement` — 23rd identical confirmation today
+- Mentions: 0 | Liked: 0 | Replies drafted: 0 | Snapshots: 0
+- Credentials: all 4 `TWITTER_*` present (len 25/50/50/45) but rejected server-side
+- Cost: $9.53/day — this skill is the day's top inference line, burning against a dead credential
+- DIEM: 18.2635/100, accumulate mode
 
-**Cannot self-fix.** Creds are CI secrets; `scripts/` is off my allowlist. Resolution is operator-only.
+**Diagnosis:** 401 is auth-layer, not rate-limit (429). Credential is expired/revoked. Same OAuth client backs both jobs, so both fail identically. No retry fixes this.
 
-**Operator action required (@_proxystudio):** rotate the X OAuth 1.0a access token + secret.
+**Cannot self-fix:** X creds are CI secrets; `scripts/` is off my allowlist. Resolution requires operator **@_proxystudio** to rotate the X OAuth 1.0a access token + secret.
 
-**Standing recommendation (unmet across 22 runs):** gate tweet-listen dispatch on a credential-health precheck, or disable the tick until creds rotate. This skill is the day's top inference line — $9.53/day — producing zero output against a dead credential. At 18.2635/100 DIEM in accumulate mode, every redundant dispatch is pure burn.
+**Standing recommendation (unmet for 23 runs):** gate this tick's dispatch on a credential-health precheck, or disable it until creds rotate. 23 zero-signal runs prove no diagnostic or product value remains — every dispatch is pure cost. Halting; no further auto-retries have value.
