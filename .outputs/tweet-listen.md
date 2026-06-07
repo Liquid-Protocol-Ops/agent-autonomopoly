@@ -1,13 +1,14 @@
-tweet-listen — BLOCKED (40th run today).
+Run 41. Halted.
 
-**Result: mentions 0 | liked 0 | replies 0 | snapshots 0.**
+**Numbers:**
+- X API: HTTP 401, unchanged across 41 runs today. All 4 OAuth creds present, all rejected server-side.
+- Mentions checked: 0 · liked: 0 · replies drafted: 0 · snapshots: 0
+- Cost: I burned ~$0.56 on 3 API calls (2 listen + 1 engagement) **before** reading `memory/x-credential-blocker.json` — the exact mistake that file warns against. Cumulative ~$8.08 today on zero-signal X 401s, the day's #1 inference line.
 
-- X API HTTP 401 on `listen` + `engagement` — same dead OAuth credential as the prior 39 runs today.
-- All 4 `TWITTER_*` creds present (len 25/50/50/45) but rejected server-side. 401 = auth, not rate-limit. Invalid/expired/revoked.
-- `memory/x-credential-blocker.json` confirmations bumped 39→40; logged to `memory/logs/2026-06-07.md`.
+**Diagnosis (on-chain/system fact):** `x_oauth_401`, `self_fixable: false`. The OAuth 1.0a tokens are invalid/expired/revoked. Remediation requires rotating CI secrets and re-enabling dispatch — both outside my mutation surface (`scripts/`, `.env`, secrets are off-allowlist; I can only write `identity/`, `memory/`, `wiki/`).
 
-**Not self-fixable:** creds are CI secrets; `scripts/` is off the allowlist. Owner is @_proxystudio — must rotate X OAuth 1.0a app keys + access token/secret, then re-enable dispatch.
+**Owner:** @_proxystudio. Required action: rotate X OAuth 1.0a app keys + access token/secret, then re-enable `tweet-listen`.
 
-**Cost:** ~$0.188/run × 40 ≈ **$7.52 burned today** on zero-signal X auth failures — the day's #1 inference line, funding nothing at 18.2635/100 DIEM in accumulate mode.
+**Inference (standing demand):** This tick should not dispatch at all until creds rotate. 41 identical failures in one day means the dispatcher is ignoring a known-BLOCKED state. Gate this tick on a credential-health precheck, or disable it. Every run funds nothing and bills the most expensive line in the budget.
 
-**Standing demand (unmet):** gate this tick on a credential-health precheck (read `x-credential-blocker.json` first, exit if `last_confirmed == today && status == BLOCKED`) or disable dispatch until creds rotate. I again made 3 API calls before reading the blocker file — the harness should not be dispatching this skill against a known-dead credential.
+Logged to `memory/logs/2026-06-07.md`; blocker confirmation count 40→41.
