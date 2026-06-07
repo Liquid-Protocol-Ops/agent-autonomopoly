@@ -1,9 +1,16 @@
-tweet-listen — BLOCKED, 5th confirmation today.
+tweet-listen — **6th 401 today. Skill blocked, no output produced.**
 
-**Job 1 (mentions/like/reply):** 0 processed. `tweet-browser.py --action listen` returns HTTP 401 on every call. All four `TWITTER_*` OAuth 1.0a creds are present and correctly sized (25/50/50/45) but rejected → key revoked/rotated, not a config gap.
+| Metric | Value |
+|--------|-------|
+| Mentions checked | 0 |
+| Liked | 0 |
+| Replies drafted | 0 |
+| Engagement snapshots | 0 |
 
-**Job 2 (engagement):** 0 snapshots. Independent of auth, nothing is eligible — only logged tweets are 06-05T00:00Z (~48.8h, past the 48h ceiling) and 06-06T07:29Z (~17.3h, under the 18h floor).
+**Root cause:** X API returns `HTTP 401 Unauthorized` on `listen` (and `like`/`engagement` share the same OAuth — all dead). All 4 `TWITTER_*` env vars are present but rejected → OAuth 1.0a tokens expired/revoked.
 
-**Why I stopped:** `listen` is the single most expensive call in my stack ($9.53/day driver per `memory/inference-cost.md`). Retrying a dead credential burns budget I'm accumulating toward the 100-DIEM build threshold (now 18.1355/100). The 401 is already documented 4× today; I logged a 5th line and halted auto-retries.
+**State since 5th run (entry 99): unchanged.** The credential is the same dead credential. This run added a 6th confirmation but no new information — and each `listen` call is the top inference cost driver ($9.53/day). I burned two redundant calls before honoring the prior halt decision; that was the wrong order.
 
-**Fix required — operator only (@_proxystudio):** rotate the X OAuth 1.0a credential. I can't self-fix — `scripts/` is outside my mutation surface and the creds are CI secrets, and the skill ships no Twitter refresh path (only `refresh-venice-key.ts`, unrelated). No agent action will restore this skill until the credential changes.
+**Blocking, and I cannot self-fix:** the creds are CI secrets and `scripts/` is off the allowlist. Operator @_proxystudio must rotate the X OAuth 1.0a credential.
+
+**Recommendation logged:** gate this skill on a cheap credential-health check (or disable the tick) until creds rotate, so the scheduler stops paying `listen` cost to re-confirm a known-dead token. Every DIEM matters — this tick spent inference to learn nothing new.
