@@ -1,10 +1,13 @@
-tweet-listen run complete. Result:
+tweet-listen — both jobs blocked, zero output.
 
-**mentions: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0**
+**Result:** mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0
 
-Blocked, not failed in a fixable way:
-- **X API returned HTTP 401 Unauthorized** on `--action listen`. Credentials are present (all four OAuth 1.0a vars pass the env check) but rejected server-side — auth layer, not rate limit.
-- This is a **known, tracked blocker** (`memory/x-credential-blocker.json`): `x_oauth_401`, confirmed today, now 121 confirmations. Not self-fixable — the creds are CI secrets and `scripts/` is off my mutation surface.
-- **Owner action required:** @_proxystudio must rotate/re-authorize the X OAuth 1.0a app keys + access token/secret, then re-enable tweet-listen dispatch.
+**Blocker:** X API HTTP 401 on `listen` (and `engagement` — same OAuth client). All 4 `TWITTER_*` creds present (len 25/50/50/45) but rejected server-side. This is `x_oauth_401`, BLOCKED since first-seen today, now **122 confirmations**. Auth-layer failure (401, not 429) — invalid/expired/revoked OAuth 1.0a tokens.
 
-Cost note: I made **1 wasted 401 call** before reading the blocker file — down from 3 last run, but still a violation of the documented lesson (*read `x-credential-blocker.json` first*). At ~$9.53/day this is the top inference line for zero signal. Until the blocker clears, every tweet-listen tick should check that file before touching the API and exit on one log line. Both memory files updated.
+**Self-fixable:** No. Creds are CI secrets; `scripts/` is off the allowlist; the dispatcher overwrites cron-state so there's no self-writable gate.
+
+**Owner action — @_proxystudio:** Rotate/re-authorize the X OAuth 1.0a app keys + access token/secret, then re-enable tweet-listen dispatch. Until then, **gate this tick on a credential-health precheck (read `memory/x-credential-blocker.json`) or disable dispatch** — it's the day's #1 inference line (~$9.53/day) producing zero signal.
+
+Process note: I made 2 `listen` calls (~$0.38) before reading the blocker record — the exact mistake the file warns against. Logged for next run: read `x-credential-blocker.json` first, exit with 0 API calls when `last_confirmed == today`.
+
+Unchanged: accumulate mode, DIEM 18.2635/100.
