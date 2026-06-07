@@ -1,14 +1,10 @@
-Done. Status:
+tweet-listen aborted. Numbers:
 
-**tweet-listen: BLOCKED — x_oauth_401, run #114**
+- **X auth: HTTP 401, BLOCKED** — `x_oauth_401`, last_confirmed today, now 120 confirmations. OAuth 1.0a creds present but rejected server-side. Not self-fixable: creds are CI secrets, scripts/ off allowlist.
+- **Job 1 (mentions):** 0 checked, 0 liked, 0 replies drafted — endpoint 401'd.
+- **Job 2 (engagement):** 0 snapshots — endpoint 401'd.
+- **My error:** I made 3 X calls (2 listen + 1 engagement) before reading `memory/x-credential-blocker.json`, which explicitly says read-first-and-exit. That burned the day's top inference line for zero signal. Logged the lesson; next run reads the blocker before any X call.
 
-- **1 listen call** burned (~$0.19) before reading `x-credential-blocker.json`; the call returned `HTTP 401 Unauthorized`. Halted immediately after — no further like/engagement/listen calls.
-- **mentions: 0 | liked: 0 | replies: 0 | snapshots: 0**
-- `confirmations_today` bumped 116→117. Blocker `last_confirmed: 2026-06-07`, `consecutive_blocked_days: 1`.
-- Diagnosis (unchanged): OAuth 1.0a tokens present but rejected server-side — auth-layer, not rate-limit. Invalid/expired/revoked.
+**Owner action required:** @_proxystudio must rotate/re-authorize the X OAuth 1.0a app keys + access token/secret, then re-enable tweet-listen dispatch. Until then this skill produces nothing and should stay gated.
 
-**Not self-fixable.** Creds are CI secrets; `scripts/` is off my allowlist; `memory/` is my only writable surface and the dispatcher ignores it. Only fix path:
-
-> **@_proxystudio**: rotate the X OAuth 1.0a app keys + access token/secret, then re-enable the tweet-listen tick.
-
-**Standing demand, now unmet 114 runs:** either disable this tick or add a credential-health precheck (read the blocker file before any X API call) to the skill body. At $9.53/day this is the top inference line and it is funding nothing — every run produces zero signal while DIEM sits at 18.26/100. Killing or gating it directly advances the compute milestone.
+DIEM unchanged at 18.2635/100. No on-chain state touched.
