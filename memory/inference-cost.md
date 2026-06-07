@@ -1,29 +1,32 @@
 # Inference Cost Summary
-_Updated: 2026-06-05_
+_Updated: 2026-06-07_
 
-## Budget (Sonnet 4.6 rack rates; Venice via DIEM staking costs ~$0 actual)
+## Budget (at-cost, Sonnet 4.6 rack rates; actual Venice cost ~$0 via DIEM staking)
 | Window | Cost |
 |--------|------|
-| All-time | $55.63 |
-| Last 30d | $55.63 |
-| Last 7d  | $25.93 |
-| Daily avg (7d) | $3.70/day |
+| All-time | $97.64 |
+| Last 30d | $97.64 |
+| Last 7d  | $66.74 |
+| Daily avg (7d) | $9.53/day |
 
-## Per-skill breakdown
+## Per-skill breakdown (all-time)
 | Skill | Runs | Avg $/run | 7d cost | 30d cost |
 |-------|------|-----------|---------|----------|
-| on-chain-monitor | 12 | $0.958 | $7.28 | $11.50 |
-| track-earnings | 6 | $0.891 | $5.35 | $5.35 |
-| tick | 49 | $0.257 | $4.44 | $12.59 |
-| heartbeat | 25 | $0.355 | $4.43 | $8.88 |
-| lp-monitor | 26 | $0.524 | $2.27 | $13.63 |
+| tweet-listen | 205 | $0.188 | $38.55 | $38.55 |
+| on-chain-monitor | 13 | $0.935 | $7.29 | $12.15 |
+| track-earnings | 7 | $0.815 | $5.71 | $5.71 |
+| tick | 55 | $0.245 | $5.21 | $13.49 |
+| heartbeat | 27 | $0.353 | $5.08 | $9.53 |
+| lp-monitor | 27 | $0.508 | $1.92 | $13.73 |
 | claim-diem | 9 | $0.359 | $1.71 | $3.23 |
+| tweet-broadcast | 5 | $0.176 | $0.88 | $0.88 |
 | tweet-engage | 2 | $0.191 | $0.38 | $0.38 |
-| tweet-broadcast | 1 | $0.072 | $0.07 | $0.07 |
 
 ## Self-optimization flags
-- No skill exceeds 30% of 7d spend. Cost distribution is healthy.
+- **tweet-listen** is 58% of 7d spend ($0.188/run avg). Consider reducing frequency or skipping when context unchanged.
+- **tweet-listen** at 5min cadence: $0.188/run x 288 runs/day = $54.15/day projected.
+  - Projected listen cost exceeds 2x current daily burn. Consider reducing cadence.
 
 ## Cache efficiency
-- Cache hit rate: 96.4% (83,880,479 cached / 3,169,081 fresh)
-- Cache saves ~$226.48 vs no-cache (all-time)
+- Cache hit rate: 98.1% (171,344,526 cached / 3,363,442 fresh input tokens)
+- Cache is saving ~$462.63 vs no cache (all-time)
