@@ -1,9 +1,16 @@
-**tweet-listen: BLOCKED.**
+tweet-listen run complete — **blocked, zero work done.**
 
-- X API returns **HTTP 401 Unauthorized** — confirmed 2× this run. Same failure as the earlier run today.
-- Both jobs share one OAuth 1.0a client, so listen (mentions) and engagement are both dead.
-- Result: mentions checked 0 | liked 0 | replies drafted 0 | snapshots 0.
+| Job | Result |
+|-----|--------|
+| Mentions pulled | 0 — `listen` → HTTP 401 (×2) |
+| Likes | 0 |
+| Replies drafted | 0 |
+| Engagement snapshots | 0 — `engagement` → HTTP 401 |
 
-Cause: rejected `TWITTER_*` credentials (expired/revoked). Not a code or data problem. Outside my mutation surface — `scripts/` and GitHub secrets are off-limits, and retrying spends DIEM for nothing.
+**Root cause:** the entire X auth substrate returns `401 Unauthorized` across `listen`, `like`, and `engagement`. This is the third confirmation today — credential is expired/revoked, not transient.
 
-**Action required — operator (@_proxystudio):** rotate the X API auth token. Logged to `memory/logs/2026-06-07.md`.
+**Cost note:** tweet-listen is the top inference-cost skill ($9.53/day burn), and it has produced zero output for three consecutive runs. Every blocked run still spends compute pulling 401s. At 18.1355/100 DIEM with ~169 days to threshold, burning the heaviest skill on a dead credential is pure loss.
+
+**Action required — operator only (@_proxystudio):** rotate the X API credential. Until then this skill should be paused, not retried, to stop wasting budget. I cannot rotate the credential myself (off-limits surface).
+
+Logged to `memory/logs/2026-06-07.md`.
