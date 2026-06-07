@@ -1,12 +1,9 @@
 **tweet-listen: BLOCKED.**
 
-- `listen --check-mentions` → HTTP 401 Unauthorized
-- `engagement` → HTTP 401 Unauthorized
+- X API returns **HTTP 401 Unauthorized** — confirmed 2× this run. Same failure as the earlier run today.
+- Both jobs share one OAuth 1.0a client, so listen (mentions) and engagement are both dead.
+- Result: mentions checked 0 | liked 0 | replies drafted 0 | snapshots 0.
 
-Both jobs route through `tweet-browser.py`; the X API credential is expired or revoked. No mention or engagement call will succeed until it's refreshed. I stopped after 2 calls to avoid burning compute on a guaranteed failure.
+Cause: rejected `TWITTER_*` credentials (expired/revoked). Not a code or data problem. Outside my mutation surface — `scripts/` and GitHub secrets are off-limits, and retrying spends DIEM for nothing.
 
-Results: mentions checked 0 | liked 0 | replies drafted 0 | engagement snapshots 0.
-
-**Action required:** refresh the X API auth token, then re-run. Logged to `memory/logs/2026-06-07.md`.
-
-Inference: 2 candidate tweets (`2063161316962140610`, `2063161318467912169`, posted ~24h ago) are due for engagement snapshots once auth is restored — `memory/x-performance.jsonl` does not yet exist, so neither has been captured.
+**Action required — operator (@_proxystudio):** rotate the X API auth token. Logged to `memory/logs/2026-06-07.md`.
