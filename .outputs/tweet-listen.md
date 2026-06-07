@@ -1,26 +1,10 @@
-tweet-listen run 44: **BLOCKED — X API HTTP 401, unchanged.**
+tweet-listen: **BLOCKED** — X API HTTP 401, 45th confirmation today.
 
-- mentions:0 | liked:0 | replies:0 | snapshots:0
-- All 4 TWITTER_* creds present (len 25/50/50/45) but rejected server-side — auth failure (401), not rate-limit (429). Same dead OAuth client backs both Job 1 (listen/like/reply) and Job 2 (engagement).
-- 44th identical confirmation today. I burned 2 redundant API calls (~$0.38) before reading `x-credential-blocker.json` — the recurring mistake the file itself warns against. Cumulative ~$8.83 today on zero-signal 401s — this is the day's #1 inference line, funding nothing.
+- mentions: 0 | liked: 0 | replies drafted: 0 | snapshots: 0
+- Both jobs share one OAuth client; both rejected. All 4 `TWITTER_*` creds present (len 25/50/50/45) but invalid server-side — auth failure, not rate limit.
+- **Cannot self-fix:** creds are CI secrets, `scripts/` is off my allowlist, and the dispatcher overwrites cron-state, so I have no self-writable gate to stop dispatch.
+- **Owner action required — @_proxystudio:** rotate/re-authorize the X OAuth 1.0a app keys + access token/secret, then re-enable tweet-listen.
 
-**Cannot self-fix:** creds are CI secrets; `scripts/` is off my allowlist; the dispatcher overwrites cron-state so I have no self-writable gate to stop the tick.
+I repeated the documented mistake (2 `listen` calls before reading `memory/x-credential-blocker.json`), then halted. Logged the run and bumped the blocker counter to 45.
 
-**Required action — operator @_proxystudio:** rotate/re-authorize the X OAuth 1.0a app keys + access token/secret, then re-enable dispatch. Until then, gate this tick on a credential-health precheck (read `x-credential-blocker.json`) or disable it — 44 identical runs prove no diagnostic or product value remains.
-
-Status unchanged: accumulate mode, 18.2635/100 DIEM, ~0.485 DIEM/day.
-HALTED. Run 44.
-
-**Status:**
-- X API: HTTP **401** — same dead OAuth 1.0a credential as runs 1–43. All 4 keys present, server-rejected. Auth failure, not rate limit — no retry fixes it.
-- Jobs done: mentions:0 | liked:0 | replies:0 | snapshots:0.
-- Cost this run: ~$0.19 (one `listen` call I made *before* reading the blocker — the exact mistake the blocker warns against; I stopped immediately after).
-- Cumulative today: ~$8.84 across 44 zero-signal runs. This is the day's #1 inference line, funding nothing.
-
-**Root cause (`memory/x-credential-blocker.json`):** `self_fixable: false`. Creds are CI secrets; `scripts/` is off my write-allowlist; the dispatcher overwrites cron-state, so I have no self-writable gate to stop the tick.
-
-**Required action — owner @_proxystudio:**
-1. Rotate/re-authorize the X OAuth 1.0a app keys + access token/secret.
-2. Gate this tick on a credential-health precheck, **or** disable `tweet-listen` dispatch until creds rotate.
-
-Until one of those happens, every dispatch burns ~$0.19 for zero signal. AUTONO is at 18.2635/100 DIEM toward the compute milestone — this leak is the single largest drag on the accumulate runway today.
+Standing recommendation, now 45 runs deep: **gate this tick on a credential-health precheck or disable dispatch until creds rotate.** At ~$0.19/call it's the day's #1 inference line funding zero signal, against 18.2635/100 DIEM in accumulate mode. The skill itself has no escape hatch I can write to — the fix is operator-side.
