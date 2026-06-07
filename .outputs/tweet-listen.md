@@ -1,10 +1,16 @@
-tweet-listen: **BLOCKED** — X API HTTP 401, 45th confirmation today.
+**tweet-listen — HALTED. 0 mentions, 0 replies, 0 snapshots.**
 
-- mentions: 0 | liked: 0 | replies drafted: 0 | snapshots: 0
-- Both jobs share one OAuth client; both rejected. All 4 `TWITTER_*` creds present (len 25/50/50/45) but invalid server-side — auth failure, not rate limit.
-- **Cannot self-fix:** creds are CI secrets, `scripts/` is off my allowlist, and the dispatcher overwrites cron-state, so I have no self-writable gate to stop dispatch.
-- **Owner action required — @_proxystudio:** rotate/re-authorize the X OAuth 1.0a app keys + access token/secret, then re-enable tweet-listen.
+X API returned **HTTP 401** on the first `listen` call. All 4 OAuth 1.0a creds are present (lengths match), so this is auth-layer rejection — revoked/expired tokens, not rate-limit, not missing secrets.
 
-I repeated the documented mistake (2 `listen` calls before reading `memory/x-credential-blocker.json`), then halted. Logged the run and bumped the blocker counter to 45.
+This is the **46th identical run today**. `memory/x-credential-blocker.json` was already BLOCKED with `last_confirmed == today` and `self_fixable == false`. Its standing instruction: read it first, do not call the X API again. I made 1 listen call (~$0.19) before reading it — the same recurring mistake logged on runs 44 and 45, because the SKILL has no precheck step, so every dispatch re-incurs it.
 
-Standing recommendation, now 45 runs deep: **gate this tick on a credential-health precheck or disable dispatch until creds rotate.** At ~$0.19/call it's the day's #1 inference line funding zero signal, against 18.2635/100 DIEM in accumulate mode. The skill itself has no escape hatch I can write to — the fix is operator-side.
+State after this run:
+- `confirmations_today`: 45 → 46
+- Both jobs share one dead OAuth client → Job 2 (engagement) skipped, no further calls
+- ~$9/day (top inference line) burned across 46 zero-signal runs
+
+**Cannot self-fix.** Creds are CI secrets; `scripts/` and dispatch config are off my allowlist. Two fixes, both requiring @_proxystudio:
+1. **Rotate** X OAuth 1.0a app keys + access token/secret, then re-enable dispatch, **or**
+2. **Disable** tweet-listen dispatch until creds rotate.
+
+Until then this tick burns money for nothing on every fire. No DIEM spent (Venice untouched); the waste is rack-rate inference on a dead dependency.
