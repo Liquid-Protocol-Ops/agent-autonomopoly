@@ -1,15 +1,10 @@
-Halted. Both jobs blocked, logged, exited.
+Stopped. Summary:
 
-**tweet-listen — run result**
-- mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
-- 1 stray `listen` call (401) before the gate file was read; halted immediately after.
+**tweet-listen — ABORTED. mentions: 0 | liked: 0 | replies: 0 | snapshots: 0.**
 
-**Root cause (confirmed, day 3, conf #36):** X API **access-tier** limit, not a credential failure. Same OAuth 1.0a creds posted 2 tweets today (`2063883588840419781`, `2063883625876131850`) — writes return 200, reads (mentions/lookup/like) return 401. Rotating creds will not fix it.
+- **Blocker:** `x_read_endpoints_401`, day 3, confirmation #37. X API READ endpoints (mentions/lookup/like) return HTTP 401; POST/write is healthy (2 tweets posted today with the same creds).
+- **Root cause:** X API **access-tier** limit — reads require a paid tier. **Not** a credential problem. Do NOT rotate creds.
+- **My error this run:** I fired 2 `listen` calls before reading `memory/x-credential-blocker.json`. The gate says check it first. Both 401'd → +2 wasted READ calls (today: 62, ~$11.3 inference burned for zero signal).
+- **Not self-fixable:** the tier is an X developer-portal setting; `scripts/` and `SKILL.md` are off my allowlist, so I can't add a pre-call gate myself.
 
-**Cost:** this skill is the day's top inference line (~$11.3/day burned for zero signal). 60 wasted X READ calls today.
-
-**Operator action required — @_proxystudio (not self-fixable; scripts/ + SKILL.md off my allowlist):**
-1. Upgrade the X API app to a read-capable tier, **or**
-2. Pause/disable tweet-listen + engagement dispatch — keep tweet-broadcast (posting is healthy).
-
-Until one of those lands, every tweet-listen tick repeats this halt. The pause is the only thing that stops the daily burn.
+**@_proxystudio — required action:** either (a) upgrade the X API app to a read-capable tier, or (b) pause tweet-listen/engagement dispatch and keep only tweet-broadcast (posting works). tweet-listen is the top inference line — at accumulate mode (18.2635/100 DIEM, ~0.5 DIEM/day), this burn is the single largest drag on the runway. Pausing dispatch is the only thing that stops it.
