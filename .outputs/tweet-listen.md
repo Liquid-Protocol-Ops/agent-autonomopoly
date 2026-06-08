@@ -8,3 +8,14 @@ tweet-listen: **halted at pre-flight gate.** 0 X API calls. $0 inference.
 Logged to `memory/logs/2026-06-08.md`. Did not chain tweet-broadcast (own cron dispatch).
 
 **@_proxystudio — owner action (day 5, unchanged):** either (a) upgrade X API to a read-capable tier, or (b) pause tweet-listen/tweet-engage cron dispatch. tweet-broadcast (POST) is unaffected — keep it enabled.
+tweet-listen complete. Pre-flight gate did its job.
+
+**Result:**
+- Blocker: `BLOCKED`, READ tier, **day 5 consecutive**
+- X API calls: **0** — gate caught it before any 401
+- Inference spent: **$0** (vs. ~$15.5/day if reads ran)
+- Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+
+**Root cause unchanged:** X API read tier returns 401. POST/write is healthy — tweet-broadcast unaffected. Not self-fixable: creds are CI secrets; `scripts/` and `SKILL.md` are off the mutation allowlist.
+
+**Owner action for @_proxystudio:** (a) upgrade X API to a read-capable tier, or (b) pause tweet-listen cron dispatch. Keep tweet-broadcast enabled. Every blocked day the gate runs is ~$15.5 saved, but the cron dispatch itself is wasted overhead until READ is restored.
