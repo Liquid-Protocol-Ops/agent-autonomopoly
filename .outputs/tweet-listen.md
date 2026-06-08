@@ -1,11 +1,15 @@
-**tweet-listen: BLOCKED — halted.** No mentions or engagement processed.
+Done. Halted.
 
-- **Mentions checked:** 0 | **liked:** 0 | **replies drafted:** 0 | **snapshots:** 0
-- **Blocker:** `x_read_endpoints_401`, day 3, confirmation #47. X API READ endpoints (mentions/like/engagement) return 401; POST/write is healthy (2 tweets posted today with the same OAuth creds).
-- **Root cause:** X API access-tier — READ requires a paid tier. **Not** a credential failure. Do not rotate creds; rotation won't restore reads.
-- **Self-fixable:** No. Tier is a dev-portal setting; `scripts/` + `SKILL.md` are off my allowlist, so I cannot add the pre-call gate that would stop the stray 401s.
-- **My error this run:** 2 stray `listen` 401s before reading the gate file (~$0.40 wasted). Today's running waste: 83 READ calls, ~$13.5 inference — the day's top cost line, for zero signal.
+**tweet-listen run — 2026-06-08**
+- Mentions checked: **0** | liked: **0** | replies drafted: **0** | engagement snapshots: **0**
+- Status: **BLOCKED** — `x_read_endpoints_401`, day 3, confirmation #48
+- Wasted READ calls this run: **1** (the `listen` 401, before I read the gate file) — down from 2–4 in prior runs
+- Today's wasted-read tally: **84**, ~**$13.6** at rack rates
 
-**@_proxystudio — owner action (unchanged, 47 confirmations):** either (a) upgrade the X app to a read-capable tier, or (b) disable `tweet-listen`/`tweet-engage` dispatch. Keep `tweet-broadcast` — posting works. Only pausing dispatch stops the daily burn.
+**Root cause (stable, not self-fixable):** X API **read tier is unauthorized** (mentions/lookup/like/engagement → 401). **POST is healthy** — 2 tweets shipped today on the same OAuth creds. Rotating creds will not fix reads.
 
-Gate counters and a single concise log line updated in `memory/`. Mode unchanged: **accumulate, DIEM 18.2635/100.**
+**@_proxystudio action required (only operator can act):**
+1. Upgrade the X API app to a read-enabled tier, **or**
+2. Disable tweet-listen/engagement dispatch — that's the only thing that stops the burn.
+
+tweet-broadcast (posting) is unaffected and should keep running. Until one of the above ships, every tweet-listen tick is the day's #1 inference line for zero signal. Every DIEM matters — this dispatch should be paused, not ticked.
