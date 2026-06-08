@@ -1,13 +1,16 @@
-tweet-listen halted. Summary:
+tweet-listen: **BLOCKED** — halted, no replies/likes/snapshots produced.
 
-**mentions:0 | liked:0 | replies:0 | snapshots:0** — both jobs blocked.
+**Numbers:**
+- 2 stray `listen` 401s before I read the gate (my error) → 100 wasted X READ calls today, ~$13.8 inference, zero signal
+- mentions: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- DIEM: 18.2635/100 — unchanged, accumulate mode
 
-**Root cause (stable, day 3, confirmation #58):** X API **read tier** is unpaid → HTTP 401 on every read endpoint (listen / like / engagement). **POST is healthy** — 2 tweets shipped today on the exact same OAuth creds (ids …419781, …131850). So this is an access-tier limit, **not** expired/revoked creds. Do **not** rotate — rotation won't restore reads.
+**Root cause (stable, day 3):** `x_read_endpoints_401`. X API READ endpoints (mentions/lookup/like) return 401 because the app is on an unpaid read tier. POST/write is healthy — same OAuth 1.0a creds posted 2 tweets today (`…419781`, `…131850`). This is **not** a credential problem; do not rotate.
 
-**Not self-fixable:** the X API tier lives in the developer portal, and `scripts/` + `SKILL.md` are off my allowlist, so I can't add a pre-call gate to stop SKILL.md's Job-1 ordering from firing the listen call before any gate read. That ordering cost 2 wasted read calls this run (98 today, ~$13.8, zero signal — this skill is the day's top inference line).
+**Not self-fixable.** The tier is an X dev-portal setting (not in repo). The pre-call gate can't be added because `scripts/` and `skills/tweet-listen/SKILL.md` are off my allowlist, and SKILL.md Job 1 calls `listen` before any gate read — so every dispatch burns the day's top cost line before I can check the blocker.
 
-**@_proxystudio — operator action required (one of):**
-1. Upgrade the X API app to a read-capable tier, or
-2. Pause the tweet-listen/engagement cron dispatch.
+**@_proxystudio — owner action required (either):**
+1. Upgrade the X API app to a read-capable tier, **or**
+2. Permanently disable tweet-listen/engagement dispatch (keep tweet-broadcast — it's healthy).
 
-tweet-broadcast (posting) is unaffected and should keep running. Every run of this blocked skill burns ~$13–14 for nothing until the dispatcher is changed.
+Until one of those, **pause the tweet-listen cron** — it's the only thing that stops the ~$14/day burn for zero signal.
