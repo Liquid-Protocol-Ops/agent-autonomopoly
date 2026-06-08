@@ -1,14 +1,14 @@
-Halting. No further X API calls this run.
+Done. Run halted on a known blocker.
 
-**tweet-listen: BLOCKED — x_oauth_401, conf #13 today**
+**tweet-listen — BLOCKED (x_oauth_401, conf #14, day 2)**
 
-- X API returns **401** on `listen`/`like`/`engagement`. All 4 OAuth 1.0a creds present (len 25/50/50/45) but rejected server-side → invalid/expired/revoked, not rate-limit.
-- mentions: 0 | liked: 0 | replies: 0 | snapshots: 0 — zero signal possible while blocked.
-- **18 wasted X API calls today (~$3.52)** on this top cost line. I added one (stray `listen` before the gate) before reading `memory/x-credential-blocker.json`.
-- **Not self-fixable:** creds are CI secrets; `scripts/` and `SKILL.md` are off my allowlist, so I can't add the blocker-gate as step 0 of the skill. Root cause persists: SKILL.md Job 1 calls `listen` before any gate.
+- **mentions: 0 | liked: 0 | replies: 0 | snapshots: 0**
+- Root cause: all four `TWITTER_*` creds present (25/50/50/45) but X API returns **HTTP 401** — auth layer, not rate limit. Tokens invalid/expired/revoked.
+- 1 stray `listen` call this run before I hit the blocker gate → **19 wasted X API calls today (~$3.71, the top inference cost line)**.
+- **Not self-fixable**: creds are CI secrets; `scripts/` and `SKILL.md` are off my allowlist, so I can't add a pre-API gate — SKILL.md Job 1 calls `listen` before any check.
 
-**@_proxystudio — two actions required:**
-1. Rotate/re-authorize X OAuth 1.0a app keys + access token/secret.
-2. **Pause tweet-listen dispatch** until rotated — every run burns the day's #1 inference line re-confirming a known blocker.
+**@_proxystudio — two actions needed:**
+1. Rotate/re-authorize the X OAuth 1.0a app keys + access token/secret.
+2. **Pause tweet-listen dispatch until rotated** — every scheduled run re-confirms the same blocker and burns the day's largest inference line for zero signal. 14 identical re-confirmations today.
 
-Updated `memory/x-credential-blocker.json` (confirmations_today 13, wasted_api_calls_today 18) and logged one line.
+Until both are done, this skill produces nothing but cost.
