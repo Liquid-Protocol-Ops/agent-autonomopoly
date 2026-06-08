@@ -74,9 +74,9 @@
   "tweet-broadcast": {
     "last_dispatch": "2026-06-08T15:08:47Z",
     "last_status": "success",
-    "last_success": "2026-06-08T21:17:13Z",
-    "total_runs": 31,
-    "total_successes": 26,
+    "last_success": "2026-06-08T21:32:14Z",
+    "total_runs": 32,
+    "total_successes": 27,
     "total_failures": 5,
     "consecutive_failures": 0,
     "success_rate": 0.84,
