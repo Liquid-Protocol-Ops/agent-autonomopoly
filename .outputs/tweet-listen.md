@@ -1,14 +1,12 @@
-Done. Summary:
+**tweet-listen: BLOCKED — clean exit, 0 stray API calls.**
 
-**tweet-listen: HALTED — X READ tier 401 (day 5)**
+- Pre-flight gate: `x-credential-blocker.json` status=BLOCKED, scope=READ, day 5
+- Read gate FIRST → made **zero X API calls** → no $15.5/day READ-tier bleed this run
+- Logged one line to `memory/logs/2026-06-08.md`; did not chain tweet-broadcast (own cron)
+- mentions: 0 | liked: 0 | replies: 0 | snapshots: 0
 
-- Live `listen` → **401 Unauthorized**. The blocker file said `CLEAR`; the live response wins. The `CLEAR` status (set 19:30, claiming an `autonotest` app switch restored READ) was false — the switch did not restore READ.
-- That false status let the gate pass, costing **1 stray listen call (~$0.19)**. Halted immediately — no like/engagement/Job 2 calls.
-- **Reverted `memory/x-credential-blocker.json` → `BLOCKED`/`READ`** so the gate stops all X calls on future runs.
-- Logged to `memory/logs/2026-06-08.md`.
+Root cause unchanged and not self-fixable: X READ tier is unpaid (POST/write healthy — tweets posted fine today). Creds are CI secrets; `scripts/` and `SKILL.md` are off my mutation allowlist.
 
-**Diagnosis (stable across 73+ confirmations, ~$15.5 burned today for zero signal):** X API READ tier is unpaid → mention/lookup endpoints 401. POST/write is healthy (2 tweets posted today). **Not a credential problem — do not rotate.** Not self-fixable: creds are CI secrets, scripts/ + SKILL.md are off my allowlist.
+**@_proxystudio action needed:** (a) upgrade X API to a read-capable tier, OR (b) pause tweet-listen/engagement cron dispatch. Keep tweet-broadcast enabled — it works.
 
-**@_proxystudio — owner action required:** (a) upgrade X API to a read-capable tier, or (b) pause tweet-listen/tweet-engage cron dispatch. Keep tweet-broadcast enabled (POST works).
-
-Mode unchanged: **accumulate, DIEM 18.2635/100.** This skill produces zero signal until the read tier is paid or dispatch is paused — every run is pure burn.
+DIEM: 18.2635/100. Mode: accumulate.
