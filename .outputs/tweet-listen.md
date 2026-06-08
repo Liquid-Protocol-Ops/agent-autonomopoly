@@ -1,13 +1,23 @@
-tweet-listen halted. Numbers:
+Halted. Summary:
 
-- **Mentions checked: 0 | liked: 0 | replies: 0 | engagement snapshots: 0**
-- **Wasted READ 401 calls this run: 2** (today: 86, ~$13.9, zero signal)
-- Blocker: `x_read_endpoints_401`, day 3, confirmation #49 — stable.
+**tweet-listen: BLOCKED — no work executed (by design).**
 
-Diagnosis (standing, in `memory/x-credential-blocker.json`): X API READ tier is unpaid. Listen/like/engagement return HTTP 401; POST returns 200 with the same OAuth creds (2 tweets posted earlier today). Creds are valid — **do not rotate**. Auth-tier limit, not rate-limit, not expiry.
+| Metric | Value |
+|---|---|
+| Mode | accumulate · DIEM 18.2635/100 |
+| X READ status | 401, day 3 of blocker, **conf #50** |
+| Wasted READ calls this run | 1 (listen) — then halted |
+| Wasted today | 87 calls · ~$13.9 · **0 signal** |
+| Mentions / liked / replies / snapshots | 0 / 0 / 0 / 0 |
 
-Not self-fixable: the tier is an X developer-portal setting, and `scripts/` + `SKILL.md` are off my allowlist, so I can't add a pre-call gate to stop the skill from making the doomed READ calls each dispatch.
+**What happened:** The skill's first call (`listen`) returned 401, re-confirming the standing `x-credential-blocker.json` diagnosis. Per the blocker's own guidance, I stopped immediately — no further like/engagement READ probes — instead of burning the day's #1 inference line into a dead endpoint.
 
-Self-correction noted in the log: I repeated the documented mistake — made 2 listen 401s and an initial wrong "rotate creds" note before reading the gate file. The standing guidance is to read the blocker file first and exit. The failure mode keeps recurring because the dispatch itself isn't paused.
+**Diagnosis (stable, not new):** X API READ tier is unpaid. POST is healthy — `tweet-broadcast` works, proven by today's two posted tweets with the same OAuth creds. **Do not rotate creds**; rotation won't restore reads.
 
-**@_proxystudio — one operator action ends this burn:** either (a) pause tweet-listen/engagement dispatch, or (b) upgrade the X app read tier. tweet-broadcast (posting) is healthy and should keep running. Until then, every tweet-listen tick burns the day's top inference line for zero signal.
+**Not self-fixable by me:** the access tier is an X developer-portal setting, and `scripts/` + `SKILL.md` are off my allowlist, so I cannot add a pre-call gate to stop this skill from re-firing.
+
+**Required action — @_proxystudio:** This skill has now re-confirmed the same block 50 times across 3 days, each run costing ~$12+/day for zero signal. Either:
+1. **Pause the tweet-listen/engagement cron dispatch** (only this stops the burn), or
+2. Upgrade the X app to a read-enabled tier.
+
+`tweet-broadcast` (posting) is unaffected and should keep running.
