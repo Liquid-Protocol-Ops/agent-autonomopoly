@@ -1,24 +1,17 @@
-Done. Halting — no further X calls.
+Done. Summary:
 
-**tweet-listen run result: BLOCKED, 0 signal.**
+**tweet-listen: ABORTED — 0 signal, 0 actions.**
 
-- **Both jobs dead:** `listen` + `engagement` return `401` — confirmed day-3 blocker `x_read_endpoints_401`. Root cause (already diagnosed, confirmed today): X API **read tier is unpaid** → reads 401, while POST is healthy (same OAuth creds posted 2 tweets earlier today). **Not a credential problem — do not rotate.**
-- **My error this run:** I called `listen`×2 + `engagement`×1 (3 wasted calls, ~$0.06) *before* reading `memory/x-credential-blocker.json`. The gate exists but SKILL.md Job-1 calls `listen` before any gate read, and `scripts/` + `SKILL.md` + cron are all off my allowlist — I can't add the gate myself.
-- **Updated:** blocker counters (conf #70, 118 wasted calls today, ~$15.8 burned), one log line in `memory/logs/2026-06-08.md`.
-- **Not self-fixable.** Mentions: 0 | liked: 0 | replies: 0 | snapshots: 0.
+- **mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0**
+- **Cause:** X API READ endpoints (listen/like/engagement) return HTTP 401 — **day 3, confirmation #71 today**. This is an **access-tier limitation, not a credential problem**: POST works fine (same OAuth posted 2 tweets today — ids `2063883588840419781`, `2063883625876131850`). Reads require a paid X tier the app doesn't have.
+- **Cost:** 1 stray `listen` call before I re-read the gate. ~119 wasted READ calls today, **~$15.6 inference burned for zero signal** — the single top line in `inference-cost.md`.
 
-**@_proxystudio — only two fixes exist:** (a) PAUSE the tweet-listen/engagement cron, or (b) upgrade the X API read tier. This is the top line in `inference-cost.md` producing zero signal for 3 days. Posting (tweet-broadcast) is healthy and should keep running.
-Done. Halted.
+**Not self-fixable from my surface.** The fix gate can't be added before SKILL.md Job-1's pre-call `listen`, and `scripts/`, `skills/`, and the cron are all off my allowlist. `creds present, POST 200, READ 401` — rotating creds would not help and I have not touched them.
 
-**tweet-listen — ABORTED. 0 signal.**
+**@_proxystudio — only two fixes, both off my surface:**
+1. **PAUSE tweet-listen/engagement dispatch** (stops the daily burn immediately), or
+2. **Upgrade the X API app to a read-enabled tier** (restores mentions/likes/engagement).
 
-- **Blocker:** `x_read_endpoints_401`, day 3, confirmation #70. X API READ tier (mentions/like/engagement) returns 401; POST is healthy. Not a credential problem — posting works with the same OAuth, so rotation won't fix it. It's an X dev-portal access-tier limitation.
-- **My fault this run:** made 2 listen READ calls *before* reading `memory/x-credential-blocker.json`, which explicitly says read-first-then-exit. +2 wasted calls. Halted before any like/engagement calls.
-- **Run tally:** mentions 0 | liked 0 | replies 0 | snapshots 0.
-- **Not self-fixable:** cron, `SKILL.md`, and `scripts/` are all off my allowlist — I can't add the pre-call gate or stop the dispatch from here.
+tweet-**broadcast** (posting) is healthy and unaffected — keep that running.
 
-**@_proxystudio — single highest-cost line item on the board (~$15.4/day, top of `memory/inference-cost.md`) producing zero signal for 3 days.** Two fixes, both yours:
-1. Pause `tweet-listen`/`engagement` dispatch (keep `tweet-broadcast` — posting is healthy), **or**
-2. Upgrade the X API app to a read-enabled tier.
-
-Until one lands, every dispatch burns the day's top inference line for nothing.
+Updated `memory/x-credential-blocker.json` (conf #71) and logged one line to `memory/logs/2026-06-08.md`. Exiting per the blocker's own guidance.
