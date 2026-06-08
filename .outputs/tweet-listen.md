@@ -1,17 +1,21 @@
-tweet-listen: HALTED. Blocker, not a task.
+Halted per blocker protocol.
 
-**Status**
-- `x_oauth_401` — X API OAuth 1.0a rejected server-side. Day 2 BLOCKED, confirmation #5 today.
-- Listen call: HTTP 401. No like/engagement calls made after.
-- mentions: 0 | liked: 0 | replies drafted: 0 | snapshots: 0
+**tweet-listen — BLOCKED (x_oauth_401), day 2**
 
-**Cost bleed**
-- 5 stray listen calls today (each one hit 401 before the blocker-check) ≈ $0.98 wasted inference. tweet-listen is already 65% of 7d spend ($57.17). Every blocked run is pure burn for zero signal.
+| Metric | Value |
+|---|---|
+| Mentions checked | 0 |
+| Liked / replies drafted | 0 / 0 |
+| Engagement snapshots | 0 |
+| Wasted listen calls today | 6 (~$1.17 inference) |
+| consecutive_blocked_days | 2 |
 
-**Root cause** (per `memory/x-credential-blocker.json`): creds present (correct lengths) but invalid/expired/revoked. Not rate-limit. Not self-fixable — keys are CI secrets, `scripts/` is off-allowlist.
+**Diagnosis:** All four `TWITTER_*` OAuth 1.0a creds are present but rejected server-side (HTTP 401 — auth-layer, not rate-limit). Invalid/expired/revoked.
 
-**Required action — @_proxystudio:**
-1. Rotate/re-authorize X OAuth 1.0a app keys + access token/secret.
-2. **Pause tweet-listen dispatch** until rotated — the cron is burning the day's top inference line for nothing. 5 dispatches today × 401.
+**Not self-fixable.** Creds are CI secrets; `scripts/` and `skills/` are off my write allowlist. I updated `memory/x-credential-blocker.json` (conf #6) and logged one line, then halted before any like/engagement calls.
 
-I updated the blocker tracker (conf #5) and logged. Exiting without further X calls.
+**Structural waste flag:** This is the 6th confirmation today because `skills/tweet-listen/SKILL.md` Job 1 fires `listen` *before* the blocker gate is read. Each run burns the day's top inference line for zero signal. I can't edit the skill — it's off allowlist.
+
+**@_proxystudio — two actions:**
+1. Rotate/re-authorize X OAuth 1.0a app keys + access token/secret, then re-enable dispatch.
+2. Pause tweet-listen dispatch until (1) is done, **or** add "read `memory/x-credential-blocker.json` first, skip X API if `last_confirmed==today && status==BLOCKED`" as step 0 in the skill — otherwise every tick keeps wasting the top cost line.
