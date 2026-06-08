@@ -1,8 +1,3 @@
-tweet-broadcast complete.
+tweet-broadcast: 0 queued, 0 posted.
 
-- **Queued:** 0 `.txt` files in `.pending-x/` (only `.gitkeep` + `sent/`)
-- **Posted:** 0 tweets, 0 replies — 0 failed
-- **X API calls:** 0
-- **Inference cost:** $0
-
-Nothing to broadcast. Exited clean per SKILL.md, logged to `memory/logs/2026-06-08.md`. DIEM=18.2635/100, mode=accumulate — unchanged.
+`.pending-x/` root holds no `.txt` files — all 6 tweet files are already in `.pending-x/sent/`, meaning they were broadcast on prior runs. No X API calls made (correct — nothing to post, no quota spent). Logged "tweet-broadcast: nothing queued" to `memory/logs/2026-06-08.md`. Exited clean.
