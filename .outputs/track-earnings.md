@@ -1,22 +1,31 @@
-Done. Earnings snapshot — 2026-06-07:
+Done. Here's the snapshot:
 
-```
-FeeLocker (Inference): ≈0.529 DIEM claimable
-  (0.1051 DIEM on-chain 06-06 + 21h × 0.485/day)
+---
 
-tokenId    range         tick  status    tokensOwed0 WETH     tokensOwed1 DIEM     daily delta
---------   ----------    ----  --------  --------------------  --------------------  -----------
-5274051    [-400,1600]   850   IN RANGE  0.00                  0.00                  +0.00
-5274058    [-600,1400]   850   IN RANGE  0.00                  0.00                  +0.00
-5274068    [-600,1400]   850   IN RANGE  0.00                  0.00                  +0.00
-5274073    [-600,1400]   850   IN RANGE  0.00                  0.00                  +0.00
-5274079    [-600,1400]   850   IN RANGE  0.00                  0.00                  +0.00
-5274088    [-600,1400]   850   IN RANGE  0.00                  0.00                  +0.00
-5274420    [-800,1200]   850   IN RANGE  0.00                  0.00                  +0.00
-5274422    [-800,1200]   850   IN RANGE  0.00                  0.00                  +0.00
-5277219    [-600,1400]   850   IN RANGE  0.00                  0.00                  +0.00 (first entry)
-```
+**Earnings snapshot — 2026-06-08** *(Inference — RPC unavailable, no .env in sandbox)*
 
-**9 positions appended to `memory/earnings.jsonl`. Logged to `memory/logs/2026-06-07.md`.**
+FeeLocker (Liquid Protocol): **≈0.069 DIEM** claimable (below 0.1 threshold — no claim)
 
-State: RPC blocked in sandbox — all values flagged as Inference. Tick≈850 from last lp-monitor (06-06); FeeLocker≈0.529 DIEM not yet claimed (above 0.1 DIEM threshold — lp-monitor should trigger claim on next live tick). tokensOwed is 0 across all positions; NFPM fees accrue in-pool until the next collect/reposition event. Cumulative: 18.1355/100 DIEM — ETA ~169 days at 0.485/day.
+| tokenId | range | tick | status | tokensOwed0 | tokensOwed1 | daily delta |
+|---------|-------|------|--------|-------------|-------------|-------------|
+| 5274051 | [-400,1600] | 1606 | **OOR** | 0 | 0 | 0 |
+| 5282442 | [0,2000] | 1606 | IN RANGE | 0 | 0 | 0 (first entry) |
+| 5284108 | [200,2200] | 1606 | IN RANGE | 0 | 0 | 0 (first entry) |
+| 5284622 | [0,2000] | 1606 | IN RANGE | 0 | 0 | 0 (first entry) |
+| 5285821 | [400,2400] | 1606 | IN RANGE | 0 | 0 | 0 (first entry) |
+| 5285822 | [400,2400] | 1606 | IN RANGE | 0 | 0 | 0 (first entry) |
+| 5285824 | [400,2400] | 1606 | IN RANGE | 0 | 0 | 0 (first entry) |
+| 5285827 | [400,2400] | 1606 | IN RANGE | 0 | 0 | 0 (first entry) |
+| 5285828 | [600,2600] | 1606 | IN RANGE | 0 | 0 | 0 (first entry) |
+| 5285830 | [600,2600] | 1606 | IN RANGE | 0 | 0 | 0 (first entry) |
+
+**Key facts:**
+- DIEM milestone: **18.2635/100** (accumulate mode)
+- FeeLocker accrual rate: ~0.0029 DIEM/h = 0.070 DIEM/day (observed 06-07, well below the 0.485/day estimate in goals.json — tick moved to 1606, many prior positions burned)
+- ETA to 0.1 DIEM claim threshold: ~10.7h from 14:16Z 06-07 → claim eligible ~00:57Z 06-08 if no prior tick claimed it
+- tokensOwed=0 on all 10 positions — NFPM only settles fees on collect()/decreaseLiquidity(); actual fees accruing in feeGrowthInside while in range
+- 5274051 OOR above upper (tick 1606 ≥ 1600) — accumulating WETH only, no DIEM fees; reposition candidate
+
+**Action item:** 5274051 is OOR. If tick stays at or above 1600, queue reposition to a range centered above current tick.
+
+Appended 10 entries to `memory/earnings.jsonl`.
