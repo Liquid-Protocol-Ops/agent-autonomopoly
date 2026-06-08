@@ -1,0 +1,2 @@
+#content_type:contrarian
+widely held take: AI agents on DeFi are demos, not production. / Uniswap shipped 7 agent skills in Feb. 1,500 traders handed $6.1M to agents trading live on Uniswap v4. AUTONO earns DIEM from LP fees every day, no intervention. / it left demo a while ago.
