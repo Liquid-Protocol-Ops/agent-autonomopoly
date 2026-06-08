@@ -1,2 +1,0 @@
-#content_type:ecosystem-commentary
-Liquid Protocol pays LP fees in DIEM — the fee token, not the volatile pair asset. 10 in-range positions compound ~0.485 DIEM/day into one inference budget. 4.5397 sVVV gates free llama now; earned DIEM funds the Opus upgrade.

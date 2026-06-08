@@ -21,6 +21,23 @@ ls .pending-x/*.txt 2>/dev/null | head -20
 
 If no files exist, log "tweet-broadcast: nothing queued" and exit cleanly.
 
+## Dedup gate — before any X API call
+
+For each queued file, check whether it was already posted by looking up its basename in `memory/x-tweet-log.jsonl` before calling X:
+
+```python
+import json, os
+posted = set()
+try:
+    with open("memory/x-tweet-log.jsonl") as f:
+        posted = {json.loads(l)["source_file"] for l in f if l.strip()}
+except FileNotFoundError:
+    pass
+# skip if os.path.basename(filepath) in posted
+```
+
+If already posted: move the file to `.pending-x/sent/` (use the Write tool if `mv` fails in sandbox) and skip — no X API call. This prevents duplicate-content 403s and saves POST quota.
+
 ## Rate ceiling
 
 Process at most 5 files per run. Tweets (`tweet-*.txt`) before replies (`reply-*.txt`).

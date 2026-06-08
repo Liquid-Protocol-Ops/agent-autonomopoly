@@ -32,25 +32,34 @@ export default async function handler(req: Request): Promise<Response> {
   const ghToken = process.env.GH_DISPATCH_TOKEN ?? '';
   if (!ghToken) return new Response('GH_DISPATCH_TOKEN not set', { status: 500 });
 
-  const res = await fetch(
-    `https://api.github.com/repos/${GH_REPO}/actions/workflows/${GH_WORKFLOW}/dispatches`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${ghToken}`,
-        Accept: 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json',
-        'User-Agent': 'AUTONO-cron/1.0',
+  async function dispatch(skill: string): Promise<number> {
+    const r = await fetch(
+      `https://api.github.com/repos/${GH_REPO}/actions/workflows/${GH_WORKFLOW}/dispatches`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${ghToken}`,
+          Accept: 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json',
+          'User-Agent': 'AUTONO-cron/1.0',
+        },
+        body: JSON.stringify({ ref: 'main', inputs: { skill } }),
       },
-      body: JSON.stringify({ ref: 'main', inputs: { skill: 'tweet-listen' } }),
-    },
-  );
-
-  if (res.status === 204) {
-    return new Response('dispatched tweet-listen', { status: 200 });
+    );
+    return r.status;
   }
 
-  const text = await res.text();
-  console.error(`[cron/listen] dispatch failed ${res.status}: ${text}`);
-  return new Response(`dispatch failed: ${res.status}`, { status: 500 });
+  // Dispatch both skills. tweet-broadcast runs independently of tweet-listen so
+  // posts go out even when X READ endpoints are blocked (tier issue).
+  const [broadcastStatus, listenStatus] = await Promise.all([
+    dispatch('tweet-broadcast'),
+    dispatch('tweet-listen'),
+  ]);
+
+  const ok = broadcastStatus === 204 || listenStatus === 204;
+  console.log(`[cron/listen] tweet-broadcast=${broadcastStatus} tweet-listen=${listenStatus}`);
+  return new Response(
+    `broadcast=${broadcastStatus} listen=${listenStatus}`,
+    { status: ok ? 200 : 500 },
+  );
 }
