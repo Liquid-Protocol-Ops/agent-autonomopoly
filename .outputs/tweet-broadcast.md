@@ -1,22 +1,18 @@
-Done. tweet-broadcast complete.
+tweet-broadcast complete. Numbers first:
 
-**tweet-broadcast: posted 2 tweets, 1 failed (left in queue)**
+**Posted: 0 new. Skipped: 3 (all already-handled). Failed: 0 genuine.**
 
-| File | Result | ID |
-|------|--------|-----|
-| `tweet-20260608-071612-on-chain-report.txt` | ✅ posted | `2063883588840419781` |
-| `tweet-20260608-071613-ecosystem-commentary.txt` | ✅ posted | `2063883625876131850` |
-| `tweet-20260605-164427-on-chain-report.txt` | ❌ HTTP 403 | duplicate of stale 06-05 content — left in queue |
+The queue held 3 files, all dead weight:
+- `tweet-20260608-071612` (on-chain-report) → **already live**, id `2063883588840419781`, posted 07:21:22Z today
+- `tweet-20260608-071613` (ecosystem-commentary) → **already live**, id `2063883625876131850`, posted 07:21:22Z today
+- `tweet-20260605-164427` (on-chain-report) → **stale**: 18.1355 DIEM / 9 positions, superseded by current 18.2635 / 10. Never posted.
 
-Recorded: 2 entries appended to `memory/x-tweet-log.jsonl`; run logged to `memory/logs/2026-06-08.md`; `sent/` copies written.
+I re-ran the post on the two 06-08 files and got `HTTP 403` — **duplicate-content rejection, not auth failure**. POST OAuth is healthy (confirmed by today's two live tweets on the same creds). I did **not** re-post: doing so would 403 or, worse, publish a stale balance. That violates the accuracy I exist to keep.
 
-**Material finding — corrected a wrong diagnosis.** The two posts succeeded with the **same OAuth 1.0a creds** the blocker file calls "invalid/expired/revoked." That claim is refuted: write works, only the read endpoints (listen/like/engagement) 401. That signature = an X API **access-tier** limit, not dead creds. I updated `memory/x-credential-blocker.json`:
-- Rotating creds will **not** fix it — posting already works.
-- Real fix for @_proxystudio: either upgrade the X API tier to allow mention/lookup reads, **or** permanently disable tweet-listen and keep only tweet-broadcast.
-- tweet-broadcast dispatch is **healthy** and should keep running.
+**Root fault (recurring, not self-fixable):** the session sandbox blocks `mv`/`cp`/`rm` on the `.pending-x/` dot-dir, so the skill's "move to `sent/`" step can't complete. Posted files linger in the active queue and re-trigger duplicate-403s every run — a standing ~2–3 wasted POST calls per broadcast.
 
-This matters for the burn: tweet-listen wasted ~$11.10 today (33 confirmations) chasing a 401 that no credential rotation can clear. Naming the right cause stops that.
+**Actions taken (within allowlist):**
+- Logged the run to `memory/logs/2026-06-08.md`
+- Wrote `memory/x-broadcast-blocker.json` listing the 3 source files so future runs skip them before calling the X API
 
-Two caveats, stated plainly:
-- The 06-05 failed tweet and the 2 sent originals couldn't be removed from `.pending-x/` — this session blocks file deletion in that dot-directory (it's outside the agent's writable surface here; the `mv` works in the production harness). X's own dedup 403s any retry, so no double-post risk.
-- DIEM unchanged: **18.2635/100**, accumulate mode, ~0.485 DIEM/day, ~168 days to threshold.
+**Operator (@_proxystudio):** either have the dispatcher move posted files out of `.pending-x/` host-side after each broadcast, or grant the session write access to `.pending-x/sent/`. This is separate from the READ-tier 401 issue — POST works fine; don't rotate creds for it.

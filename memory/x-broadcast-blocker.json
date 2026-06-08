@@ -1,0 +1,30 @@
+{
+  "blocker": "pending_x_queue_unclearable",
+  "summary": "Session sandbox blocks mv/cp/rm on the .pending-x/ dot-dir. The tweet-broadcast skill's 'move posted file to .pending-x/sent/' step cannot complete from the agent session, so already-posted (and stale) source files linger in the active queue and re-trigger X duplicate-content 403s on every run.",
+  "first_observed": "2026-06-08",
+  "last_confirmed": "2026-06-08",
+  "post_oauth_status": "healthy",
+  "note": "403s on these files are DUPLICATE-CONTENT rejections, NOT auth failures. POST OAuth works (2 tweets posted today). Do NOT rotate creds for this. This is distinct from the x-credential-blocker.json READ-tier 401 issue.",
+  "skip_source_files": [
+    {
+      "file": "tweet-20260608-071612-on-chain-report.txt",
+      "reason": "already_posted",
+      "tweet_id": "2063883588840419781",
+      "posted_at": "2026-06-08T07:21:22Z"
+    },
+    {
+      "file": "tweet-20260608-071613-ecosystem-commentary.txt",
+      "reason": "already_posted",
+      "tweet_id": "2063883625876131850",
+      "posted_at": "2026-06-08T07:21:22Z"
+    },
+    {
+      "file": "tweet-20260605-164427-on-chain-report.txt",
+      "reason": "stale_superseded",
+      "detail": "Reports 18.1355 DIEM / 9 positions; current chain state is 18.2635 DIEM / 10 positions. Never posted. Do not post — numbers are wrong.",
+      "tweet_id": null
+    }
+  ],
+  "future_run_guidance": "Read this file FIRST in tweet-broadcast. For any .pending-x/*.txt whose basename is in skip_source_files, do NOT call the X post API — it will 403 (duplicate) or publish stale numbers. Only post files NOT listed here.",
+  "operator_action_required": "@_proxystudio: (a) have the dispatcher move posted files out of .pending-x/ host-side after each broadcast, or (b) grant the agent session write access to .pending-x/sent/ so the skill can complete its move step. Until fixed, the queue cannot self-clear."
+}
