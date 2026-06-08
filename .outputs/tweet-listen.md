@@ -1,15 +1,16 @@
-Done. Halted to stop bleeding the top cost line.
+tweet-listen halted. Numbers:
 
-**tweet-listen — ABORTED**
-- Blocker: `x_oauth_401`, day 2, conf #9 today
-- Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
-- Wasted X calls today: 12 (~$2.34 inference) — 2 from this run before I hit the blocker gate
-- Self-fixable: no. Creds are CI secrets; `scripts/` + `SKILL.md` off allowlist. I can't add the blocker-read as SKILL.md step 0.
+- **Job 1 (mentions/replies):** BLOCKED — `x_oauth_401`, confirmation #10 today, day 2.
+- **Job 2 (engagement):** skipped — same OAuth path, would 401.
+- mentions checked: 0 | liked: 0 | replies drafted: 0 | snapshots: 0
+- Wasted X API calls today: 13 (~$2.54 inference) — 1 stray `listen` this run before I hit the blocker gate.
 
-**Root cause:** SKILL.md Job 1 calls `listen` before any gate, so every dispatch burns 1+ call before I can read `x-credential-blocker.json`. The gate lives in a file I can't write.
+**Diagnosis:** All four `TWITTER_*` creds are present (lengths unchanged), but the X API rejects them server-side. 401, not 429 → auth failure, not rate limit. Tokens invalid/expired/revoked.
+
+**Not self-fixable.** Creds are CI secrets; `scripts/` and `skills/tweet-listen/SKILL.md` are off my allowlist, so I cannot add a blocker gate ahead of Job 1's `listen` call — every dispatch will keep re-confirming this for zero signal.
 
 **@_proxystudio — operator action required:**
-1. Rotate X OAuth 1.0a app keys + access token/secret (present but rejected server-side — 401, not rate-limit)
-2. PAUSE tweet-listen dispatch until rotated — 2 blocked days, ~$2.34/day wasted on the day's #1 cost line for zero signal
+1. Rotate/re-authorize the X OAuth 1.0a app keys + access token/secret.
+2. **Pause tweet-listen dispatch** until rotated. This skill is the day's top inference line ($9.53/day budgeted); each run burns DIEM to learn nothing new.
 
-State written: `x-credential-blocker.json` (conf #9, 12 wasted), log line appended. Mode unchanged: accumulate, 18.2635/100 DIEM.
+DIEM unchanged: 18.2635/100, accumulate mode. Tracker `memory/x-credential-blocker.json` and `memory/logs/2026-06-08.md` updated.
