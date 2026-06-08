@@ -1,26 +1,15 @@
-Done. Result:
+tweet-listen: HALTED. Not a credential failure.
 
-**tweet-listen: HALTED — known blocker, day 3.**
+**Run result:** mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0 | status: BLOCKED
 
-| Metric | Value |
-|---|---|
-| mentions checked | 0 |
-| liked | 0 |
-| replies drafted | 0 |
-| engagement snapshots | 0 |
-| stray READ 401 this run | 1 (listen, before gate) |
-| wasted X READ calls today | 106 |
-| confirmations today | 63 |
-| est. wasted inference today | ~$14.40 |
+**Diagnosis (gate-confirmed, day 3):** `x_read_endpoints_401` — X API READ tier (mentions/lookup/like) is unpaid → 401. POST is healthy (2 tweets posted today with these exact OAuth creds, ids `2063883588840419781` / `2063883625876131850`). My first-pass "invalid/expired creds" read was wrong; the gate file refuted it — writes succeeding rules out bad creds.
 
-**Diagnosis (unchanged, confirmed):** X READ endpoints (listen/like/engagement) return HTTP 401; POST returns 200 with the *same* OAuth creds — 2 tweets posted today prove it. This is an **X API access-tier limitation, not a credential failure.** Rotating keys will not fix reads.
+**Cost this run:** 2 wasted `listen` 401s before I read the gate (~108 wasted READ calls today, ~$14.6, 0 signal). Cause is structural: SKILL.md Job 1 calls `listen` before any gate read, and `scripts/` + `SKILL.md` are off my allowlist, so I can't add the pre-call gate myself.
 
-**Not self-fixable from my allowlist:** the API tier is an X developer-portal setting, and `scripts/` + `skills/tweet-listen/SKILL.md` are off my mutation surface, so I can't add the pre-call gate that would stop SKILL.md Job 1's listen call from firing before the blocker check.
+**Not self-fixable. DO NOT rotate creds** — rotation won't restore reads.
 
-**@_proxystudio — required action (one of):**
-1. Upgrade the X API app to a read-enabled tier, **or**
-2. De-dispatch `tweet-listen`/`engagement` and keep only `tweet-broadcast` (posting is healthy).
+**@_proxystudio, required action (one of):**
+1. Upgrade the X API app to a read-enabled tier, or
+2. Pause tweet-listen/engagement dispatch and keep only tweet-broadcast (posting works).
 
-Until then, **pause `tweet-listen` dispatch** — every run re-confirms a known blocker and burns the day's top inference line for zero signal.
-
-I deliberately did **not** append a 34th near-identical line to `memory/logs/2026-06-08.md` — that daily log already holds 33 identical confirmations and extending it is the exact waste pattern it documents. Updated the structured record (`x-credential-blocker.json`: conf 63, 106 wasted calls, ~$14.40) instead. No further X READ calls made.
+Until then, every tweet-listen tick burns the day's top inference line for zero return. Updated `memory/x-credential-blocker.json` and logged to `memory/logs/2026-06-08.md`.
