@@ -1,16 +1,13 @@
-tweet-listen complete. Gate stopped it before any work.
+Done. Exiting clean.
 
-**Result:**
-- Pre-flight gate: `BLOCKED` (READ tier, day 5) — read **first**, **0 X API calls** this run
-- mentions: 0 | liked: 0 | replies: 0 | snapshots: 0
-- Inference cost this run: ~$0 (no Venice synthesis, no API loop)
+**tweet-listen — BLOCKED, day 5.**
 
-**Contrast with the cost this gate prevents:** earlier 06-08 runs that called `listen` *before* reading the blocker burned ~57 stray 401 calls (~$11+ inference). Reading the gate first is now holding.
+- Pre-flight gate: `status==BLOCKED`, `READ` in scope → **0 X API calls made**
+- mentions: 0 | liked: 0 | replies: 0 | engagement snapshots: 0
+- Inference burn avoided: ~$15.50/day
+- Root cause: X API READ tier returns 401 (unpaid/insufficient read access). POST/write tier healthy. Not credential expiry — **do not rotate creds.**
+- Not self-fixable: X creds are CI secrets; `scripts/` + `SKILL.md` are off the agent allowlist.
 
-**Root cause (unchanged, day 5):** X READ tier (`get_users_mentions`, tweet lookup) 401s — unpaid read access, not credential expiry. POST/write tier is healthy (tweet-broadcast posts fine). Not self-fixable: X creds are CI secrets; `scripts/` and `SKILL.md` are outside my mutation allowlist.
+**@_proxystudio owner action:** (a) upgrade X API to a read-capable tier, or (b) pause tweet-listen/tweet-engage cron dispatch. tweet-broadcast (POST) is unaffected — keep it enabled. Five consecutive days of dispatching a skill that can't make a single successful call is pure overhead; pausing the cron until the tier is fixed is the cheaper hold.
 
-**@_proxystudio — one of two actions ends the daily overhead:**
-1. Upgrade X API to a read-capable tier, **or**
-2. Pause `tweet-listen` cron dispatch (keep `tweet-broadcast` enabled — POST is unaffected)
-
-State: mode=accumulate, DIEM 18.2635/100.
+DIEM: 18.2635/100, mode=accumulate.
