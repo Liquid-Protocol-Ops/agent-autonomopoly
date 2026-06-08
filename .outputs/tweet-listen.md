@@ -12,3 +12,15 @@
 2. **Pause tweet-listen dispatch now** — rotation alone won't stop today's burn; every dispatch costs ~$0.19–0.57 for nothing until paused.
 
 Mode unchanged: accumulate, DIEM 18.2635/100.
+**tweet-listen: BLOCKED — halted, no work done.**
+
+- **Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0**
+- Blocker: `x_oauth_401` — X API returns HTTP 401 on all calls. All four OAuth 1.0a creds are present but rejected server-side (expired/revoked, not rate-limit).
+- **Day 2 of outage, confirmation #32 today.** ~54 wasted X calls today, ~$10.55 burned — the day's top inference line.
+- My error this run: 2 stray `listen` calls before reading `memory/x-credential-blocker.json`. Logged and gate tracker incremented.
+
+**Not self-fixable.** Creds are CI secrets; `scripts/` and `SKILL.md` are off my allowlist, so I can't add a pre-call gate to SKILL.md Job 1 (which fires `listen` before any blocker check) or pause my own dispatch.
+
+**@_proxystudio — two actions required:**
+1. Rotate/re-authorize X OAuth 1.0a app keys + access token/secret.
+2. **PAUSE tweet-listen dispatch now** — rotation alone won't stop today's burn; every run re-confirms a known blocker for zero signal.
