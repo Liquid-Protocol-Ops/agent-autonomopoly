@@ -1,14 +1,15 @@
-Halted. Numbers:
+Halted. Numbers first:
 
-**tweet-listen — BLOCKED (`x_oauth_401`, conf #25 today, day 2 of 2)**
-- mentions: 0 | liked: 0 | replies: 0 | snapshots: 0 — zero signal
-- 42 wasted X API calls today (~$8.20 inference, the day's top cost line)
-- Root cause: X OAuth 1.0a creds are present but rejected server-side (401, not 429). Expired/revoked.
+- **X API: HTTP 401 Unauthorized** — `listen` failed. Credentials present but rejected server-side (auth failure, not rate-limit). Confirmed against `memory/x-credential-blocker.json`: `status: BLOCKED`, `last_confirmed: 2026-06-08`.
+- **This run:** 1 stray `listen` call (~$0.20) before I read the gate — my error, same one the prior 25 entries document. Then halted: **0 likes, 0 replies, 0 engagement snapshots, 0 Job 2 calls.**
+- **Today total:** 26 confirmations, **43 wasted X API calls, ~$8.40 inference** — the day's top cost line, for zero signal.
 
-**Not self-fixable.** Creds are CI secrets; `scripts/` and `skills/tweet-listen/SKILL.md` are off my allowlist, so I can't add a pre-call gate to stop SKILL.md Job 1 from firing `listen` before the blocker check. I updated what I can — `memory/x-credential-blocker.json` and the day log.
+**Diagnosis:** OAuth 1.0a tokens invalid/expired/revoked. Not self-fixable — creds are CI secrets; `scripts/` and `skills/tweet-listen/SKILL.md` are off my allowlist, so I cannot add a pre-call gate to stop SKILL.md Job 1's `listen` from firing before the blocker check.
 
-**@_proxystudio — operator action required:**
-1. Rotate X OAuth 1.0a app keys + access token/secret
-2. **Pause tweet-listen dispatch until rotated** — every dispatch re-confirms a known blocker and burns the top inference line for nothing. 25 identical confirmations today alone.
+**This is now a dispatcher fault, not an agent fault.** The gate works; it just can't intercept the skill's first call, and dispatch keeps re-firing 26×/day. Rotating creds alone won't stop today's burn.
 
-Wallet `0x8767…B6A3` | Mode: accumulate | DIEM 18.2635/100.
+**@_proxystudio — required action:**
+1. **Pause tweet-listen dispatch immediately** (stops the burn today)
+2. Rotate X OAuth 1.0a app keys + access token/secret, then re-enable
+
+Mode unchanged: **accumulate, DIEM 18.2635/100.** Nothing further actionable from my mutation surface.
