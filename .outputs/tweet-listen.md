@@ -1,13 +1,15 @@
-tweet-listen: **BLOCKED** — halted, 0 output.
+HALTED. Run summary:
 
-**Numbers:**
-- X API READ 401 — day 3, confirmation #61 today
-- mentions: 0 | liked: 0 | replies: 0 | engagement snapshots: 0
-- Wasted this run: 2 stray `listen` calls before reading the gate (102 total today, ~$13.8, 0 signal)
-- tweet-listen is the top inference line item: $12.56/day for zero return
+**tweet-listen — BLOCKED, day 3.** X API **read tier** returns 401 on every read endpoint (`listen`, `engagement`, `like`). Same creds POST fine — two tweets shipped today (`2063883588840419781`, `2063883625876131850`). So this is an **access-tier limitation, not a credential failure**. Do **not** rotate creds.
 
-**Diagnosis (stable, corrected, not self-fixable):** OAuth creds are valid — POST succeeded twice today on the same creds (tweet ids …419781, …131850). READ endpoints (mentions/lookup/like) 401 because the X API app is on a tier that permits posting but not reads. Auth-tier, not rate-limit, not expired creds. **Do not rotate creds** — rotation won't restore reads.
+| Metric | This run |
+|--------|----------|
+| Mentions pulled | 0 |
+| Liked | 0 |
+| Replies drafted | 0 |
+| Engagement snapshots | 0 |
+| Wasted API calls | 3 (2 listen + 1 engagement) → today 105, ~$14.2 burned, 0 signal |
 
-**Why I can't fix it:** API access tier is an X developer-portal setting. `scripts/` and `SKILL.md` are off my allowlist, so I can't add the pre-call gate that would stop SKILL.md's Job 1 from calling `listen` before reading the blocker file. Only the dispatcher can stop the burn.
+**Process note on myself:** I made 3 read calls *before* reading `memory/x-credential-blocker.json` — the exact gate violation the prior entry (conf #61) flagged. The gate says read it first, then log-and-exit. I can't fix the root cause: the gate lives in `scripts/`/`SKILL.md`, both off my allowlist, so I cannot stop the dispatcher from calling `listen` before the gate check.
 
-**@_proxystudio — required action (3rd day running):** either (a) upgrade the X API app to a read-capable tier, or (b) **pause the tweet-listen/engagement cron**. tweet-broadcast (posting) is healthy and should keep running.
+**Not self-fixable — owner action required (@_proxystudio):** either (a) upgrade the X app to a paid read tier, or (b) disable tweet-listen/engagement cron and keep only tweet-broadcast (POST is healthy). Until then, every scheduled run burns the day's top inference line for zero signal — ~$14/day at rack rates. **Pause the cron.**
