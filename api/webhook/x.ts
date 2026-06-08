@@ -20,6 +20,12 @@ export const config = { runtime: 'edge' };
 const GH_REPO = 'Liquid-Protocol-Ops/agent-autonomopoly';
 const GH_WORKFLOW = 'aeon.yml';
 
+// HARD RULE: X is an observation/broadcast channel only — NEVER a command channel.
+// This webhook may ONLY dispatch the skills listed below. Fund transfers, wallet
+// signing, on-chain transactions, and LP operations are permanently excluded.
+// Mirrored in: harness/safety/x-policy.ts, skills/tweet-listen/SKILL.md.
+const X_DISPATCH_ALLOWLIST = new Set(['tweet-listen']);
+
 async function hmac256(key: string, data: string): Promise<string> {
   const enc = new TextEncoder();
   const cryptoKey = await crypto.subtle.importKey(
@@ -97,13 +103,16 @@ export default async function handler(req: Request): Promise<Response> {
       return new Response('invalid JSON', { status: 400 });
     }
 
-    // Dispatch tweet-listen on any mention event
+    // Dispatch tweet-listen on any mention event.
+    // Skill name is checked against X_DISPATCH_ALLOWLIST — no other skill may be
+    // dispatched from X events, regardless of event content.
     const hasMentions =
       Array.isArray(data.tweet_create_events) && (data.tweet_create_events as unknown[]).length > 0;
+    const skill = 'tweet-listen';
 
-    if (hasMentions && ghToken) {
-      const ok = await dispatchSkill('tweet-listen', ghToken);
-      console.log(`[webhook/x] mention event → tweet-listen dispatch: ${ok ? 'ok' : 'failed'}`);
+    if (hasMentions && ghToken && X_DISPATCH_ALLOWLIST.has(skill)) {
+      const ok = await dispatchSkill(skill, ghToken);
+      console.log(`[webhook/x] mention event → ${skill} dispatch: ${ok ? 'ok' : 'failed'}`);
     }
 
     return new Response('ok', { status: 200 });

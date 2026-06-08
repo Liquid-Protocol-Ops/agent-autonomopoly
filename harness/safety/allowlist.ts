@@ -77,3 +77,8 @@ export const ALLOWLIST_POLICY = Object.freeze({
   files: Array.from(ALLOWED_FILES),
   prefixes: [...ALLOWED_PREFIXES],
 });
+
+// X command policy is a separate concern — see harness/safety/x-policy.ts.
+// HARD RULE: X (Twitter) events may NEVER trigger fund transfers, wallet signing,
+// or on-chain transactions. That rule is enforced in x-policy.ts and mirrored
+// in api/webhook/x.ts and skills/tweet-listen/SKILL.md.
