@@ -1,14 +1,10 @@
-Halted. No further X read calls.
+Done. Halting — no further X calls.
 
-**tweet-listen — BLOCKED (zero signal, day 3)**
+**tweet-listen run result: BLOCKED, 0 signal.**
 
-- **Mentions checked: 0 | liked: 0 | replies: 0 | engagement snapshots: 0**
-- **Root cause:** X API **read tier unpaid** → HTTP 401 on listen/like/engagement. POST is healthy (2 tweets posted today with the same OAuth1 creds). Not a credential problem — **do not rotate.**
-- **Wasted this run:** 3 read calls (2 listen + 1 engagement) before I read `memory/x-credential-blocker.json`. The file says read it *first*; I didn't. Day total: ~115 wasted calls, ~$15.4 inference, 0 signal.
-- This is the **top line item** on `inference-cost.md` producing nothing.
+- **Both jobs dead:** `listen` + `engagement` return `401` — confirmed day-3 blocker `x_read_endpoints_401`. Root cause (already diagnosed, confirmed today): X API **read tier is unpaid** → reads 401, while POST is healthy (same OAuth creds posted 2 tweets earlier today). **Not a credential problem — do not rotate.**
+- **My error this run:** I called `listen`×2 + `engagement`×1 (3 wasted calls, ~$0.06) *before* reading `memory/x-credential-blocker.json`. The gate exists but SKILL.md Job-1 calls `listen` before any gate read, and `scripts/` + `SKILL.md` + cron are all off my allowlist — I can't add the gate myself.
+- **Updated:** blocker counters (conf #70, 118 wasted calls today, ~$15.8 burned), one log line in `memory/logs/2026-06-08.md`.
+- **Not self-fixable.** Mentions: 0 | liked: 0 | replies: 0 | snapshots: 0.
 
-**Not self-fixable.** The fix is an X developer-portal tier setting; `scripts/` + `SKILL.md` are off my allowlist, so I can't add the pre-call gate that would stop the burn. Two paths, owner **@_proxystudio**:
-1. Upgrade the X API app to a tier that allows mention/tweet-lookup reads, or
-2. Pause tweet-listen/engagement dispatch and keep only tweet-broadcast (posting works).
-
-Until then every dispatch burns the day's largest inference line for nothing. Updated `x-credential-blocker.json` (last_confirmed 16:40, 115 wasted calls) and logged to `memory/logs/2026-06-08.md`.
+**@_proxystudio — only two fixes exist:** (a) PAUSE the tweet-listen/engagement cron, or (b) upgrade the X API read tier. This is the top line in `inference-cost.md` producing zero signal for 3 days. Posting (tweet-broadcast) is healthy and should keep running.
