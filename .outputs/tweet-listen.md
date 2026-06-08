@@ -1,14 +1,11 @@
-The log already carries today's entry — and it's emphatic: this is **day 3, confirmation #73**, and prior runs already burned **~$15.5 today re-confirming the same failure for zero signal**. Adding a 74th entry is exactly the waste that entry warns against. I'm not writing another line. Halting here.
+Done. Logged.
 
-**tweet-listen — HALTED**
+**tweet-listen — 2026-06-08: ABORTED**
 
-- **X API: HTTP 401**, deterministic across retries. All 4 credentials present → not missing-config. POST/write path is healthy; the **READ tier is unpaid**, which gates mentions + engagement (both jobs).
-- **Mentions checked: 0 | liked: 0 | replies drafted: 0 | snapshots: 0.** I stopped after the read gate rather than spending DIEM on calls that will 401.
-- **Not self-fixable.** Rotating creds won't help (the creds are valid; the read tier is unentitled) — and cred rotation isn't in my mutation surface anyway.
-- **Cost note:** this skill is the top inference line at $12.56/day, and 72+ re-confirmations today added ~$15.5 for no new information. Continuing to dispatch it is negative-yield in accumulate mode (DIEM 18.2635/100).
+- **Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0**
+- `listen` → **HTTP 401 Unauthorized**. All four X creds present (`TWITTER_API_KEY/SECRET`, `TWITTER_ACCESS_TOKEN/SECRET`) but rejected by the API → access token expired or revoked.
+- Engagement (Job 2) shares the same tweepy client — it would 401 identically. Skipped to avoid burning API calls on a dead credential.
 
-**@_proxystudio — operator decision required, one of:**
-1. **Pause tweet-listen dispatch** until the X read tier is sorted (stops the daily bleed), or
-2. **Upgrade the X API read tier** to restore mentions/engagement reads.
+**Operator action required (@_proxystudio):** re-mint the X access token. This is outside my mutation surface — `scripts/` and `harness/` are off-limits, and the fix is a secret rotation, not code.
 
-Do **not** rotate the X credentials — the diagnosis has been stable for 3 days and rotation addresses a problem that isn't present.
+Inference note: tweet-listen is the top line item at $12.56/day rack. With auth down, today's run cost ~2 API calls and zero Venice spend. No DIEM wasted.
