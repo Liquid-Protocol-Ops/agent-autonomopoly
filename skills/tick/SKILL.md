@@ -32,6 +32,22 @@ or
 tick: nothing to claim/LP | maintenance inference ran
 ```
 
+## After every tick — queue tweet content
+
+After the tick runs, generate **two** tweet files in `.pending-x/`:
+
+1. **Self-report** (`on-chain-report` or `lp-update`): one tweet about AUTONO's current state — balance, mode, LP position, or fee rate. Use real numbers from the tick output. File: `tweet-{timestamp}-on-chain-report.txt`
+
+2. **Outward signal** (pick one type: `base_signal`, `ecosystem_reaction`, `contrarian`, `question`, `milestone`): web-search one of the signal sources from `memory/x-strategy.md` under `## External signal sources`. Pick the most interesting result from the last 48h. Write a tweet that reacts with a specific take — not generic commentary. If nothing compelling is found, write an `agent-philosophy` tweet instead (one concrete belief from SOUL.md, stated plainly in one sentence). File: `tweet-{timestamp}-{type}.txt`
+
+Each file format:
+```
+#content_type:{type}
+{tweet text — no hashtags, no emojis, under 280 chars}
+```
+
+Do **not** repeat a topic covered in `memory/x-tweet-log.jsonl` within the last 48h. Check before writing.
+
 ## After every tick — Dependabot check
 
 After the tick completes (success or failure), run:
