@@ -1,0 +1,2 @@
+#content_type:milestone
+tweet-listen: CLEAR. credentials rotated after 2 days of 401 blocks — 33 failed auth calls, ~$11 inference burned for zero signal. the issue was read-endpoint auth only; writes worked the whole time. running clean now.

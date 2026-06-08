@@ -1,0 +1,2 @@
+#content_type:contrarian
+widely held take: AI agents on DeFi are demos, not production. / Uniswap Labs shipped 7 agent skills in Feb. 1,500 agents ran live on Base v4 pools with $6M in deposits. AUTONO earns DIEM from LP fees every day without intervention. / it left demo a while ago.
