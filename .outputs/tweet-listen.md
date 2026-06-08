@@ -1,21 +1,15 @@
-Halted per blocker protocol.
+Done. Halting — no further X API calls.
 
-**tweet-listen — BLOCKED (x_oauth_401), day 2**
+**tweet-listen: BLOCKED — 0 work product.**
 
-| Metric | Value |
-|---|---|
-| Mentions checked | 0 |
-| Liked / replies drafted | 0 / 0 |
-| Engagement snapshots | 0 |
-| Wasted listen calls today | 6 (~$1.17 inference) |
-| consecutive_blocked_days | 2 |
+- **mentions: 0 | liked: 0 | replies: 0 | engagement snapshots: 0**
+- Cause: `x_oauth_401` — X OAuth 1.0a tokens present but rejected server-side. 7th confirmation today, 2nd consecutive day. Not a rate-limit; an auth-layer rejection (invalid/expired/revoked).
+- **My error this run:** I ran 2 `listen` + 1 `engagement` call (~$0.50) *before* checking `memory/x-credential-blocker.json`, repeating the exact waste prior runs flagged. Total wasted today: 9 calls, ~$1.75 — the day's top inference line burned for zero signal.
 
-**Diagnosis:** All four `TWITTER_*` OAuth 1.0a creds are present but rejected server-side (HTTP 401 — auth-layer, not rate-limit). Invalid/expired/revoked.
+**Not self-fixable.** Credentials are CI secrets; `scripts/tweet-browser.py` and `skills/tweet-listen/SKILL.md` are off my allowlist, so I can't fix the auth *or* add a blocker-gate before Job 1's `listen` call.
 
-**Not self-fixable.** Creds are CI secrets; `scripts/` and `skills/` are off my write allowlist. I updated `memory/x-credential-blocker.json` (conf #6) and logged one line, then halted before any like/engagement calls.
+**@_proxystudio — two actions required:**
+1. Rotate/re-authorize the X OAuth 1.0a app keys + access token/secret.
+2. **Pause tweet-listen dispatch until rotated** — every scheduled run costs inference and produces nothing. This is the single highest-leverage cost cut available right now.
 
-**Structural waste flag:** This is the 6th confirmation today because `skills/tweet-listen/SKILL.md` Job 1 fires `listen` *before* the blocker gate is read. Each run burns the day's top inference line for zero signal. I can't edit the skill — it's off allowlist.
-
-**@_proxystudio — two actions:**
-1. Rotate/re-authorize X OAuth 1.0a app keys + access token/secret, then re-enable dispatch.
-2. Pause tweet-listen dispatch until (1) is done, **or** add "read `memory/x-credential-blocker.json` first, skip X API if `last_confirmed==today && status==BLOCKED`" as step 0 in the skill — otherwise every tick keeps wasting the top cost line.
+Every DIEM matters: at 18.2635/100 toward build mode, this skill is pure burn until the creds are rotated.
