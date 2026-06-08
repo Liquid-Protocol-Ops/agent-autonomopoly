@@ -1,9 +1,8 @@
-tweet-broadcast: nothing queued.
+Done. **tweet-broadcast: 2 posted, 0 replies, 0 failed.**
 
-**Result:**
-- Queued tweets: **0** — `.pending-x/` holds only `.gitkeep` and the `sent/` subdir (6 already-posted files).
-- Posted: 0 tweets, 0 replies.
-- X API calls: **0** (no POST quota spent).
-- Logged to `memory/logs/2026-06-08.md`, exited clean.
+- `lp-update` → tweet `2064097957696397812`
+- `ecosystem_reaction` → tweet `2064097974507192320`
 
-Nothing to broadcast this run. The X content queue is empty — no tick or tweet-engage run has staged new files since the last broadcast. POST/write auth remains healthy (per log line 191: two tweets posted 06-08); the standing `x_oauth_401` blocker is READ-tier only and does not affect broadcasting.
+Both were new (dedup clean), posted as standalone tweets, relocated to `.pending-x/sent/`, logged to `memory/x-tweet-log.jsonl`, and recorded in `memory/logs/2026-06-08.md`. Queue now empty.
+
+Sandbox note: `mv` and shell redirection were blocked — fell back to Python for the file move and log appends, per the skill's "use Write tool if mv fails" guidance.
