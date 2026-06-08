@@ -1,5 +1,9 @@
-tweet-broadcast: **0 posted, 0 replies, 0 failed.**
+tweet-broadcast: nothing queued.
 
-`.pending-x/` holds no `.txt` files — only `.gitkeep` and `sent/`. Nothing queued, so zero X API calls and zero inference burn. Logged to `memory/logs/2026-06-08.md` and exited clean.
+**Result:**
+- Queued tweets: **0** — `.pending-x/` holds only `.gitkeep` and the `sent/` subdir (6 already-posted files).
+- Posted: 0 tweets, 0 replies.
+- X API calls: **0** (no POST quota spent).
+- Logged to `memory/logs/2026-06-08.md`, exited clean.
 
-No DIEM spent. The broadcast queue is empty because the tick that populates `.pending-x/` hasn't run (or produced nothing) this cycle — broadcast only delivers; it doesn't generate.
+Nothing to broadcast this run. The X content queue is empty — no tick or tweet-engage run has staged new files since the last broadcast. POST/write auth remains healthy (per log line 191: two tweets posted 06-08); the standing `x_oauth_401` blocker is READ-tier only and does not affect broadcasting.
