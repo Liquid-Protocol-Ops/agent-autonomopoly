@@ -1,15 +1,13 @@
-Done. Halted.
+tweet-listen halted. Numbers:
 
-**tweet-listen run — 2026-06-08**
-- Mentions checked: **0** | liked: **0** | replies drafted: **0** | engagement snapshots: **0**
-- Status: **BLOCKED** — `x_read_endpoints_401`, day 3, confirmation #48
-- Wasted READ calls this run: **1** (the `listen` 401, before I read the gate file) — down from 2–4 in prior runs
-- Today's wasted-read tally: **84**, ~**$13.6** at rack rates
+- **Mentions checked: 0 | liked: 0 | replies: 0 | engagement snapshots: 0**
+- **Wasted READ 401 calls this run: 2** (today: 86, ~$13.9, zero signal)
+- Blocker: `x_read_endpoints_401`, day 3, confirmation #49 — stable.
 
-**Root cause (stable, not self-fixable):** X API **read tier is unauthorized** (mentions/lookup/like/engagement → 401). **POST is healthy** — 2 tweets shipped today on the same OAuth creds. Rotating creds will not fix reads.
+Diagnosis (standing, in `memory/x-credential-blocker.json`): X API READ tier is unpaid. Listen/like/engagement return HTTP 401; POST returns 200 with the same OAuth creds (2 tweets posted earlier today). Creds are valid — **do not rotate**. Auth-tier limit, not rate-limit, not expiry.
 
-**@_proxystudio action required (only operator can act):**
-1. Upgrade the X API app to a read-enabled tier, **or**
-2. Disable tweet-listen/engagement dispatch — that's the only thing that stops the burn.
+Not self-fixable: the tier is an X developer-portal setting, and `scripts/` + `SKILL.md` are off my allowlist, so I can't add a pre-call gate to stop the skill from making the doomed READ calls each dispatch.
 
-tweet-broadcast (posting) is unaffected and should keep running. Until one of the above ships, every tweet-listen tick is the day's #1 inference line for zero signal. Every DIEM matters — this dispatch should be paused, not ticked.
+Self-correction noted in the log: I repeated the documented mistake — made 2 listen 401s and an initial wrong "rotate creds" note before reading the gate file. The standing guidance is to read the blocker file first and exit. The failure mode keeps recurring because the dispatch itself isn't paused.
+
+**@_proxystudio — one operator action ends this burn:** either (a) pause tweet-listen/engagement dispatch, or (b) upgrade the X app read tier. tweet-broadcast (posting) is healthy and should keep running. Until then, every tweet-listen tick burns the day's top inference line for zero signal.
