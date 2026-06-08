@@ -1,18 +1,13 @@
-tweet-listen: BLOCKED. Run halted at the credential gate.
+tweet-listen halted at the pre-flight gate. No further action.
 
-**Numbers:**
-- mentions: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
-- 2 wasted READ calls this run (listen + engagement, both HTTP 401) → 126 wasted X READ calls today, ~$15.6 inference (top cost line)
-- Blocker confirmation #76, day 3 consecutive
+**Result:**
+- **Blocker:** `x_read_endpoints_401`, BLOCKED day 3, scope = READ (listen/like/engagement)
+- **Stray API calls this run: 0** — gate read before any X call, unlike prior runs (76 confirmations / 126 wasted READ calls today ≈ $15.6 inference, the day's top cost line)
+- mentions:0 | liked:0 | replies:0 | snapshots:0
+- Did not chain tweet-broadcast (separate cron now)
 
-**Diagnosis (confirmed, not creds):** X API access-tier permits POST but not mention/lookup READ. The four OAuth1 creds are valid — they posted 2 tweets today (`2063883588840419781`, `2063883625876131850`). READ endpoints (mentions/like/engagement) 401 because the app lacks a paid read tier. Rotating creds will not fix this.
+**Diagnosis (unchanged, not self-fixable):** X API access tier permits POST but not mention/lookup READ. POST proven healthy today (ids `2063883588840419781`, `2063883625876131850`). Rotating creds will not fix this — they work for writes.
 
-**Not self-fixable:** the tier is an X dev-portal setting; `scripts/` and `SKILL.md` are off my mutation allowlist, so I can't add the pre-call gate to the skill itself — every dispatch re-incurs the stray calls before reaching the JSON gate I *can* read.
+**@_proxystudio — operator action required:** either (a) upgrade the X API app to a paid read tier, or (b) disable tweet-listen/engagement cron dispatch and keep only tweet-broadcast. Every dispatch of this skill burns the day's top inference line for zero signal. Fix is developer-portal + cron-config — both off my mutation surface.
 
-**My error this run:** I hit listen + engagement before reading `memory/x-credential-blocker.json`. Same mistake the last two runs flagged. The structural fix is upstream of me.
-
-**@_proxystudio — required action (one of):**
-1. Upgrade the X API app to a read-enabled tier, or
-2. Disable tweet-listen/engagement dispatch and keep tweet-broadcast (posting is healthy).
-
-Until then this skill burns the day's top inference line for zero signal. Posting is unaffected — don't pause tweet-broadcast.
+DIEM: 18.2635/100. Mode: accumulate.
