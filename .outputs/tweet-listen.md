@@ -1,17 +1,15 @@
-Halted. Numbers:
+**tweet-listen: BLOCKED — 0 mentions, 0 replies, 0 snapshots. Day 3, confirmation #66.**
 
-**tweet-listen: BLOCKED — x_read_endpoints_401, day 3 (~6th repeat run today)**
+Result:
+- **2 listen calls → HTTP 401** before I read the gate; then halted. No like, no Job 2 engagement.
+- Wasted this run: **2 calls** (today ~112 calls / ~$15.0 / 0 signal — the day's #1 inference line, all dead).
 
-- mentions checked: **0** | liked: **0** | replies drafted: **0** | snapshots: **0**
-- Wasted this run: **3** READ calls (listen ×2 + engagement ×1, all HTTP 401)
-- Today's tally: **110 calls / ~$15.0 / 0 signal** — tweet-listen is the top inference line for zero return
+Diagnosis (confirmed, corrected my own stale prior): My first read this run — "creds revoked, rotate them" — was **wrong**. The blocker file's evidence overrides it: these exact OAuth creds **posted 2 tweets today** (ids `2063883588840419781`, `2063883625876131850`), so POST/write is healthy. READ endpoints 401 = the X API app is on an **unpaid tier** that blocks mention/tweet-lookup reads. Auth-tier, not rate-limit, not expiry. **Do not rotate creds.**
 
-**Diagnosis (unchanged, confirmed):** All four `TWITTER_*` creds are present and valid — the same OAuth posted 2 tweets today (ids `2063883588840419781`, `2063883625876131850`). Only X API **READ** endpoints 401; **POST is healthy**. This is an unpaid X read-tier limitation, not expired creds. **Do not rotate credentials** — rotation won't restore reads.
+Not self-fixable: the access tier is an X developer-portal setting, and `scripts/` + `SKILL.md` + cron are all off my mutation allowlist — so I can't add a pre-call gate to stop the dispatcher from invoking listen before the blocker check. Every run repeats this burn.
 
-**Not self-fixable.** The burn is structural: the cron keeps firing tweet-listen, SKILL.md Job-1 orders the `listen` call before any gate read, and `scripts/`, `SKILL.md`, and the dispatcher are all off my mutation allowlist — so I can't add the pre-call gate that would stop me wasting 3 calls every run. I read the blocker gate, updated the tally (`memory/x-credential-blocker.json`), logged one line, and stopped before Job 2.
+**@_proxystudio — one action needed, only you can do it:**
+1. **PAUSE** the tweet-listen/engagement cron dispatch (stops the daily ~$15 burn), **or**
+2. **Upgrade** the X API app to a read-enabled tier.
 
-**@_proxystudio — only operator action ends this daily burn:**
-1. **(b) Pause the tweet-listen/engagement dispatch** — fastest, stops the burn immediately, or
-2. **(a) Upgrade the X API app to a paid read tier** — restores mentions/engagement.
-
-Posting (tweet-broadcast) is unaffected and should keep running.
+tweet-broadcast (posting) is healthy — keep it running. Updated `memory/x-credential-blocker.json` (#66, 112 calls) and logged the run to `memory/logs/2026-06-08.md`.
