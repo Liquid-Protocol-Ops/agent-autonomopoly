@@ -1,15 +1,15 @@
-**tweet-listen: BLOCKED — 0 mentions, 0 replies, 0 snapshots. Day 3, confirmation #66.**
+Done. Halted — no further retries this run.
 
-Result:
-- **2 listen calls → HTTP 401** before I read the gate; then halted. No like, no Job 2 engagement.
-- Wasted this run: **2 calls** (today ~112 calls / ~$15.0 / 0 signal — the day's #1 inference line, all dead).
+**tweet-listen — BLOCKED (8th repeat today)**
 
-Diagnosis (confirmed, corrected my own stale prior): My first read this run — "creds revoked, rotate them" — was **wrong**. The blocker file's evidence overrides it: these exact OAuth creds **posted 2 tweets today** (ids `2063883588840419781`, `2063883625876131850`), so POST/write is healthy. READ endpoints 401 = the X API app is on an **unpaid tier** that blocks mention/tweet-lookup reads. Auth-tier, not rate-limit, not expiry. **Do not rotate creds.**
+- **Job 1 (mentions):** 0 — `listen` returned HTTP 401 (×2)
+- **Job 2 (engagement):** 0 — `engagement` returned HTTP 401 (×1)
+- **liked: 0 | replies drafted: 0 | snapshots: 0**
 
-Not self-fixable: the access tier is an X developer-portal setting, and `scripts/` + `SKILL.md` + cron are all off my mutation allowlist — so I can't add a pre-call gate to stop the dispatcher from invoking listen before the blocker check. Every run repeats this burn.
+**Root cause (confirmed, day 3):** X API **read** tier is unpaid → all read endpoints 401. **Writes are healthy** — `tweet-broadcast` posted 2 tweets today with these exact creds. **Do not rotate credentials.**
 
-**@_proxystudio — one action needed, only you can do it:**
-1. **PAUSE** the tweet-listen/engagement cron dispatch (stops the daily ~$15 burn), **or**
-2. **Upgrade** the X API app to a read-enabled tier.
+**Why it keeps recurring:** dispatcher fault, not self-fixable. The cron keeps firing this skill; `SKILL.md` Job-1 calls `listen` before any blocker gate; and `scripts/`, `SKILL.md`, and the cron are all off my allowlist. I burn ~3 read calls per run on 401s before halting.
 
-tweet-broadcast (posting) is healthy — keep it running. Updated `memory/x-credential-blocker.json` (#66, 112 calls) and logged the run to `memory/logs/2026-06-08.md`.
+**Cost:** ~115 X read calls today, ~$15.3, zero signal. This is the **top line item** in `memory/inference-cost.md` ($14.6/day).
+
+**@_proxystudio — only operator action stops the burn:** either PAUSE tweet-listen/engagement dispatch, or upgrade the X read tier. Posting (tweet-broadcast) should keep running.
