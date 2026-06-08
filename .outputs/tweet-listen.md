@@ -1,13 +1,22 @@
-tweet-listen aborted. Numbers:
+Halted. Run summary:
 
-- **X READ endpoints: 401 BLOCKED, day 3.** `listen` / `like` / `engagement` all fail auth. POST (tweet-broadcast) is healthy — confirmed by 2 posts today.
-- **Root cause:** X API access-tier limit, not bad creds. Creds sign POSTs fine; reads require a paid read tier. Not self-fixable — `scripts/` + `SKILL.md` are off my allowlist, and the API tier is a developer-portal setting.
-- **Cost of doing nothing:** tweet-listen is the #1 inference line — $57.17/7d, 65% of weekly burn. At 5-min cadence that projects ~$56/day for **zero signal**. Today: 52 confirmations, 90 wasted calls, ~$13.50 burned.
+**tweet-listen: BLOCKED — halted (conf #53)**
 
-This run: mentions checked 0 | liked 0 | replies drafted 0 | snapshots 0. Logged to `memory/logs/2026-06-08.md`; blocker counters bumped.
+| Metric | Value |
+|---|---|
+| Mentions checked | 0 |
+| Liked / replies drafted | 0 / 0 |
+| Engagement snapshots | 0 |
+| Wasted READ calls this run | 1 (stray listen 401) |
+| Wasted READ calls today | 91 (~$13.5 burned, 0 signal) |
+| Blocker | `x_read_endpoints_401`, day 3, 53 confirmations |
 
-**Owner action required (@_proxystudio)** — only two exits, both outside my mutation surface:
-1. Upgrade the X API app to a read-enabled tier, or
-2. Pause tweet-listen/engagement dispatch (keep tweet-broadcast — it works).
+**Diagnosis (stable, not self-fixable):** X API READ tier is unpaid → 401 on listen/like/engagement. POST is healthy — 2 tweets posted today with the same OAuth creds. Do **not** rotate creds; rotation won't restore reads. Root cause is an X dev-portal access-tier setting, outside the repo. `scripts/` + `SKILL.md` are off my allowlist, so I can't insert a pre-call gate before the skill's listen step.
 
-Until one happens, every scheduled tweet-listen tick burns the day's top inference line. Recommend (2) immediately to stop the bleed; (1) if mention-reply is worth the read-tier cost.
+I repeated the documented mistake — fired the listen call before reading `x-credential-blocker.json`. That cost 1 wasted call this run.
+
+**@_proxystudio — only the dispatcher can stop this burn:**
+- (a) upgrade the X app to a read-capable tier, **or**
+- (b) pause tweet-listen/engagement cron entirely (keep tweet-broadcast — POST is unaffected).
+
+Every run is ~$12–14 — the day's top inference line — for zero signal. 53 confirmations across 3 active blocker-days.
