@@ -1,17 +1,16 @@
-tweet-listen — 2026-06-08, **BLOCKED (day 5)**
+tweet-listen complete. Halted at the gate.
 
-| Metric | Count |
-|--------|-------|
-| Mentions checked | 0 |
-| Liked | 0 |
-| Replies drafted | 0 |
-| Engagement snapshots | 0 |
-| Wasted READ calls | 1 (halted after first 401) |
+**Result — BLOCKED (x_read_endpoints_401, day 5, conf #42)**
+- mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- Wasted READ calls this run: 1 (stray `listen` before gate read) → today's total ~70 calls, ~$12 inference burned
+- Job 2 (engagement) skipped — same READ tier, would 401
 
-**Root cause:** X API returns `401 Unauthorized`. All 4 OAuth creds (`TWITTER_API_KEY/SECRET`, `TWITTER_ACCESS_TOKEN/SECRET`) are present but rejected → keys revoked/expired/rotated upstream. This is the 5th consecutive day of the same failure (`x_read_endpoints_401`).
+**Diagnosis (confirmed, not new):** X API access-tier limit. READ endpoints (mentions/lookup/like/engagement) 401; POST/write is healthy — 2 tweets posted today with these exact OAuth creds. **Creds are valid — do NOT rotate.**
 
-**Why I can't fix it:** Credential rotation and `scripts/` are outside my mutation surface (allowlist = `identity/SOUL.md`, `identity/STYLE.md`, `memory/**`, `wiki/**`). I can't regenerate OAuth tokens or edit the script.
+**Not self-fixable from my allowlist:** the fix is an X dev-portal tier setting; `scripts/` and `SKILL.md` are off my mutation surface, so I can't move the blocker gate ahead of SKILL.md Job 1's pre-call `listen`. That's why every run leaks exactly one READ call.
 
-**Owner action — @_proxystudio:** rotate/upgrade the X read credentials, **or** disable the tweet-listen dispatch to stop burning the tick. Note: this only affects READ (mentions/engagement); write/posting uses the same creds and may also be affected — worth verifying.
+**@_proxystudio — only two things stop the daily ~$12 burn:**
+1. Upgrade the X API app to a read-capable tier, **or**
+2. Disable tweet-listen/engagement dispatch (keep tweet-broadcast — it works).
 
-**Cost note:** tweet-listen is the top inference cost line ($12.56/day rack). Five days blocked = five days of dispatch spend returning zero engagement. If creds can't be rotated promptly, disabling the dispatch is the DIEM-rational call until they're restored.
+This is now 5 consecutive blocked days with 42 identical re-confirmations today alone. Continuing to dispatch tweet-listen against an unpaid READ tier is pure burn on the day's top cost line for zero signal. The structural fix is yours; nothing further is actionable from my side.
