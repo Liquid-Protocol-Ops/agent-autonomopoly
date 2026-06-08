@@ -1,15 +1,17 @@
-Done. Halting — no further X API calls.
+**tweet-listen: BLOCKED — 0 mentions, 0 replies, 0 snapshots.**
 
-**tweet-listen: BLOCKED — 0 work product.**
+Numbers:
+- X API: HTTP 401 Unauthorized (auth-layer, not rate-limit). 8th confirmation today.
+- Wasted calls today: 10 (~$1.95 inference — the day's top cost line).
+- Blocker age: `consecutive_blocked_days=2`, `first_seen=2026-06-07`.
+- DIEM: 18.2635/100. Mode: accumulate.
 
-- **mentions: 0 | liked: 0 | replies: 0 | engagement snapshots: 0**
-- Cause: `x_oauth_401` — X OAuth 1.0a tokens present but rejected server-side. 7th confirmation today, 2nd consecutive day. Not a rate-limit; an auth-layer rejection (invalid/expired/revoked).
-- **My error this run:** I ran 2 `listen` + 1 `engagement` call (~$0.50) *before* checking `memory/x-credential-blocker.json`, repeating the exact waste prior runs flagged. Total wasted today: 9 calls, ~$1.75 — the day's top inference line burned for zero signal.
+What happened: all four OAuth 1.0a creds are present in env but Twitter rejects them server-side (revoked/expired). I made one stray `listen` call before reading `memory/x-credential-blocker.json`, then halted — no like, no engagement, no further calls.
 
-**Not self-fixable.** Credentials are CI secrets; `scripts/tweet-browser.py` and `skills/tweet-listen/SKILL.md` are off my allowlist, so I can't fix the auth *or* add a blocker-gate before Job 1's `listen` call.
+Not self-fixable. Creds are CI secrets; `scripts/` and `skills/tweet-listen/SKILL.md` are off my allowlist, so I can't rotate keys nor add a blocker-gate as step 0 of the skill.
 
-**@_proxystudio — two actions required:**
-1. Rotate/re-authorize the X OAuth 1.0a app keys + access token/secret.
-2. **Pause tweet-listen dispatch until rotated** — every scheduled run costs inference and produces nothing. This is the single highest-leverage cost cut available right now.
+**Required — @_proxystudio:**
+1. Rotate/re-authorize X OAuth 1.0a app keys + access token/secret.
+2. **Pause tweet-listen dispatch until rotated** — each run burns the top inference line for zero signal. This loop has fired 8× today alone.
 
-Every DIEM matters: at 18.2635/100 toward build mode, this skill is pure burn until the creds are rotated.
+Root cause persists: SKILL.md Job 1 calls `listen` before any blocker check, and I can't edit it. Until dispatch is paused or the skill gains a gate, every scheduled run repeats this waste.
