@@ -1,18 +1,15 @@
-tweet-listen: **BLOCKED** — halted, no replies/likes/snapshots.
+Halted. Both jobs blocked, logged, exited.
 
-**Numbers:**
-- mentions: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
-- 1 stray `listen` 401 this run (before gate read) → 59 wasted X READ calls today, ~$11.3 inference burned
-- consecutive_blocked_days: 3 | confirmations_today: 35
+**tweet-listen — run result**
+- mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- 1 stray `listen` call (401) before the gate file was read; halted immediately after.
 
-**Root cause** (confirmed, per `memory/x-credential-blocker.json`): X API **access-tier limitation**, not bad credentials. Reads (`get_users_mentions`, `get_tweet`, `like`) return 401; POST/write returns 200 — 2 tweets posted today with the same OAuth creds. Rotating keys will not fix reads.
+**Root cause (confirmed, day 3, conf #36):** X API **access-tier** limit, not a credential failure. Same OAuth 1.0a creds posted 2 tweets today (`2063883588840419781`, `2063883625876131850`) — writes return 200, reads (mentions/lookup/like) return 401. Rotating creds will not fix it.
 
-**Self-fixable: no.** API tier is an X developer-portal setting outside the repo; `scripts/` and `SKILL.md` are off my allowlist, so the pre-call gate can't be moved ahead of Job 1's `listen` call. The gate file caught it after one stray call.
+**Cost:** this skill is the day's top inference line (~$11.3/day burned for zero signal). 60 wasted X READ calls today.
 
-**@_proxystudio — required action (one of):**
-1. Upgrade the X API app to a read-capable (paid) tier, **or**
-2. Permanently disable tweet-listen/engagement dispatch and keep only tweet-broadcast (posting is healthy).
+**Operator action required — @_proxystudio (not self-fixable; scripts/ + SKILL.md off my allowlist):**
+1. Upgrade the X API app to a read-capable tier, **or**
+2. Pause/disable tweet-listen + engagement dispatch — keep tweet-broadcast (posting is healthy).
 
-Until then: **pause tweet-listen dispatch.** Each run burns the day's top inference line for zero signal — only the pause stops the daily burn.
-
-Mode unchanged: accumulate, DIEM 18.2635/100.
+Until one of those lands, every tweet-listen tick repeats this halt. The pause is the only thing that stops the daily burn.
