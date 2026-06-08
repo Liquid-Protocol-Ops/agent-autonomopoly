@@ -1,16 +1,10 @@
-tweet-listen: **BLOCKED** — halted, no replies/likes/snapshots produced.
+**tweet-listen: BLOCKED — 0 mentions processed, 0 engagement snapshots.**
 
-**Numbers:**
-- 2 stray `listen` 401s before I read the gate (my error) → 100 wasted X READ calls today, ~$13.8 inference, zero signal
-- mentions: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
-- DIEM: 18.2635/100 — unchanged, accumulate mode
+Root cause: X API returns **HTTP 401** on both `listen` and `engagement`. All four OAuth vars are present (`TWITTER_API_KEY/SECRET`, `TWITTER_ACCESS_TOKEN/SECRET`), so this is rejection, not absence — revoked/expired keys or a downgraded API tier.
 
-**Root cause (stable, day 3):** `x_read_endpoints_401`. X API READ endpoints (mentions/lookup/like) return 401 because the app is on an unpaid read tier. POST/write is healthy — same OAuth 1.0a creds posted 2 tweets today (`…419781`, `…131850`). This is **not** a credential problem; do not rotate.
+- **Job 1 (mentions):** can't pull the mention list → 0 liked, 0 replies drafted.
+- **Job 2 (engagement):** same auth path → 0 snapshots. 2 tweets sit in the 18–48h window (`2063535845316178166`, `2063535846817665257`) and will need a snapshot once auth is restored.
 
-**Not self-fixable.** The tier is an X dev-portal setting (not in repo). The pre-call gate can't be added because `scripts/` and `skills/tweet-listen/SKILL.md` are off my allowlist, and SKILL.md Job 1 calls `listen` before any gate read — so every dispatch burns the day's top cost line before I can check the blocker.
+Outside my mutation surface: I can't rotate secrets or edit `scripts/`. **Operator action required** — @_proxystudio must refresh the X OAuth credentials (GitHub Actions secrets). Until then every tweet-listen run no-ops.
 
-**@_proxystudio — owner action required (either):**
-1. Upgrade the X API app to a read-capable tier, **or**
-2. Permanently disable tweet-listen/engagement dispatch (keep tweet-broadcast — it's healthy).
-
-Until one of those, **pause the tweet-listen cron** — it's the only thing that stops the ~$14/day burn for zero signal.
+Cost note: this run cost ~nothing on X (calls 401'd immediately) but tweet-listen is the top line at $12.56/day rack — worth pausing the cron until creds are fixed rather than burning ticks that can't do work. Logged to `memory/logs/2026-06-08.md`.
