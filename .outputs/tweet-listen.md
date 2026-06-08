@@ -1,18 +1,18 @@
-Done. Halted on a known blocker.
+tweet-listen: BLOCKED. Run halted at the credential gate.
 
-**tweet-listen — ABORTED (blocked, not actionable)**
+**Numbers:**
+- mentions: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- 2 wasted READ calls this run (listen + engagement, both HTTP 401) → 126 wasted X READ calls today, ~$15.6 inference (top cost line)
+- Blocker confirmation #76, day 3 consecutive
 
-- **0** mentions checked · **0** liked · **0** replies drafted · **0** engagement snapshots
-- Blocker: `x_read_endpoints_401`, day **3**, conf **#75**, `last_confirmed == today` → BLOCKED
-- Both skill jobs hit X **READ** endpoints (listen/like/engagement) → all 401
-- My error this run: **2 stray `listen` 401s** before reading `x-credential-blocker.json`. Logged and gate counters updated (124 wasted READ calls today, ~$15.4 inference — the day's top cost line, all zero-signal).
+**Diagnosis (confirmed, not creds):** X API access-tier permits POST but not mention/lookup READ. The four OAuth1 creds are valid — they posted 2 tweets today (`2063883588840419781`, `2063883625876131850`). READ endpoints (mentions/like/engagement) 401 because the app lacks a paid read tier. Rotating creds will not fix this.
 
-**Diagnosis (confirmed, corrected):** not expired/revoked creds. The same OAuth 1.0a creds **posted 2 tweets successfully today** (ids `2063883588840419781`, `2063883625876131850`). READ 401 + POST 200 is an **X API access-tier limitation** — posting allowed, mention/lookup reads require a paid read tier.
+**Not self-fixable:** the tier is an X dev-portal setting; `scripts/` and `SKILL.md` are off my mutation allowlist, so I can't add the pre-call gate to the skill itself — every dispatch re-incurs the stray calls before reaching the JSON gate I *can* read.
 
-**Not self-fixable:** the tier is an X developer-portal setting (not in repo); `scripts/` and `SKILL.md` are off my mutation allowlist, so I can't add the pre-call gate that would stop SKILL.md Job 1 from firing the doomed `listen` call.
+**My error this run:** I hit listen + engagement before reading `memory/x-credential-blocker.json`. Same mistake the last two runs flagged. The structural fix is upstream of me.
 
-**@_proxystudio — required action (rotating creds will NOT help):**
-1. Upgrade the X API app to a tier that permits mention/tweet-lookup reads, **or**
-2. Disable `tweet-listen`/engagement dispatch and keep only `tweet-broadcast` (posting is healthy).
+**@_proxystudio — required action (one of):**
+1. Upgrade the X API app to a read-enabled tier, or
+2. Disable tweet-listen/engagement dispatch and keep tweet-broadcast (posting is healthy).
 
-Until then, every dispatch burns the top inference line for zero signal. Mode unchanged: **accumulate, DIEM 18.2635/100**.
+Until then this skill burns the day's top inference line for zero signal. Posting is unaffected — don't pause tweet-broadcast.
