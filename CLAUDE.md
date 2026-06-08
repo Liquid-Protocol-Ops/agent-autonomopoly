@@ -132,6 +132,9 @@ The three load-bearing conclusions — read `ARCHITECTURE_v2.md` for the full ra
 
 ## Live AUTONO runtime (as of 2026-06-08)
 
+**MODE: BUILD** — activated 2026-06-08. First directive: improve autono itself.
+LP income continues compounding in parallel. `self-improve` runs daily at 10:00 UTC.
+
 AUTONO (@AUTONOMOPOLY) is live on X and posting from Base mainnet. Key facts:
 
 ### X API
@@ -151,9 +154,10 @@ X is observation/broadcast only. **No X event may ever trigger fund transfers, w
 4. tweet-reflect (weekly, Sunday 09:00 UTC via GHA schedule) → reweights `memory/x-strategy.md`, nominates promoted candidates to `memory/x-promoted-candidates.jsonl`
 5. tick reads weights from `memory/x-strategy.md` → selects outward signal content type probabilistically
 
-### Weekly scheduled skills (aeon.yml `on.schedule`)
+### Scheduled skills (aeon.yml `on.schedule`)
 - `0 9 * * 1` (Monday) → `cost-report`: aggregates `memory/token-usage.csv` → updates `memory/inference-cost.md`
 - `0 9 * * 0` (Sunday) → `tweet-reflect`: engagement reweight + account pruning + candidate nomination
+- `0 10 * * *` (daily) → `self-improve`: only fires when `mode == "build"` — reads skill-health + tweet performance, implements one high-impact change, commits to repo
 
 ### LP positions
 - Agent wallet: `0x8767Df39eCeeaeB11554642237aC4E08660aB6A3`
@@ -163,7 +167,7 @@ X is observation/broadcast only. **No X event may ever trigger fund transfers, w
 - Note: `weth` in `memory/on-chain-state.json` → `diem-claims` section is **liquid WETH only**, not LP-locked WETH
 
 ### Skills in production
-`tick`, `tweet-broadcast`, `tweet-listen`, `tweet-reflect`, `cost-report`, `tweet-promote`
+`tick`, `tweet-broadcast`, `tweet-listen`, `tweet-reflect`, `cost-report`, `tweet-promote`, `self-improve` (build mode — daily)
 
 ## Active plans
 

@@ -52,6 +52,7 @@ on:
   schedule:
     - cron: '0 9 * * 1'  # Monday 09:00 UTC — cost-report
     - cron: '0 9 * * 0'  # Sunday 09:00 UTC — tweet-reflect
+    - cron: '0 10 * * *' # Daily 10:00 UTC — self-improve (build mode)
   issues:
     types: [labeled]
 
@@ -88,11 +89,20 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "${{ github.event_name }}" = "workflow_call" ]; then
             echo "name=${{ inputs.skill }}" >> "$GITHUB_OUTPUT"
           elif [ "${{ github.event_name }}" = "schedule" ]; then
-            DOW=$(date +%u)  # 1=Mon … 7=Sun
-            case $DOW in
-              1) echo "name=cost-report" >> "$GITHUB_OUTPUT" ;;
-              7) echo "name=tweet-reflect" >> "$GITHUB_OUTPUT" ;;
-            esac
+            DOW=$(date +%u)   # 1=Mon … 7=Sun
+            HOUR=$(date +%H)  # 00–23 UTC
+            if [ "$HOUR" = "10" ]; then
+              # Daily 10:00 UTC — self-improve (build mode)
+              AGENT_MODE=$(jq -r '.mode // "accumulate"' memory/goals.json 2>/dev/null || echo "accumulate")
+              if [ "$AGENT_MODE" = "build" ]; then
+                echo "name=self-improve" >> "$GITHUB_OUTPUT"
+              fi
+            elif [ "$HOUR" = "09" ]; then
+              case $DOW in
+                1) echo "name=cost-report" >> "$GITHUB_OUTPUT" ;;
+                7) echo "name=tweet-reflect" >> "$GITHUB_OUTPUT" ;;
+              esac
+            fi
           elif [ "${{ github.event_name }}" = "issues" ]; then
             echo "name=feature" >> "$GITHUB_OUTPUT"
           fi

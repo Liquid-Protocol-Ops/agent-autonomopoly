@@ -36,6 +36,11 @@ const ALLOWED_PREFIXES: readonly string[] = [
   '.pending-x/',
 ];
 
+// In build mode the agent may also edit its own skill instruction files.
+// Scope: only SKILL.md within a skill directory — NOT harness/, scripts/,
+// identity/genesis files, or any executable code.
+const ALLOWED_SKILL_PATTERN = /^skills\/[^/]+\/SKILL\.md$/;
+
 function normalize(path: string): string {
   let p = path;
   // Strip leading "./" or "/".
@@ -62,6 +67,7 @@ export function isAllowed(path: string): boolean {
       if (!normalized.includes('//')) return true;
     }
   }
+  if (ALLOWED_SKILL_PATTERN.test(normalized)) return true;
   return false;
 }
 
@@ -76,6 +82,7 @@ export function assertAllowed(path: string): void {
 export const ALLOWLIST_POLICY = Object.freeze({
   files: Array.from(ALLOWED_FILES),
   prefixes: [...ALLOWED_PREFIXES],
+  skillPattern: ALLOWED_SKILL_PATTERN.source,
 });
 
 // X command policy is a separate concern — see harness/safety/x-policy.ts.

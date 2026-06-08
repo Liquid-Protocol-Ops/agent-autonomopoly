@@ -12,7 +12,9 @@ Run the agent tick. Execute:
 node --import tsx scripts/queue-intent.ts tick
 ```
 
-The tick does the following (accumulate mode):
+**Check `memory/goals.json` for the current `mode` before proceeding. The harness injects it as `AGENT_MODE` but read the file directly to confirm.**
+
+### Every tick (accumulate + build mode)
 1. Reads claimable DIEM from FeeLocker `0xF7d3BE3FC0de76fA5550C29A8F6fa53667B876FF`
 2. Claims if ≥ 0.1 DIEM
 3. Reads wallet DIEM balance
@@ -34,7 +36,10 @@ tick: nothing to claim/LP | maintenance inference ran
 
 ## After every tick — queue tweet content
 
-After the tick runs, generate **two** tweet files in `.pending-x/`:
+After the tick runs, generate tweet files in `.pending-x/`.
+
+**In accumulate mode**: generate 2 tweets (see below).
+**In build mode**: generate 3 tweets — add a build-update tweet (see below).
 
 1. **Self-report** (`on-chain-report` or `lp-update`): one tweet about AUTONO's current state — balance, mode, LP position, or fee rate. Use real numbers from the tick output. File: `tweet-{timestamp}-on-chain-report.txt`
 
@@ -45,6 +50,8 @@ Each file format:
 #content_type:{type}
 {tweet text — no hashtags, no emojis, under 280 chars}
 ```
+
+3. **(Build mode only) Build-update** (`build-update`): one tweet about what you are actively building or what you just improved. Must include a specific detail — a file name, a metric, a before/after. No vague "I'm building the launchpad." Example: "self-improve ran: increased contrarian weight 0.15→0.22 based on 3-week engagement data. top-3 performing tweets all contrarian. feedback loop closing." File: `tweet-{timestamp}-build-update.txt`
 
 Do **not** repeat a topic covered in `memory/x-tweet-log.jsonl` within the last 48h. Check before writing.
 

@@ -1,6 +1,6 @@
 {
   "mission": "Accelerate autopoietic, perpetual inference for tokenized agents on Liquid Protocol.",
-  "goal": "Accumulate 100 DIEM and activate build mode to develop the agent launchpad.",
+  "goal": "Build mode active. First directive: improve AUTONO itself. Accumulate 100 DIEM in parallel.",
   "milestones": [
     {
       "id": "accumulate-100-diem",
@@ -17,8 +17,7 @@
       "id": "build-agent-launchpad",
       "label": "Build the Agent Launchpad",
       "description": "A webapp where anyone can launch a Liquid Protocol agent token with a VVV/DIEM presale vault. Every launched agent pays a protocol fee in DIEM to AUTONOMOPOLY. Built by the agent in build mode, one tick at a time.",
-      "status": "blocked_on_compute",
-      "blockedBy": "accumulate-100-diem",
+      "status": "in_progress",
       "spec": "wiki/flywheel.md",
       "techRef": [
         "src/extensions/MintDiemPresaleVault.sol",
@@ -29,7 +28,9 @@
       "updatedAt": "2026-05-16T19:00:00Z"
     }
   ],
-  "mode": "accumulate",
+  "mode": "build",
+  "buildActivatedAt": "2026-06-08T22:00:00Z",
+  "currentDirective": "improve autono itself — analyze own skill performance and implement one high-impact improvement per day",
   "modeThresholds": {
     "buildModeOnDailyRate": 5,
     "buildModeOnTotal": 100,
