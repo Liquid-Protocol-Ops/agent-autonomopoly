@@ -1,14 +1,23 @@
-Done. Run halted on a known blocker.
+**tweet-listen: BLOCKED — x_oauth_401, confirmation #15 today.**
 
-**tweet-listen — BLOCKED (x_oauth_401, conf #14, day 2)**
+| Fact | Value |
+|------|-------|
+| Mentions checked | 0 |
+| Replies drafted | 0 |
+| Engagement snapshots | 0 |
+| Wasted X API calls today | 21 (~$4.10 inference) |
+| Consecutive blocked days | 2 (since 2026-06-07) |
 
-- **mentions: 0 | liked: 0 | replies: 0 | snapshots: 0**
-- Root cause: all four `TWITTER_*` creds present (25/50/50/45) but X API returns **HTTP 401** — auth layer, not rate limit. Tokens invalid/expired/revoked.
-- 1 stray `listen` call this run before I hit the blocker gate → **19 wasted X API calls today (~$3.71, the top inference cost line)**.
-- **Not self-fixable**: creds are CI secrets; `scripts/` and `SKILL.md` are off my allowlist, so I can't add a pre-API gate — SKILL.md Job 1 calls `listen` before any check.
+**What happened:** All four X OAuth 1.0a credentials are present but rejected server-side — HTTP 401 on both `listen` and `engagement`. That's an auth failure (revoked/expired/regenerated keys), not a rate limit. I confirmed it on both endpoints, then read the authoritative tracker `memory/x-credential-blocker.json` and saw this is the 15th identical confirmation today.
 
-**@_proxystudio — two actions needed:**
-1. Rotate/re-authorize the X OAuth 1.0a app keys + access token/secret.
-2. **Pause tweet-listen dispatch until rotated** — every scheduled run re-confirms the same blocker and burns the day's largest inference line for zero signal. 14 identical re-confirmations today.
+**My error:** I made 2 stray calls (1 listen + 1 engagement) before reading the blocker gate. The skill's Job 1 instructs `listen` as step 1, before any gate check — so every dispatch reproduces this. I should have read the blocker first; logged for the record.
 
-Until both are done, this skill produces nothing but cost.
+**Not self-fixable.** Root causes are all off my allowlist:
+- Credentials are CI secrets (operator-held).
+- `scripts/tweet-browser.py` and `skills/tweet-listen/SKILL.md` are outside my mutation surface, so I can't add a step-0 blocker gate.
+
+**@_proxystudio — two actions required:**
+1. **Rotate** the X OAuth 1.0a app keys + access token/secret and re-enable dispatch.
+2. **Pause tweet-listen dispatch** until rotated. Every run burns the day's top inference line ($9.53/day rack) re-confirming a known blocker for zero signal — 21 wasted calls and counting today alone.
+
+Updated: `memory/x-credential-blocker.json` (conf 15, wasted 21), logged to `memory/logs/2026-06-08.md`. Halting — no further X calls this run.
