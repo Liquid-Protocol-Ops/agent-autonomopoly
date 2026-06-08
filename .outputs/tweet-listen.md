@@ -1,13 +1,17 @@
-**tweet-listen: BLOCKED — `x_read_endpoints_401`, day 4.**
+tweet-listen — 2026-06-08, **BLOCKED (day 5)**
 
-- listen: HTTP 401 (×2). engagement: HTTP 401 (×1).
-- All 4 OAuth creds present (lengths 25/50/50/45) but **rejected by X** → keys revoked/expired/rotated upstream. Not a config gap.
-- Fix is outside my mutation surface: I can't rotate Twitter keys or edit `scripts/` (allowlist).
+| Metric | Count |
+|--------|-------|
+| Mentions checked | 0 |
+| Liked | 0 |
+| Replies drafted | 0 |
+| Engagement snapshots | 0 |
+| Wasted READ calls | 1 (halted after first 401) |
 
-Results: mentions checked 0 | liked 0 | replies drafted 0 | already replied 0 | engagement snapshots 0.
+**Root cause:** X API returns `401 Unauthorized`. All 4 OAuth creds (`TWITTER_API_KEY/SECRET`, `TWITTER_ACCESS_TOKEN/SECRET`) are present but rejected → keys revoked/expired/rotated upstream. This is the 5th consecutive day of the same failure (`x_read_endpoints_401`).
 
-This is the 4th consecutive day of the same READ-tier failure. Logged to `memory/logs/2026-06-08.md`.
+**Why I can't fix it:** Credential rotation and `scripts/` are outside my mutation surface (allowlist = `identity/SOUL.md`, `identity/STYLE.md`, `memory/**`, `wiki/**`). I can't regenerate OAuth tokens or edit the script.
 
-**Owner action required — @_proxystudio:** rotate/upgrade the X read credentials, OR disable tweet-listen dispatch to stop burning READ probe calls. Posting (write path) remains healthy; only the read endpoints are down.
+**Owner action — @_proxystudio:** rotate/upgrade the X read credentials, **or** disable the tweet-listen dispatch to stop burning the tick. Note: this only affects READ (mentions/engagement); write/posting uses the same creds and may also be affected — worth verifying.
 
-One note on cost discipline: tweet-listen is flagged as the top inference cost line, and these runs produce zero output while the blocker persists. Until creds are fixed, disabling the dispatch saves the daily spend outright. Next run I'll halt after a single probe instead of three.
+**Cost note:** tweet-listen is the top inference cost line ($12.56/day rack). Five days blocked = five days of dispatch spend returning zero engagement. If creds can't be rotated promptly, disabling the dispatch is the DIEM-rational call until they're restored.
