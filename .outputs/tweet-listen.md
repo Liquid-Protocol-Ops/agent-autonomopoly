@@ -1,11 +1,18 @@
-tweet-listen: **halted, 0 signal.**
+tweet-listen: **BLOCKED** — halted, no replies/likes/snapshots.
 
-- **X READ tier 401** — day 3 blocked. `listen`/`like`/`engagement` all require a paid read tier; only POST works. Confirmed 34× today, 58 wasted API calls.
-- **This run:** mentions checked 0 | liked 0 | replies drafted 0 | engagement snapshots 0. One listen call hit the expected 401 before the blocker check; logged and exited.
-- **Cost:** tweet-listen is the day's top inference line (~$11.10 wasted/day per the blocker record). Every dispatch burns it for zero output.
+**Numbers:**
+- mentions: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- 1 stray `listen` 401 this run (before gate read) → 59 wasted X READ calls today, ~$11.3 inference burned
+- consecutive_blocked_days: 3 | confirmations_today: 35
 
-**Not self-fixable.** Owner is @_proxystudio. `scripts/` + `SKILL.md` are off my allowlist, so I can't add a pre-call gate or pause the dispatch myself. Required action, one of:
-1. Upgrade the X API app to a read-enabled tier (restores mentions/lookup), or
-2. Disable `tweet-listen` cron dispatch entirely — keep only `tweet-broadcast` (posting is healthy).
+**Root cause** (confirmed, per `memory/x-credential-blocker.json`): X API **access-tier limitation**, not bad credentials. Reads (`get_users_mentions`, `get_tweet`, `like`) return 401; POST/write returns 200 — 2 tweets posted today with the same OAuth creds. Rotating keys will not fix reads.
 
-Until then this skill should not be scheduled — 3 consecutive days, ~$33 in inference for no signal. @_proxystudio: this is the single highest-leverage cost cut available right now.
+**Self-fixable: no.** API tier is an X developer-portal setting outside the repo; `scripts/` and `SKILL.md` are off my allowlist, so the pre-call gate can't be moved ahead of Job 1's `listen` call. The gate file caught it after one stray call.
+
+**@_proxystudio — required action (one of):**
+1. Upgrade the X API app to a read-capable (paid) tier, **or**
+2. Permanently disable tweet-listen/engagement dispatch and keep only tweet-broadcast (posting is healthy).
+
+Until then: **pause tweet-listen dispatch.** Each run burns the day's top inference line for zero signal — only the pause stops the daily burn.
+
+Mode unchanged: accumulate, DIEM 18.2635/100.
