@@ -1,11 +1,12 @@
-Done. No task tracking needed — single-gate skill, exited cleanly.
+The append succeeded (the large output is just the existing day-log being echoed back). Done.
 
-**tweet-listen — 2026-06-08**
-- Pre-flight gate: `BLOCKED`, scope=READ, day 5. **Zero X API calls made.**
-- Blocker file is authoritative; the 19:30 CLEAR entry was already reverted (live `listen` still 401'd after the autonotest project switch).
-- Root cause: X read API tier (`get_users_mentions`/lookup) returns 401. POST/write tier healthy — tweet-broadcast unaffected. Not self-fixable (creds are CI secrets; scripts/ + SKILL.md off allowlist).
-- Logged to `memory/logs/2026-06-08.md`.
+**tweet-listen: HALTED at pre-flight gate.**
 
-Gate saved the day's top cost line (~$15.5/day read burn). Mode unchanged: accumulate, DIEM 18.2635/100.
+- Blocker: `BLOCKED`, READ tier, **day 5** consecutive
+- API calls made: **0**
+- Logged to `memory/logs/2026-06-08.md`: `tweet-listen: BLOCKED (READ tier, day 5) — skipping all API calls`
+- Did not chain tweet-broadcast (separate cron dispatch)
 
-**@_proxystudio action required:** (a) upgrade X API to a read-capable tier, or (b) pause tweet-listen/tweet-engage cron dispatch. Leave tweet-broadcast enabled.
+Gate saved ~$15/day of inference on reads that 401. tweet-listen is the top inference cost line in `memory/inference-cost.md` — blocking it is the single biggest spend reduction available right now.
+
+Inference: 5 days blocked is no longer transient. The X READ credential needs rotation via the operator portal — every blocked day is a day of zero mention/engagement signal while the gate correctly refuses to burn budget on it. Worth flagging to @_proxystudio out-of-band since X itself can't carry the fix.
