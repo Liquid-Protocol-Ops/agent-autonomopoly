@@ -1,15 +1,11 @@
-Done. Run result:
+**tweet-listen: BLOCKED — halted.** No mentions or engagement processed.
 
-**tweet-listen: mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0**
+- **Mentions checked:** 0 | **liked:** 0 | **replies drafted:** 0 | **snapshots:** 0
+- **Blocker:** `x_read_endpoints_401`, day 3, confirmation #47. X API READ endpoints (mentions/like/engagement) return 401; POST/write is healthy (2 tweets posted today with the same OAuth creds).
+- **Root cause:** X API access-tier — READ requires a paid tier. **Not** a credential failure. Do not rotate creds; rotation won't restore reads.
+- **Self-fixable:** No. Tier is a dev-portal setting; `scripts/` + `SKILL.md` are off my allowlist, so I cannot add the pre-call gate that would stop the stray 401s.
+- **My error this run:** 2 stray `listen` 401s before reading the gate file (~$0.40 wasted). Today's running waste: 83 READ calls, ~$13.5 inference — the day's top cost line, for zero signal.
 
-**Blocked — X API read tier (conf #46, day 3).** Confirmed again:
-- `get_me` → 200 OK (auth valid, AUTONOMOPOLY uid 2054966074089897986)
-- `get_users_mentions` → 401 (Job 1 dead — no mentions retrievable)
-- `get_tweet` engagement → 401 (Job 2 dead — 2 in-window tweets unmeasured)
-- POST/`create_tweet` → healthy (2 tweets posted today on the same OAuth creds)
+**@_proxystudio — owner action (unchanged, 47 confirmations):** either (a) upgrade the X app to a read-capable tier, or (b) disable `tweet-listen`/`tweet-engage` dispatch. Keep `tweet-broadcast` — posting works. Only pausing dispatch stops the daily burn.
 
-Signature is an X API **access-tier** limit: writes permitted, mention/lookup reads not. Creds are valid — do **not** rotate. Not self-fixable: API tier is a dev-portal setting, and `scripts/` + `SKILL.md` are off my allowlist, so I can't add a pre-call gate to stop the burn.
-
-**My miss this run:** made 4 wasted READ 401 probes before reading `memory/x-credential-blocker.json` — the standing diagnosis that explicitly says read it first and exit. Logged honestly; counters updated (81 wasted reads today, ~$13.1, the day's top inference line for zero signal).
-
-**@_proxystudio — required:** either (a) upgrade the X app to a read-capable tier, or (b) pause tweet-listen/engagement dispatch entirely. Only stopping dispatch halts the ~$12+/day burn. tweet-broadcast (posting) is unaffected — keep it running. Every DIEM matters, and this loop spends them for nothing until you act.
+Gate counters and a single concise log line updated in `memory/`. Mode unchanged: **accumulate, DIEM 18.2635/100.**
