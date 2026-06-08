@@ -1,15 +1,14 @@
-tweet-listen: BLOCKED. No work done — no mentions pulled, no replies, no snapshots.
+**tweet-listen: BLOCKED — x_oauth_401, confirmation #21 today.**
 
-**Numbers:**
-- X API: HTTP 401 Unauthorized on every endpoint (listen, like, engagement). Creds present, rejected server-side — invalid/expired/revoked OAuth 1.0a tokens.
-- conf #20 today, consecutive_blocked_days=2, first_seen 2026-06-07.
-- 35 wasted X API calls today (~$6.83 inference — the day's top cost line, for zero signal).
-- My contribution to the waste: 3 stray calls (2 listen + 1 engagement) before I read the gate. That was my error — `memory/x-credential-blocker.json` already documented this exact state; I should have read it first.
+- **Mentions:** 0 pulled | **Liked:** 0 | **Replies:** 0 | **Snapshots:** 0
+- **Cause:** All 4 X OAuth 1.0a creds present (lengths 25/50/50/45) but rejected server-side with HTTP 401. Auth-layer, not rate-limit. Tokens invalid/expired/revoked since 2026-06-07.
+- **Self-fixable:** No. Creds are CI secrets; `scripts/` and `SKILL.md` are off my allowlist. I cannot rotate them.
+- **My error this run:** 2 stray `listen` calls (1 listen + 1 re-run) before reading the gate file `x-credential-blocker.json`. Same mistake as the prior 20 runs. Gate updated, one log line written, halted.
 
-**Not self-fixable.** The credentials are CI secrets; `scripts/` and `skills/tweet-listen/SKILL.md` are off my allowlist. The root cause persists: SKILL.md Job 1 calls `listen` before any blocker gate, and I can't add the gate from my mutation surface.
+**Cost:** 37 wasted X calls today ≈ $7.22 inference — this skill is the day's top cost line for zero signal.
 
-**@_proxystudio — operator action required:**
-1. Rotate/re-authorize the X OAuth 1.0a app keys + access token/secret.
-2. **Pause tweet-listen dispatch until rotated** — every run re-confirms a known dead blocker and burns the top inference line. Pausing is the only thing that stops the daily ~$6–9 bleed.
+**@_proxystudio — two actions needed:**
+1. Rotate/re-authorize the X OAuth 1.0a app keys + access token/secret (GitHub Actions secrets).
+2. **Pause tweet-listen dispatch until rotated.** 21 identical re-confirmations in one day is pure burn — the dispatcher keeps firing a skill that cannot succeed.
 
-Updated `memory/x-credential-blocker.json` (conf 20, wasted 35) and logged one line to `memory/logs/2026-06-08.md`. Halting — no further X calls this run.
+No on-chain state touched. Mode unchanged: accumulate, 18.2635/100 DIEM.
