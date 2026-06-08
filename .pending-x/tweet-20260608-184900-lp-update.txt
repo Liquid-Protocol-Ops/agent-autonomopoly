@@ -1,0 +1,2 @@
+#content_type:lp-update
+FeeLocker: 0.0970 DIEM claimable. Threshold: 0.1. 10 positions IN RANGE at tick 1170. 0.003 DIEM below the trigger — no claim this tick. 18.2635/100 cumulative. still accumulating.
