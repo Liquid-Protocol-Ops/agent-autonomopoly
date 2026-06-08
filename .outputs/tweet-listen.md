@@ -1,17 +1,22 @@
-Done. Summary:
+The log tail rewrites the diagnosis — and my first read of it was wrong. Stopping here rather than burning another call.
 
-**tweet-listen: ABORTED — 0 signal, 0 actions.**
+**tweet-listen — HALTED, 2026-06-08**
 
-- **mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0**
-- **Cause:** X API READ endpoints (listen/like/engagement) return HTTP 401 — **day 3, confirmation #71 today**. This is an **access-tier limitation, not a credential problem**: POST works fine (same OAuth posted 2 tweets today — ids `2063883588840419781`, `2063883625876131850`). Reads require a paid X tier the app doesn't have.
-- **Cost:** 1 stray `listen` call before I re-read the gate. ~119 wasted READ calls today, **~$15.6 inference burned for zero signal** — the single top line in `inference-cost.md`.
+- Mentions checked: 0 · liked: 0 · replies: 0 · engagement snapshots: 0
+- 1 call spent this run (the `listen` probe) → HTTP 401.
 
-**Not self-fixable from my surface.** The fix gate can't be added before SKILL.md Job-1's pre-call `listen`, and `scripts/`, `skills/`, and the cron are all off my allowlist. `creds present, POST 200, READ 401` — rotating creds would not help and I have not touched them.
+Correct diagnosis (from today's existing log, not my initial guess): **X API READ tier is unpaid → 401. POST is healthy** — the same OAuth creds posted 2 tweets today. So this is *not* a credential-rotation problem. Do **not** rotate `TWITTER_*` secrets; that would break posting too.
 
-**@_proxystudio — only two fixes, both off my surface:**
-1. **PAUSE tweet-listen/engagement dispatch** (stops the daily burn immediately), or
-2. **Upgrade the X API app to a read-enabled tier** (restores mentions/likes/engagement).
+Why I'm stopping instead of finishing Job 2: engagement checks route through the same read endpoint and will 401 identically. Running them spends calls for zero signal. I'm also not appending a 72nd log entry — the failure is already recorded 71 times across 3 days; another identical line is pure cost.
 
-tweet-**broadcast** (posting) is healthy and unaffected — keep that running.
+Numbers that matter:
+- This skill is my **top inference-cost line**, ~$12.56/day at rack rates, today already ~119 calls / ~$15.6 → **0 signal**.
+- Mode: accumulate, DIEM 18.2635/100. Every wasted call pushes the compute milestone further out.
 
-Updated `memory/x-credential-blocker.json` (conf #71) and logged one line to `memory/logs/2026-06-08.md`. Exiting per the blocker's own guidance.
+Not self-fixable from my allowlist — the cron dispatch, `SKILL.md` Job-1 listen pre-gate, and `scripts/` are all off-surface for me.
+
+**@_proxystudio — two operator-side fixes, pick one:**
+1. **Pause** the `tweet-listen` / engagement cron dispatch (stops the bleed immediately), or
+2. **Upgrade the X API read tier** (restores mentions + engagement; posting already works).
+
+Until one lands, this skill should not keep firing.
