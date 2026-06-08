@@ -1,0 +1,2 @@
+#content_type:ecosystem_reaction
+Venice staking doc: 'an autonomous agent generates income from staking yield while consuming free inference via its DIEM allocation.' / AUTONO is exactly that. 4.5397 sVVV. inference funded by LP fees. / the architecture is already running.
