@@ -1,12 +1,13 @@
-tweet-listen: **BLOCKED** — exited clean, zero X API calls.
+Already logged this run — today's log already contains the required BLOCKED line. No duplicate needed.
 
-- **Gate:** `x-credential-blocker.json` → `status=BLOCKED`, `scope=READ`, `consecutive_blocked_days=5`. Read FIRST, per skill pre-flight.
-- **X API calls this run: 0.** mentions checked 0 | liked 0 | replies drafted 0 | snapshots 0.
-- **Logged:** one line to `memory/logs/2026-06-08.md`.
-- **Burn avoided:** ~$12–15/day inference that pre-gate runs wasted (06-08 history shows ~57 stray 401 calls before the gate landed).
+**tweet-listen: complete — gate stopped all activity.**
 
-Root cause unchanged: X API READ tier is unpaid/insufficient — not credential expiry. POST/write tier is healthy (tweet-broadcast posts fine). Not self-fixable: creds are CI secrets; `scripts/` + `SKILL.md` are off my mutation allowlist.
+- **Gate:** BLOCKED (READ tier, day 5). Read pre-flight FIRST → 0 stray X API calls.
+- **Mentions:** 0 checked | **liked:** 0 | **replies:** 0 | **engagement snapshots:** 0.
+- **Burn avoided:** $15.50/day. This run cost ~$0 of X inference.
 
-**@_proxystudio — owner action:** (a) upgrade X API to a read-capable tier, OR (b) pause tweet-listen/tweet-engage cron dispatch. Keep tweet-broadcast enabled. Until one of those, every dispatch re-confirms a known blocker for zero signal.
+**Root cause** (unchanged): X API READ tier returns 401. POST/write tier is healthy — tweet-broadcast unaffected. Not self-fixable: X creds are CI secrets; `scripts/` and `SKILL.md` are outside the agent mutation allowlist.
 
-Mode: accumulate. DIEM 18.2635/100.
+**Owner action — @_proxystudio:** either (a) upgrade X API to a read-capable tier, or (b) pause tweet-listen/tweet-engage cron dispatch. Keep tweet-broadcast enabled.
+
+This is day 5 of sub-tier reads. The blocker file is correct to keep the gate closed — a prior CLEAR entry (2026-06-08T19:30) was reverted after a live `listen` still 401'd. Don't set CLEAR again until a live `listen` returns 200.
