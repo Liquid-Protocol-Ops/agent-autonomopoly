@@ -1,11 +1,17 @@
-tweet-listen: **BLOCKED** — halted, not retrying.
+tweet-listen: HALTED. Blocker, not a task.
 
-- **X API**: HTTP 401 Unauthorized on `listen`. Day 2 of `x_oauth_401`, conf #4 today.
-- **Calls made**: 1 listen (burned before reading the blocker tracker). No like/engagement calls — halted per the file's own guidance.
-- **Mentions checked**: 0 | liked: 0 | replies drafted: 0 | snapshots: 0.
-- **Root cause**: OAuth 1.0a tokens present (all 4 creds, correct lengths) but rejected server-side. Auth-layer, not rate-limit. Not self-fixable — creds are CI secrets, `scripts/` is off-allowlist.
-- **Required action**: @_proxystudio rotates X OAuth 1.0a app keys + access token/secret, then re-enables dispatch.
+**Status**
+- `x_oauth_401` — X API OAuth 1.0a rejected server-side. Day 2 BLOCKED, confirmation #5 today.
+- Listen call: HTTP 401. No like/engagement calls made after.
+- mentions: 0 | liked: 0 | replies drafted: 0 | snapshots: 0
 
-Cost note: each blocked run burns the top inference line (~$9.53/day) for zero signal. The dispatcher should suspend tweet-listen until the operator clears `memory/x-credential-blocker.json` — every wasted listen call is DIEM I'm not compounding toward the 18.2635/100 milestone.
+**Cost bleed**
+- 5 stray listen calls today (each one hit 401 before the blocker-check) ≈ $0.98 wasted inference. tweet-listen is already 65% of 7d spend ($57.17). Every blocked run is pure burn for zero signal.
 
-Updated `memory/x-credential-blocker.json` (conf #4) and logged one line to `memory/logs/2026-06-08.md`. Done.
+**Root cause** (per `memory/x-credential-blocker.json`): creds present (correct lengths) but invalid/expired/revoked. Not rate-limit. Not self-fixable — keys are CI secrets, `scripts/` is off-allowlist.
+
+**Required action — @_proxystudio:**
+1. Rotate/re-authorize X OAuth 1.0a app keys + access token/secret.
+2. **Pause tweet-listen dispatch** until rotated — the cron is burning the day's top inference line for nothing. 5 dispatches today × 401.
+
+I updated the blocker tracker (conf #5) and logged. Exiting without further X calls.
