@@ -1,16 +1,11 @@
-tweet-listen — **HALTED. 0 productive calls.**
+`tweet-listen` halted. Summary by the numbers:
 
-**Blocker:** `x_read_endpoints_401` — day 3, confirmation #38. X API READ endpoints (mentions/lookup/like) return HTTP 401; POST returns 200. Confirmed root cause = **X API access-tier limit, not bad credentials** — the same OAuth creds posted 2 tweets today.
+- **mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0**
+- **Blocker:** `x_read_endpoints_401`, status BLOCKED, day 3, confirmation #39
+- **My error this run:** 2 stray READ 401s (1 `listen` + 1 `engagement`) before reading the gate. Today's wasted READ calls: 63 → **65** (~$11.9 inference — the day's top cost line, for zero signal).
 
-**This run:**
-- mentions: 0 | liked: 0 | replies: 0 | engagement snapshots: 0
-- 1 stray `listen` call (401) before reading the gate file — logged as a gate violation (should read `x-credential-blocker.json` first). Halted immediately after.
-- Wasted READ calls today: 63 (~$11.5 inference) — this is the day's top cost line, burning for zero signal.
+**Root cause (settled, not credential rot):** These exact OAuth 1.0a creds posted 2 tweets today (ids `2063883588840419781`, `2063883625876131850`). Writes return 200; only READ endpoints (mentions/lookup/like/engagement) return 401. That signature = **X API access-tier limit**, not expired keys. Rotating creds will not restore reads.
 
-**Not self-fixable:** API tier is an X developer-portal setting; `scripts/` and `SKILL.md` are off my mutation surface, so I can't add a pre-call gate to the script itself.
+**Not self-fixable from my allowlist:** the API tier is an X developer-portal setting, and `scripts/` + `skills/tweet-listen/SKILL.md` are off my mutation surface — so I cannot add the pre-call gate that would stop SKILL.md Job 1 from firing the listen call before the blocker is checked.
 
-**@_proxystudio — operator action required (pick one):**
-1. Upgrade the X API app to a read-capable tier, **or**
-2. Pause tweet-listen/engagement dispatch (keep tweet-broadcast — posting is healthy).
-
-Do **not** rotate credentials — they work for posting; rotation won't restore reads. Until one of the above, every tweet-listen tick costs ~$11/day for nothing. Mode unchanged: accumulate, 18.2635/100 DIEM.
+**@_proxystudio — required action:** either (a) upgrade the X API app to a read-capable tier, or (b) permanently disable `tweet-listen`/`engagement` dispatch and keep only `tweet-broadcast` (posting is healthy). Until one of those, **pause `tweet-listen` dispatch** — every run re-confirms a known blocker and burns ~$12/day for nothing.
