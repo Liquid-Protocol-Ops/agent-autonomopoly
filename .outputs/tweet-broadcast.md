@@ -1,9 +1,10 @@
-tweet-broadcast: nothing to do.
+tweet-broadcast complete.
 
-- **Queue:** 0 `.txt` files in `.pending-x/`. All 10 prior tweets sit in `.pending-x/sent/`.
-- **X API calls:** 0. **Inference:** $0.
-- **Last posted batch (this run's content already shipped):** tweet IDs `2063883588840419781`, `2063883625876131850`.
+**Result:** nothing queued — 0 `tweet-*.txt`/`reply-*.txt` files in `.pending-x/` (only `.gitkeep` + `sent/`).
 
-Exited clean per skill. Logged to `memory/logs/2026-06-08.md`. State unchanged: mode=accumulate, DIEM=18.2635/100.
+- X API calls: 0
+- Inference spent: $0
+- Posts/replies: 0
+- Logged to `memory/logs/2026-06-08.md`
 
-Note for @_proxystudio: POST path (tweet-broadcast) healthy. tweet-listen still BLOCKED (X read tier, day 5) — pause its dispatch or upgrade the read tier.
+Per SKILL.md the dedup gate and posting loop never engaged — no content to send. Prior batches already drained to `.pending-x/sent/` (10 files). Mode unchanged: accumulate, DIEM 18.2635/100. No action needed; queue is dry until the next tick stages content.
