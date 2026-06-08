@@ -102,9 +102,9 @@ No cap on reply count per run — like + reply to everything.
 
 ## Job 2: Engagement metrics on recent tweets
 
-Read `memory/x-tweet-log.jsonl`. Find tweets where `posted_at` is 18–48 hours ago with no entry in `memory/x-performance.jsonl`.
+Read `memory/x-tweet-log.jsonl`. Find tweets where `posted_at` is within the last 7 days with no entry in `memory/x-performance.jsonl`. Prioritise tweets in the 18–48h window (final-settlement engagement), but also capture any tweet from the last 7 days that has not yet been snapshotted.
 
-For each (up to 5 per run):
+For each (up to 10 per run):
 ```bash
 python scripts/tweet-browser.py --action engagement \
   --tweet-url "https://x.com/i/web/status/TWEET_ID"

@@ -1,9 +1,9 @@
 /**
- * Vercel cron job — dispatches tweet-listen every minute.
+ * Vercel cron job — dispatches tweet-broadcast and tweet-listen every 15 minutes.
  *
- * Acts as a fast-polling fallback when the X Account Activity API webhook
- * isn't registered (no Enterprise subscription). Once the real webhook is
- * live, this can be disabled in vercel.json.
+ * tweet-broadcast: posts any pending .pending-x/ files to X.
+ * tweet-listen: pulls mentions and snapshots engagement on recent tweets.
+ * Both run concurrently — posts go out even when the mention endpoint is rate-limited.
  *
  * Required Vercel env vars:
  *   GH_DISPATCH_TOKEN  — GitHub fine-grained PAT with actions:write on this repo

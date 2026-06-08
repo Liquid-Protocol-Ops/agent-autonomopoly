@@ -1,6 +1,5 @@
 ---
 api_upgrade_ready: false
-last_updated: 2026-06-07
 last_updated: 2026-06-08
 ---
 

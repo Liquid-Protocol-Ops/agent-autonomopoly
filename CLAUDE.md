@@ -83,6 +83,18 @@ Note: Privy **embedded** wallets (rejected in early arch docs) require a human s
 | Wallet address | `0x8767Df39eCeeaeB11554642237aC4E08660aB6A3` (Base mainnet) |
 | Recovery | Privy dashboard; agent wallet is Privy-managed, not operator-held |
 
+### `harness/safety/x-policy.ts`
+
+Authoritative X command policy. `X_DISPATCH_ALLOWLIST = new Set(['tweet-listen'])` — the only skill the X webhook may dispatch. `X_FORBIDDEN_OPERATIONS` enumerates all permanently-blocked operations (fund transfers, wallet signing, LP operations, etc.). Exports `isXDispatchAllowed` and `assertXDispatchAllowed`. The zero-fund-transfer rule is mirrored in `api/webhook/x.ts` and `skills/tweet-listen/SKILL.md`.
+
+### `api/webhook/x.ts` + `api/cron/listen.ts`
+
+Webhook: validates X HMAC signatures (fail-closed), reads `memory/x-credential-blocker.json` before dispatching, enforces `X_DISPATCH_ALLOWLIST`. Cron: dispatches `tweet-broadcast` + `tweet-listen` concurrently every 15 minutes via Vercel edge function.
+
+### `scripts/tweet-browser.py`
+
+X API v2 automation using OAuth 1.0a User Context. GET endpoints (mentions, user lookup) use `requests_oauthlib.OAuth1` via raw `requests` — not tweepy — because tweepy 4.x returns 401 on `get_users_mentions` for project-enrolled apps. Write operations (post, like) use `tweepy.Client`. Implements `init`, `post`, `listen`, `engagement`, and `like` actions.
+
 ### `scripts/lint-identity.ts`
 
 Validates `identity/`, `SECTION_5.md`, and `ARCHITECTURE_v2.md` on every commit. Four checks:
@@ -118,12 +130,47 @@ The three load-bearing conclusions — read `ARCHITECTURE_v2.md` for the full ra
 
 **Superseded (do not implement):** WETH pairing, Privy *embedded* wallets for agent wallets, platform Venice account, bare `.env` private key as primary wallet substrate. See `ARCHITECTURE_v2.md` §3 for the full conflict table.
 
+## Live AUTONO runtime (as of 2026-06-08)
+
+AUTONO (@AUTONOMOPOLY) is live on X and posting from Base mainnet. Key facts:
+
+### X API
+- App: **autonotest** (Pay Per Use project, project-enrolled)
+- Credentials: stored in 1Password UUID `2kodp6bck3gg7omvwn3zr2e43m`; mirrored to GitHub Actions secrets + Vercel env vars
+- Auth: OAuth 1.0a User Context (4-key). GET endpoints use `requests_oauthlib.OAuth1` via raw `requests`; tweepy `Client` is used for write ops only. Reason: tweepy 4.x returns 401 on `get_users_mentions` for project-enrolled apps.
+- Webhook: `api/webhook/x.ts` — fail-closed auth (HMAC SHA-256 signature required). Dispatches only `tweet-listen` (hardcoded allowlist in `harness/safety/x-policy.ts`).
+- Cron: Vercel `*/15 * * * *` → `api/cron/listen.ts` → dispatches `tweet-broadcast` + `tweet-listen` concurrently
+
+### Safety — HARD RULE
+X is observation/broadcast only. **No X event may ever trigger fund transfers, wallet signing, or on-chain transactions.** Enforced in three places: `harness/safety/x-policy.ts` (authoritative), `api/webhook/x.ts` (X_DISPATCH_ALLOWLIST), `skills/tweet-listen/SKILL.md` (agent instruction). `@_proxystudio` is the only operator account; even operators cannot trigger financial operations via X.
+
+### Quality feedback loop
+1. tick → posts tweets, tags with `#content_type:TYPE` header in `.pending-x/`
+2. tweet-broadcast → posts and logs to `memory/x-tweet-log.jsonl`
+3. tweet-listen Job 2 → snapshots engagement (last 7 days, not yet measured) → `memory/x-performance.jsonl`
+4. tweet-reflect (weekly, Sunday 09:00 UTC via GHA schedule) → reweights `memory/x-strategy.md`, nominates promoted candidates to `memory/x-promoted-candidates.jsonl`
+5. tick reads weights from `memory/x-strategy.md` → selects outward signal content type probabilistically
+
+### Weekly scheduled skills (aeon.yml `on.schedule`)
+- `0 9 * * 1` (Monday) → `cost-report`: aggregates `memory/token-usage.csv` → updates `memory/inference-cost.md`
+- `0 9 * * 0` (Sunday) → `tweet-reflect`: engagement reweight + account pruning + candidate nomination
+
+### LP positions
+- Agent wallet: `0x8767Df39eCeeaeB11554642237aC4E08660aB6A3`
+- WETH/DIEM Uniswap v3 1% pool: `0x80d995189ecc593672aD4703b250a5e82672EB1D`
+- NFPM: `0x03a520b32C04BF3bEEf7BEb72E919cf822Ed34f1` (Base mainnet)
+- Live position data: run `memory/on-chain-state.json` or query chain directly — do **not** hardcode dollar values (they rot)
+- Note: `weth` in `memory/on-chain-state.json` → `diem-claims` section is **liquid WETH only**, not LP-locked WETH
+
+### Skills in production
+`tick`, `tweet-broadcast`, `tweet-listen`, `tweet-reflect`, `cost-report`, `tweet-promote`
+
 ## Active plans
 
-- `MVP_PLAN.md` — 13 sessions to ship the v0 funding loop end-to-end. Sessions 1–4 (identity bundle, lint tests, allowlist, wallet) complete. Session 5: tool-routing sidecar (next).
+- `MVP_PLAN.md` — 13 sessions to ship the v0 funding loop end-to-end. Sessions 1–4 (identity bundle, lint tests, allowlist, wallet) complete. X integration complete. Next: spend tracking automation + quality loop validation.
 - `PLAN.md` — full 28-ticket dispatch plan; superseded in detail by MVP_PLAN.md but retained for Linear ticket context.
 
-When resuming: read this file → `ARCHITECTURE_v2.md` → `SECTION_5.md` → `MVP_PLAN.md` → `memory/MEMORY.md`.
+When resuming: read this file → `memory/MEMORY.md` → `memory/x-strategy.md` → `memory/cron-state.json`.
 
 ## Planned infrastructure (post-v2)
 

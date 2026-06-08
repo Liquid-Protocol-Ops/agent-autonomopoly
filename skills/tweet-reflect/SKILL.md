@@ -37,7 +37,17 @@ _Updated: 2026-06-08 by tweet-reflect. Based on 14 engagement snapshots (last 30
 
 If no performance data exists yet, write a note: "No data yet — equal weights applied by tweet-engage."
 
-## Step 3: Prune and rank x-accounts.json
+## Step 3: Record promoted candidates
+
+Read `memory/x-performance.jsonl` and `memory/x-tweet-log.jsonl`. Identify the top 3 tweets by `engagement_score = likes + replies * 2 + reposts * 1.5` from the past 30 days. For each, fetch the tweet text from `x-tweet-log.jsonl` by `tweet_id`. Append to `memory/x-promoted-candidates.jsonl` (skip if `tweet_id` already present):
+
+```json
+{"tweet_id":"...","content_type":"on-chain-report","engagement_score":8.5,"text":"[full tweet text]","nominated_at":"2026-06-08T09:00:00Z","status":"candidate"}
+```
+
+These are nomination-only — the operator manually moves approved candidates into `identity/examples/promoted/`.
+
+## Step 4: Prune and rank x-accounts.json
 
 Read `memory/x-accounts.json`. For each account:
 - If `engagement_score == 0` and `added_at` is more than 30 days ago: mark as `status: inactive`
@@ -45,7 +55,7 @@ Read `memory/x-accounts.json`. For each account:
 
 Write updated `memory/x-accounts.json`.
 
-## Step 4: Process discovery queue
+## Step 5: Process discovery queue
 
 Read `memory/x-discovery-queue.jsonl` (may not exist — skip silently if absent). For each entry, decide whether to add to `x-accounts.json`:
 - Add if: the wallet belongs to a Liquid Protocol token deployer whose token has >$1K volume (check Dune Q7591697 data in MEMORY.md or memory/on-chain-state.json)
@@ -53,7 +63,7 @@ Read `memory/x-discovery-queue.jsonl` (may not exist — skip silently if absent
 
 Mark processed entries with `processed: true` in the queue file.
 
-## Step 5: Write reflection
+## Step 6: Write reflection
 
 Append to `memory/logs/{today}.md`:
 ```

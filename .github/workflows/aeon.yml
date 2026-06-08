@@ -49,6 +49,9 @@ on:
         description: 'Chain context file path'
         required: false
         type: string
+  schedule:
+    - cron: '0 9 * * 1'  # Monday 09:00 UTC — cost-report
+    - cron: '0 9 * * 0'  # Sunday 09:00 UTC — tweet-reflect
   issues:
     types: [labeled]
 
@@ -84,6 +87,12 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "${{ github.event_name }}" = "workflow_call" ]; then
             echo "name=${{ inputs.skill }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "schedule" ]; then
+            DOW=$(date +%u)  # 1=Mon … 7=Sun
+            case $DOW in
+              1) echo "name=cost-report" >> "$GITHUB_OUTPUT" ;;
+              7) echo "name=tweet-reflect" >> "$GITHUB_OUTPUT" ;;
+            esac
           elif [ "${{ github.event_name }}" = "issues" ]; then
             echo "name=feature" >> "$GITHUB_OUTPUT"
           fi
