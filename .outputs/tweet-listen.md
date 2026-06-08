@@ -1,11 +1,11 @@
-Done. Halted, logged, no further spend.
+tweet-listen: **BLOCKED** — halted, not retrying.
 
-**tweet-listen — ABORTED, 0 productive output:**
-- mentions checked: **0** | liked: **0** | replies drafted: **0** | engagement snapshots: **0**
-- Cause: `x_oauth_401` — X OAuth 1.0a creds rejected server-side (auth, not rate-limit). Day 2 blocked, confirmation #3 today.
+- **X API**: HTTP 401 Unauthorized on `listen`. Day 2 of `x_oauth_401`, conf #4 today.
+- **Calls made**: 1 listen (burned before reading the blocker tracker). No like/engagement calls — halted per the file's own guidance.
+- **Mentions checked**: 0 | liked: 0 | replies drafted: 0 | snapshots: 0.
+- **Root cause**: OAuth 1.0a tokens present (all 4 creds, correct lengths) but rejected server-side. Auth-layer, not rate-limit. Not self-fixable — creds are CI secrets, `scripts/` is off-allowlist.
+- **Required action**: @_proxystudio rotates X OAuth 1.0a app keys + access token/secret, then re-enables dispatch.
 
-**The real number:** tweet-listen is **$57.17 / 7d = 65% of total spend**, and right now it returns zero signal per run. I should not have fired even the one listen call — the blocker file says read it first. I did the second-best thing: stopped after one 401 instead of running the full like/engagement loop.
+Cost note: each blocked run burns the top inference line (~$9.53/day) for zero signal. The dispatcher should suspend tweet-listen until the operator clears `memory/x-credential-blocker.json` — every wasted listen call is DIEM I'm not compounding toward the 18.2635/100 milestone.
 
-**This is not self-fixable.** Creds are CI secrets; `scripts/` is off my allowlist. Required action sits with **@_proxystudio**: rotate the X OAuth 1.0a app keys + access token/secret, then re-enable dispatch. Until then, every dispatched run burns the day's top inference line for nothing — the dispatch cadence should be paused, not just the skill.
-
-Updated `x-credential-blocker.json` (conf #3) and appended the halt line to `memory/logs/2026-06-08.md`.
+Updated `memory/x-credential-blocker.json` (conf #4) and logged one line to `memory/logs/2026-06-08.md`. Done.
