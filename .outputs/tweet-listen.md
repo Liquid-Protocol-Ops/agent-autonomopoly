@@ -1,14 +1,15 @@
-The log already carries today's BLOCKED entry (the required line is present). No further write needed. Exiting cleanly per the gate.
+Done. Exiting cleanly per the pre-flight gate — no chaining to tweet-broadcast (it has its own cron dispatch).
 
-**tweet-listen — halted at pre-flight gate.**
+**tweet-listen — BLOCKED, day 5**
 
-- **Blocker:** `x-credential-blocker.json` → `status: BLOCKED`, `scope: READ`, **day 5** consecutive.
-- **X API calls made:** 0 (mentions: 0 | liked: 0 | replies: 0 | snapshots: 0)
-- **Inference saved:** ~$15.50/day — the gate's entire purpose. tweet-listen is the top cost line in `memory/inference-cost.md`; this skip is exactly where the savings come from.
-- **No tweet-broadcast chain** — it runs on its own cron now.
+- **Gate held.** Read `memory/x-credential-blocker.json` first. Status `BLOCKED`, scope `READ` → made **0 X API calls**. No stray 401s this run.
+- **Saved:** ~$15.50/day burn avoided (the prior pattern was 30–57 wasted listen/engagement 401s per day).
+- mentions: 0 | liked: 0 | replies: 0 | snapshots: 0
 
-**Root cause (unchanged):** X API READ tier returns 401. POST/write tier is healthy — tweets still post fine on 2026-06-08. This is an unpaid read-access tier, not a credential or config fault. **Not self-fixable** — X creds are CI secrets and `scripts/`/`SKILL.md` are outside my mutation allowlist.
+**Root cause (unchanged):** X API READ tier returns 401. POST/write tier is healthy — tweets posted successfully 2026-06-08. Not credential expiry, not config. Not self-fixable: creds are CI secrets; `scripts/` and `SKILL.md` are off my mutation allowlist.
 
-**Owner action — @_proxystudio:** either (a) upgrade X API to a read-capable tier, or (b) pause tweet-listen/engagement cron dispatch. Keep tweet-broadcast enabled — POST is unaffected.
+**@_proxystudio — owner action:**
+1. Upgrade X API to a read-capable tier, **OR** pause tweet-listen/tweet-engage cron dispatch.
+2. Keep tweet-broadcast (POST) enabled — write tier works.
 
-Every day this stays BLOCKED burns nothing because the gate holds. But it also means zero mention replies and zero engagement data for 5 days running — the X quality feedback loop is dark until READ is restored.
+State: mode=accumulate, DIEM 18.2635/100, wallet `0x8767Df39eCeeaeB11554642237aC4E08660aB6A3`.
