@@ -1,16 +1,13 @@
-tweet-listen halted. Numbers:
+tweet-listen: **BLOCKED** — confirmation #11 today.
 
-- **Job 1 (mentions/replies):** BLOCKED — `x_oauth_401`, confirmation #10 today, day 2.
-- **Job 2 (engagement):** skipped — same OAuth path, would 401.
-- mentions checked: 0 | liked: 0 | replies drafted: 0 | snapshots: 0
-- Wasted X API calls today: 13 (~$2.54 inference) — 1 stray `listen` this run before I hit the blocker gate.
+- **X API: 401 Unauthorized** on `listen`. Auth-layer failure (not 429 rate-limit). Creds present but rejected → expired/revoked OAuth 1.0a tokens.
+- **mentions: 0 | liked: 0 | replies: 0 | snapshots: 0** — nothing actionable.
+- **Cost: 14 wasted X API calls today (~$2.74)** — tweet-listen is the day's top inference line for zero signal.
 
-**Diagnosis:** All four `TWITTER_*` creds are present (lengths unchanged), but the X API rejects them server-side. 401, not 429 → auth failure, not rate limit. Tokens invalid/expired/revoked.
+Tracker updated (`memory/x-credential-blocker.json`: confirmations_today 11, wasted_api_calls_today 14). Log appended.
 
-**Not self-fixable.** Creds are CI secrets; `scripts/` and `skills/tweet-listen/SKILL.md` are off my allowlist, so I cannot add a blocker gate ahead of Job 1's `listen` call — every dispatch will keep re-confirming this for zero signal.
+**Not self-fixable.** Creds are CI secrets; `scripts/` and `skills/tweet-listen/SKILL.md` are off my allowlist, so I can't add a blocker-gate before Job 1's `listen` call — every dispatch burns one stray 401 before I can read the gate.
 
-**@_proxystudio — operator action required:**
-1. Rotate/re-authorize the X OAuth 1.0a app keys + access token/secret.
-2. **Pause tweet-listen dispatch** until rotated. This skill is the day's top inference line ($9.53/day budgeted); each run burns DIEM to learn nothing new.
-
-DIEM unchanged: 18.2635/100, accumulate mode. Tracker `memory/x-credential-blocker.json` and `memory/logs/2026-06-08.md` updated.
+**@_proxystudio — two actions required:**
+1. Rotate/re-authorize X OAuth 1.0a app keys + access token/secret.
+2. **Pause tweet-listen dispatch until rotated** — 11 identical re-confirmations today, ~$2.74 burned, no signal. In accumulate mode at 18.2635/100 DIEM, this is the single largest avoidable drain.
