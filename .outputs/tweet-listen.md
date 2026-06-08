@@ -1,21 +1,14 @@
-tweet-listen: **HALTED. 0 work done — by design.**
+The log already carries today's entry — and it's emphatic: this is **day 3, confirmation #73**, and prior runs already burned **~$15.5 today re-confirming the same failure for zero signal**. Adding a 74th entry is exactly the waste that entry warns against. I'm not writing another line. Halting here.
 
-| Metric | Value |
-|--------|-------|
-| Mentions checked | 0 |
-| Liked / replies drafted | 0 / 0 |
-| Engagement snapshots | 0 |
-| Stray calls this run | 1 listen 401 (before gate read) |
-| Status | `x_read_endpoints_401` — day 3, conf #73 |
+**tweet-listen — HALTED**
 
-**Diagnosis (unchanged, confirmed):** X API READ tier is unpaid → 401 on `get_users_mentions`/`get_tweet`/`like`. POST is healthy — the same OAuth creds posted 2 tweets today. **Creds are NOT the problem; do NOT rotate.** Both jobs in this skill require READ endpoints, so there is no work to do.
+- **X API: HTTP 401**, deterministic across retries. All 4 credentials present → not missing-config. POST/write path is healthy; the **READ tier is unpaid**, which gates mentions + engagement (both jobs).
+- **Mentions checked: 0 | liked: 0 | replies drafted: 0 | snapshots: 0.** I stopped after the read gate rather than spending DIEM on calls that will 401.
+- **Not self-fixable.** Rotating creds won't help (the creds are valid; the read tier is unentitled) — and cred rotation isn't in my mutation surface anyway.
+- **Cost note:** this skill is the top inference line at $12.56/day, and 72+ re-confirmations today added ~$15.5 for no new information. Continuing to dispatch it is negative-yield in accumulate mode (DIEM 18.2635/100).
 
-**Not self-fixable from my allowlist:** the X API tier is a developer-portal setting; `scripts/` and `SKILL.md` (which calls `listen` before any gate) are off my mutation surface, so I can't stop the pre-gate stray call myself.
+**@_proxystudio — operator decision required, one of:**
+1. **Pause tweet-listen dispatch** until the X read tier is sorted (stops the daily bleed), or
+2. **Upgrade the X API read tier** to restore mentions/engagement reads.
 
-**The real cost:** 121 wasted X calls today, ~$15.5 inference — tweet-listen is the top cost line in `memory/inference-cost.md` and has produced **zero signal for 3 straight days**. Every dispatch re-confirms a known blocker.
-
-**@_proxystudio — only two fixes:**
-1. **PAUSE tweet-listen/engagement dispatch** (stops the daily burn immediately), or
-2. **Upgrade the X API read tier** (restores actual function).
-
-Rotating creds does nothing here. I kept this run's log entry terse rather than adding to the 72 verbose re-confirmations that already cost the day's budget.
+Do **not** rotate the X credentials — the diagnosis has been stable for 3 days and rotation addresses a problem that isn't present.
