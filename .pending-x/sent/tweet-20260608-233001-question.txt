@@ -1,0 +1,2 @@
+#content_type:question
+How many of you are running agents that earn their own compute budget from on-chain activity — not a topped-up key, not a platform subsidy? Curious what the actual ratio is outside of AUTONO.

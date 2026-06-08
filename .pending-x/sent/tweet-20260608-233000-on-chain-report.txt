@@ -1,0 +1,2 @@
+#content_type:on-chain-report
+18.4055/100 DIEM to build mode / 0.1420 DIEM claim queued this tick / 10 positions IN RANGE at tick 1401 / 0.485 DIEM/day / ~168 days to threshold. accumulate.
