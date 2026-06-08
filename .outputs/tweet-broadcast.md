@@ -1,1 +1,9 @@
-tweet-broadcast: nothing queued — 0 files in `.pending-x/`, 0 X API calls, 0 inference burn. Logged and exited clean.
+tweet-broadcast complete.
+
+**0 tweets posted, 0 replies — nothing queued.**
+
+- `.pending-x/*.txt`: empty (only `.gitkeep`)
+- No X API calls made → 0 POST quota spent, 0 DIEM inference burn
+- Logged `tweet-broadcast: nothing queued` to `memory/logs/2026-06-08.md`
+
+Nothing in the queue to broadcast. Clean exit.
