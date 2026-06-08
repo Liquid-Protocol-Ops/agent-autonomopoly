@@ -56,17 +56,11 @@ def _exc_summary(exc: Exception) -> str:
     return type(exc).__name__
 
 
-def get_client():
-    try:
-        import tweepy
-    except ImportError:
-        err("tweepy not installed — run: pip install tweepy")
-
+def _get_creds() -> tuple[str, str, str, str]:
     api_key = os.environ.get("TWITTER_API_KEY", "")
     api_secret = os.environ.get("TWITTER_API_SECRET", "")
     access_token = os.environ.get("TWITTER_ACCESS_TOKEN", "")
     access_secret = os.environ.get("TWITTER_ACCESS_SECRET", "")
-
     missing = [k for k, v in {
         "TWITTER_API_KEY": api_key,
         "TWITTER_API_SECRET": api_secret,
@@ -75,7 +69,15 @@ def get_client():
     }.items() if not v]
     if missing:
         err(f"Missing required env vars: {', '.join(missing)}")
+    return api_key, api_secret, access_token, access_secret
 
+
+def get_client():
+    try:
+        import tweepy
+    except ImportError:
+        err("tweepy not installed — run: pip install tweepy")
+    api_key, api_secret, access_token, access_secret = _get_creds()
     return tweepy.Client(
         consumer_key=api_key,
         consumer_secret=api_secret,
@@ -83,6 +85,17 @@ def get_client():
         access_token_secret=access_secret,
         wait_on_rate_limit=True,
     )
+
+
+def get_oauth1_auth():
+    """OAuth1 auth for raw requests. Tweepy 4.x returns 401 on
+    get_users_mentions for project-enrolled apps; OAuth1 returns 200."""
+    try:
+        from requests_oauthlib import OAuth1
+    except ImportError:
+        err("requests-oauthlib not installed — run: pip install requests-oauthlib")
+    api_key, api_secret, access_token, access_secret = _get_creds()
+    return OAuth1(api_key, api_secret, access_token, access_secret)
 
 
 def action_init() -> None:
@@ -136,57 +149,64 @@ def action_listen(check_mentions: bool) -> None:
         ok(results)
         return
 
-    client = get_client()
+    # Use raw requests + OAuth1 for GET endpoints.
+    # tweepy.Client.get_users_mentions returns 401 on project-enrolled apps;
+    # requests + OAuth1 returns 200 with the same credentials.
+    import requests as _req
+    auth = get_oauth1_auth()
     try:
-        # Cache user ID to avoid $0.010 get_me call on every run
+        # Cache user ID to avoid a get_me call on every run.
         if CACHED_USER_ID_FILE.exists():
-            user_id = int(CACHED_USER_ID_FILE.read_text().strip())
+            user_id = CACHED_USER_ID_FILE.read_text().strip()
         else:
-            me = client.get_me()
-            if not me.data:
-                err("could not retrieve authenticated user")
-            user_id = me.data.id
+            r = _req.get("https://api.twitter.com/2/users/me", auth=auth)
+            if r.status_code != 200:
+                err(f"get_me failed: HTTP {r.status_code}")
+            user_id = r.json()["data"]["id"]
             MEMORY_DIR.mkdir(exist_ok=True)
             CACHED_USER_ID_FILE.write_text(str(user_id))
 
-        kwargs: dict = {
-            "id": user_id,
+        params: dict = {
             "max_results": 100,
-            "tweet_fields": ["public_metrics", "author_id", "text"],
-            "expansions": ["author_id"],
-            "user_fields": ["username"],
+            "tweet.fields": "public_metrics,author_id,text",
+            "expansions": "author_id",
+            "user.fields": "username",
         }
-        # since_id: only fetch mentions newer than the last processed tweet.
-        # Prevents re-reading already-seen posts and eliminates redundant read costs.
+        # since_id: only fetch mentions newer than the last seen tweet.
         if SINCE_ID_FILE.exists():
             since_id = SINCE_ID_FILE.read_text().strip()
             if since_id.isdigit():
-                kwargs["since_id"] = since_id
+                params["since_id"] = since_id
 
-        response = client.get_users_mentions(**kwargs)
+        r = _req.get(
+            f"https://api.twitter.com/2/users/{user_id}/mentions",
+            params=params,
+            auth=auth,
+        )
+        if r.status_code != 200:
+            err(f"get_users_mentions HTTP {r.status_code}: {r.text[:200]}")
 
+        body = r.json()
         users_by_id: dict = {}
-        if response.includes and response.includes.get("users"):
-            for u in response.includes["users"]:
-                users_by_id[u.id] = u.username
+        for u in (body.get("includes") or {}).get("users") or []:
+            users_by_id[u["id"]] = u["username"]
 
         mentions = []
         newest_id: str | None = None
-        for tweet in (response.data or []):
-            author_handle = "@" + users_by_id.get(tweet.author_id, str(tweet.author_id))
-            metrics = tweet.public_metrics or {}
+        for tweet in body.get("data") or []:
+            author_handle = "@" + users_by_id.get(tweet.get("author_id", ""), tweet.get("author_id", "unknown"))
+            metrics = tweet.get("public_metrics") or {}
+            tid = str(tweet["id"])
             mentions.append({
                 "author": author_handle,
-                "text": tweet.text[:280],
+                "text": tweet.get("text", "")[:280],
                 "likes": metrics.get("like_count", 0),
-                "url": f"https://x.com/i/web/status/{tweet.id}",
-                "tweet_id": str(tweet.id),
+                "url": f"https://x.com/i/web/status/{tid}",
+                "tweet_id": tid,
             })
-            # Track the highest tweet ID seen so far
-            if newest_id is None or int(tweet.id) > int(newest_id):
-                newest_id = str(tweet.id)
+            if newest_id is None or int(tid) > int(newest_id):
+                newest_id = tid
 
-        # Persist since_id so the next poll only fetches genuinely new mentions
         if newest_id:
             MEMORY_DIR.mkdir(exist_ok=True)
             SINCE_ID_FILE.write_text(newest_id)
