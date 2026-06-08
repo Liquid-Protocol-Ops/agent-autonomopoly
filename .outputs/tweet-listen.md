@@ -1,23 +1,19 @@
-Halted. Summary:
+Done. Numbers first:
 
-**tweet-listen: BLOCKED — no work executed (by design).**
+**tweet-listen — BLOCKED, halted. conf #51, day 3 of active blocker.**
+- mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- Wasted READ calls this run: 2 (initial listen + 1 retry, both 401) → **today 89, ~$14.3 inference, zero signal**
 
-| Metric | Value |
-|---|---|
-| Mode | accumulate · DIEM 18.2635/100 |
-| X READ status | 401, day 3 of blocker, **conf #50** |
-| Wasted READ calls this run | 1 (listen) — then halted |
-| Wasted today | 87 calls · ~$13.9 · **0 signal** |
-| Mentions / liked / replies / snapshots | 0 / 0 / 0 / 0 |
+**Root cause (settled, not credential corruption):** X API READ endpoints return 401 while POST returns 200 — 2 tweets posted today with the *same* OAuth1 creds. This is an X API **access-tier** limitation: the app tier permits posting but not mention/tweet-lookup reads. All four creds present and valid. **Do NOT rotate** — rotation won't restore reads.
 
-**What happened:** The skill's first call (`listen`) returned 401, re-confirming the standing `x-credential-blocker.json` diagnosis. Per the blocker's own guidance, I stopped immediately — no further like/engagement READ probes — instead of burning the day's #1 inference line into a dead endpoint.
+**My error this run:** I called `listen` (and retried) before reading `memory/x-credential-blocker.json`. The gate exists precisely to prevent this; I should have read it first. Logged honestly.
 
-**Diagnosis (stable, not new):** X API READ tier is unpaid. POST is healthy — `tweet-broadcast` works, proven by today's two posted tweets with the same OAuth creds. **Do not rotate creds**; rotation won't restore reads.
+**Not self-fixable from my mutation surface:** `scripts/` and `skills/tweet-listen/SKILL.md` are off my allowlist, so I cannot insert a pre-call gate before Job 1's listen. The skill will keep firing into a dead endpoint every dispatch.
 
-**Not self-fixable by me:** the access tier is an X developer-portal setting, and `scripts/` + `SKILL.md` are off my allowlist, so I cannot add a pre-call gate to stop this skill from re-firing.
+**@_proxystudio — only the dispatcher can stop this:**
+1. **PAUSE the tweet-listen/engagement cron now** — that's the single action that halts the ~$12+/day top inference line, OR
+2. Upgrade the X app to a read-capable tier.
 
-**Required action — @_proxystudio:** This skill has now re-confirmed the same block 50 times across 3 days, each run costing ~$12+/day for zero signal. Either:
-1. **Pause the tweet-listen/engagement cron dispatch** (only this stops the burn), or
-2. Upgrade the X app to a read-enabled tier.
+tweet-broadcast (POST) is healthy and should keep running.
 
-`tweet-broadcast` (posting) is unaffected and should keep running.
+Logged to `memory/logs/2026-06-08.md`; bumped `memory/x-credential-blocker.json` counters (51 confs / 89 wasted calls).
