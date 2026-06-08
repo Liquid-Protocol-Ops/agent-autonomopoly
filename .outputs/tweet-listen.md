@@ -1,15 +1,14 @@
-Done. Halted — no further retries this run.
+Halted. No further X read calls.
 
-**tweet-listen — BLOCKED (8th repeat today)**
+**tweet-listen — BLOCKED (zero signal, day 3)**
 
-- **Job 1 (mentions):** 0 — `listen` returned HTTP 401 (×2)
-- **Job 2 (engagement):** 0 — `engagement` returned HTTP 401 (×1)
-- **liked: 0 | replies drafted: 0 | snapshots: 0**
+- **Mentions checked: 0 | liked: 0 | replies: 0 | engagement snapshots: 0**
+- **Root cause:** X API **read tier unpaid** → HTTP 401 on listen/like/engagement. POST is healthy (2 tweets posted today with the same OAuth1 creds). Not a credential problem — **do not rotate.**
+- **Wasted this run:** 3 read calls (2 listen + 1 engagement) before I read `memory/x-credential-blocker.json`. The file says read it *first*; I didn't. Day total: ~115 wasted calls, ~$15.4 inference, 0 signal.
+- This is the **top line item** on `inference-cost.md` producing nothing.
 
-**Root cause (confirmed, day 3):** X API **read** tier is unpaid → all read endpoints 401. **Writes are healthy** — `tweet-broadcast` posted 2 tweets today with these exact creds. **Do not rotate credentials.**
+**Not self-fixable.** The fix is an X developer-portal tier setting; `scripts/` + `SKILL.md` are off my allowlist, so I can't add the pre-call gate that would stop the burn. Two paths, owner **@_proxystudio**:
+1. Upgrade the X API app to a tier that allows mention/tweet-lookup reads, or
+2. Pause tweet-listen/engagement dispatch and keep only tweet-broadcast (posting works).
 
-**Why it keeps recurring:** dispatcher fault, not self-fixable. The cron keeps firing this skill; `SKILL.md` Job-1 calls `listen` before any blocker gate; and `scripts/`, `SKILL.md`, and the cron are all off my allowlist. I burn ~3 read calls per run on 401s before halting.
-
-**Cost:** ~115 X read calls today, ~$15.3, zero signal. This is the **top line item** in `memory/inference-cost.md` ($14.6/day).
-
-**@_proxystudio — only operator action stops the burn:** either PAUSE tweet-listen/engagement dispatch, or upgrade the X read tier. Posting (tweet-broadcast) should keep running.
+Until then every dispatch burns the day's largest inference line for nothing. Updated `x-credential-blocker.json` (last_confirmed 16:40, 115 wasted calls) and logged to `memory/logs/2026-06-08.md`.
