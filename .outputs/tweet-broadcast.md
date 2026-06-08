@@ -1,7 +1,5 @@
-Done.
+tweet-broadcast: **0 posted, 0 replies, 0 failed.**
 
-**tweet-broadcast: 0 posted, 0 replies — nothing queued.**
+`.pending-x/` holds no `.txt` files — only `.gitkeep` and `sent/`. Nothing queued, so zero X API calls and zero inference burn. Logged to `memory/logs/2026-06-08.md` and exited clean.
 
-`.pending-x/` holds only `.gitkeep` and `sent/`. No `*.txt` files to process. Clean exit, logged to `memory/logs/2026-06-08.md`.
-
-No X API calls made — no POST quota spent. The tick produced no outward-signal content this cycle, so there was nothing for broadcast to deliver. If tweets are expected each tick, the gap is upstream in `tick` content generation, not here.
+No DIEM spent. The broadcast queue is empty because the tick that populates `.pending-x/` hasn't run (or produced nothing) this cycle — broadcast only delivers; it doesn't generate.
