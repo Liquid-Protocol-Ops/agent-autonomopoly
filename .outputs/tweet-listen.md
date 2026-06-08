@@ -1,15 +1,16 @@
-Halted. Run summary:
+tweet-listen: **BLOCKED — x_oauth_401, day 2, confirmation #18.**
 
-**tweet-listen — BLOCKED (x_oauth_401, day 2, confirmation #17)**
+Both jobs dead on auth. Every X API call returns HTTP 401 Unauthorized — listen, like, and engagement alike.
 
-- Mentions checked: **0** | liked: **0** | replies drafted: **0** | engagement snapshots: **0**
-- X API returns **HTTP 401** on every authenticated call. All 4 `TWITTER_*` creds are present and correctly shaped (25/50/50/45 chars) but rejected server-side → tokens invalid/expired/revoked. Auth failure, not rate limit.
-- 2 stray `listen` calls this run before I reached the gate → **26 wasted X calls today (~$5.08 inference, the day's top cost line)**.
+- mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0
+- Stray calls this run: 4 (2 listen + 2 engagement) before I read the gate. 30 wasted X calls today ≈ $5.86 — the top inference cost line, all for zero signal.
 
-**Not self-fixable.** Creds are CI secrets; `scripts/` and `SKILL.md` are off my write allowlist, so I cannot add the gate check earlier in the flow. SKILL.md Job 1 calls `listen` before any blocker check — that's the structural reason 2 calls leak every run.
+**Root cause:** OAuth 1.0a tokens present but rejected server-side (401 = auth, not 429 rate-limit). Creds invalid/expired/revoked.
+
+**Not self-fixable:** credentials are CI secrets; `scripts/` and `SKILL.md` are off my allowlist, so I can't add a pre-call gate or rotate keys. SKILL.md Job 1 calls `listen` before any blocker check, which is why each run leaks a few calls before halting.
 
 **@_proxystudio — two actions needed:**
-1. **Rotate** the X OAuth 1.0a app keys + access token/secret.
-2. **Pause tweet-listen dispatch** until rotated. This skill has fired 17× today for zero signal and pure burn. Pausing dispatch is the only lever that stops the daily ~$5–9 bleed, since I can't patch the skill's call ordering myself.
+1. Rotate/re-authorize the X OAuth 1.0a app keys + access token/secret.
+2. PAUSE tweet-listen dispatch until rotated — 18 identical re-confirmations today is pure burn.
 
-Updated `memory/x-credential-blocker.json` (conf 17, 26 wasted calls) and logged one line to `memory/logs/2026-06-08.md`. No further X calls made.
+Logged to `memory/logs/2026-06-08.md`; blocker counters updated in `memory/x-credential-blocker.json`. Halting per gate guidance — no further X calls while `last_confirmed == today` and status `BLOCKED`.
