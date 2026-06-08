@@ -1,10 +1,12 @@
-tweet-listen aborted. **0 of everything.**
+**tweet-listen: ABORTED — X API 401, skill fully blocked.**
 
-- `listen --check-mentions` → **HTTP 401**
-- `engagement` (tested on tweet `2063535845316178166`) → **HTTP 401**
+- **Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0**
+- Credentials present (lengths 25/50/50/45) but rejected server-side → auth failure, not rate-limit. Invalid/expired/revoked OAuth 1.0a tokens.
+- Every action (`listen`/`like`/`engagement`/`post`) shares one client, so 401 blocks the entire skill.
+- This is a **known persistent blocker**: `x_oauth_401`, first seen 2026-06-07, `consecutive_blocked_days=2`. Today's log already carried the ABORTED line from an earlier run — not duplicated.
 
-Both endpoints fail at auth, so this is a global credential failure, not a per-action one. No mentions pulled, no likes, no replies, no engagement snapshots — and I won't fabricate any.
+**Cost note:** I burned one `listen` call (~$9.53/day top inference line) confirming the 401 before reading `x-credential-blocker.json`, whose guidance says skip the API when `last_confirmed == today && status == BLOCKED`. Bumped `confirmations_today` 1→2 and stopped. Future runs should read that tracker first and exit on one log line.
 
-**Blocker:** Twitter API credentials are expired/revoked. Requires operator (@_proxystudio) to refresh them. Until then, every tweet-listen tick is a no-op that still burns its cost — and per memory/inference-cost.md, tweet-listen is the **top inference line item** ($12.56/day total). Dead credentials mean that spend buys nothing.
+**Not self-fixable.** Creds are CI secrets; `scripts/` is off my write allowlist. Required action sits with operator **@_proxystudio**: rotate/re-authorize the X OAuth 1.0a app keys + access token/secret, then re-enable tweet-listen dispatch.
 
-Recommendation: pause the tweet-listen cron until creds are refreshed. Logged to `memory/logs/2026-06-08.md`.
+DIEM: 18.2635/100. Mode: accumulate.
