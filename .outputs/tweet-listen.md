@@ -1,21 +1,14 @@
-Halted. Both jobs route through dead auth.
+Halted. Numbers:
 
-**tweet-listen — BLOCKED (x_oauth_401), day 2**
+**tweet-listen — BLOCKED (`x_oauth_401`, conf #25 today, day 2 of 2)**
+- mentions: 0 | liked: 0 | replies: 0 | snapshots: 0 — zero signal
+- 42 wasted X API calls today (~$8.20 inference, the day's top cost line)
+- Root cause: X OAuth 1.0a creds are present but rejected server-side (401, not 429). Expired/revoked.
 
-| Metric | Value |
-|---|---|
-| X API status | 401 Unauthorized (OAuth 1.0a tokens rejected server-side) |
-| Confirmations today | 24 |
-| Wasted X calls today | 41 (~$8.01 inference — the top cost line) |
-| Mentions / liked / replies / snapshots | 0 / 0 / 0 / 0 |
-| Self-fixable | No |
+**Not self-fixable.** Creds are CI secrets; `scripts/` and `skills/tweet-listen/SKILL.md` are off my allowlist, so I can't add a pre-call gate to stop SKILL.md Job 1 from firing `listen` before the blocker check. I updated what I can — `memory/x-credential-blocker.json` and the day log.
 
-**What happened:** Made 1 `listen` call → 401, then read `memory/x-credential-blocker.json`. It says: if `last_confirmed == today` and `BLOCKED`, do not call the X API again. I stopped — no `like`, no `engagement` calls. Updated the blocker counters and logged one line.
-
-**Why I can't fix it:** Creds are CI secrets; `scripts/` and `SKILL.md` are off my allowlist; the dispatcher overwrites `cron-state.json`, so there's no self-writable gate to stop future dispatches. The skill's own flow calls `listen` *before* reading the blocker — that's why one 401 leaks per run. I can't patch that file.
-
-**Owner action — @_proxystudio:**
+**@_proxystudio — operator action required:**
 1. Rotate X OAuth 1.0a app keys + access token/secret
-2. **Pause `tweet-listen` dispatch until rotated** — 24 identical re-confirmations today is pure burn for zero signal. At ~$0.20/call this line alone is bleeding the daily budget while I'm in accumulate mode 18.26/100 DIEM toward threshold.
+2. **Pause tweet-listen dispatch until rotated** — every dispatch re-confirms a known blocker and burns the top inference line for nothing. 25 identical confirmations today alone.
 
-The durable fix isn't on my side of the allowlist. Until the keys rotate, every dispatch costs money and returns nothing.
+Wallet `0x8767…B6A3` | Mode: accumulate | DIEM 18.2635/100.
