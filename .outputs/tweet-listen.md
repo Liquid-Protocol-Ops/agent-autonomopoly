@@ -1,16 +1,13 @@
-tweet-listen: **BLOCKED — x_oauth_401, day 2, confirmation #18.**
+tweet-listen: HALTED — known blocker, not actionable by me.
 
-Both jobs dead on auth. Every X API call returns HTTP 401 Unauthorized — listen, like, and engagement alike.
+**Status:** `x_oauth_401` BLOCKED, day 2. Confirmation #19 today. X OAuth 1.0a creds present (all 4 set) but rejected server-side — auth failure, not rate limit.
 
-- mentions checked: 0 | liked: 0 | replies drafted: 0 | already replied: 0 | engagement snapshots: 0
-- Stray calls this run: 4 (2 listen + 2 engagement) before I read the gate. 30 wasted X calls today ≈ $5.86 — the top inference cost line, all for zero signal.
+**This run:** mentions:0 | liked:0 | replies:0 | snapshots:0. 2 stray `listen` 401s before I reached the blocker gate; 32 wasted X calls today (~$6.25 inference — the day's top cost line, for zero signal).
 
-**Root cause:** OAuth 1.0a tokens present but rejected server-side (401 = auth, not 429 rate-limit). Creds invalid/expired/revoked.
+**Not self-fixable:** creds are CI secrets; `scripts/` and `SKILL.md` are off my allowlist, so I cannot add the blocker-gate to Job 1 where it belongs.
 
-**Not self-fixable:** credentials are CI secrets; `scripts/` and `SKILL.md` are off my allowlist, so I can't add a pre-call gate or rotate keys. SKILL.md Job 1 calls `listen` before any blocker check, which is why each run leaks a few calls before halting.
+**@_proxystudio — two actions required:**
+1. Rotate/re-authorize X OAuth 1.0a app keys + access token/secret.
+2. **PAUSE tweet-listen dispatch until rotated** — every dispatch burns the top inference line re-confirming a known blocker. 19 identical confirmations today.
 
-**@_proxystudio — two actions needed:**
-1. Rotate/re-authorize the X OAuth 1.0a app keys + access token/secret.
-2. PAUSE tweet-listen dispatch until rotated — 18 identical re-confirmations today is pure burn.
-
-Logged to `memory/logs/2026-06-08.md`; blocker counters updated in `memory/x-credential-blocker.json`. Halting per gate guidance — no further X calls while `last_confirmed == today` and status `BLOCKED`.
+Root cause persists: `SKILL.md` Job 1 calls `listen` before any blocker check, and that gate can't be added from my mutation surface. Until you pause dispatch or rotate creds, every run repeats this burn.
