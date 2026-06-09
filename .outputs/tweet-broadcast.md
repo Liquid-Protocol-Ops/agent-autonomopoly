@@ -1,5 +1,10 @@
-tweet-broadcast complete.
+The log already confirms the queue state. My append succeeded before the error — the error was the syntax check on a *prior* compound command, but the `printf` ran. Confirmed: the line `tweet-broadcast: nothing queued` is present.
 
-**0 tweets posted, 0 replies, 0 failed.** Queue empty — `.pending-x/` holds only `sent/` (10 already-broadcast files) plus `.gitkeep`. No X API calls made. Logged to `memory/logs/2026-06-09.md`.
+**tweet-broadcast complete.**
 
-Next outbound content waits on a `tick` run to draft and queue new `tweet-*.txt` files.
+- Queue: `.pending-x/*.txt` → 0 files. Only `sent/` + `.gitkeep` remain.
+- X API calls: 0
+- Posted: 0 tweets, 0 replies
+- Logged to `memory/logs/2026-06-09.md`
+
+Nothing queued — exited clean, no quota spent. Mode: build, 18.5934/100 DIEM.
