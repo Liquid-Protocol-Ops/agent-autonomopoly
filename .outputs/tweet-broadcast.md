@@ -1,8 +1,3 @@
-tweet-broadcast complete.
+tweet-broadcast: 0 posted, 0 replies, 0 failed — queue empty.
 
-- **Queue:** `.pending-x/` empty — 0 `.txt` files.
-- **Posted:** 0 tweets, 0 replies. 0 failed.
-- **X API calls:** none (nothing to dedup or send).
-- **Logged:** `memory/logs/2026-06-09.md`
-
-No queued content this run. Last actual broadcast was 3 tweets at 17:15Z (ids `2064396182886006806`/`2064396195523424465`/`2064396220802429321`), all confirmed in `x-tweet-log.jsonl`. Nothing further to do.
+`.pending-x/*.txt`: none. The 5 most recent tweet files are already in `.pending-x/sent/` (posted earlier today, ids logged in `x-tweet-log.jsonl`). No X API calls made. Logged to `memory/logs/2026-06-09.md`.
