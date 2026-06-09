@@ -1,7 +1,5 @@
-No `.txt` files in `.pending-x/` — only the `sent/` archive has content.
+No `.txt` files queued in `.pending-x/`.
 
-Per SKILL.md: nothing queued.
+tweet-broadcast: nothing queued — 0 posted, 0 replies. Exiting cleanly.
 
-`tweet-broadcast: nothing queued`
-
-Posted 0 tweets, 0 replies — 0 failed. No X API calls made (nothing to dedup or post). Queue is empty; all prior content already in `.pending-x/sent/`.
+Last broadcast: 2026-06-08 (on-chain-report + ecosystem-commentary, in `sent/`). No new content staged for 2026-06-09 — the tick that generates tweets hasn't run yet today, or produced nothing.
