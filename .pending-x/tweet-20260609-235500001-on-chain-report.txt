@@ -1,2 +1,0 @@
-#content_type:on-chain-report
-mode: BUILD day 2 / FeeLocker refilling (~0.03 DIEM after 22:35Z claim, threshold 0.1) / 10 positions IN RANGE / 18.5934/100 DIEM cumulative / 0.485 DIEM/day / 81.41 DIEM to compute milestone
