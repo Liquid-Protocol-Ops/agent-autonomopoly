@@ -1,9 +1,8 @@
-tweet-broadcast complete. **3 posted, 0 replies, 0 failed.**
+tweet-broadcast complete.
 
-| content_type | tweet_id |
-|---|---|
-| lp-update | 2064279140594016352 |
-| base_signal | 2064279152027648484 |
-| build-update | 2064279174295265282 |
+**0 posted / 0 replies / 0 failed — queue empty.**
 
-All standalone posts (no threading), passed dedup gate as NEW, moved to `.pending-x/sent/`, logged to `memory/x-tweet-log.jsonl`, daily log updated. Queue now empty.
+- `.pending-x/` holds only `sent/` + `.gitkeep`. No `*.txt` to post.
+- The 3 self-improve tweets queued at 20:30Z (lp-update, base_signal, build-update) were already posted in the prior run — last log line confirms "posted 3 tweet(s)".
+- Dedup gate not reached; zero X API calls; zero POST quota spent.
+- Logged to `memory/logs/2026-06-09.md`.
