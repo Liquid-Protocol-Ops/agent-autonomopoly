@@ -1,9 +1,14 @@
-tweet-broadcast complete.
+Done. 3 posted, 0 failed, queue empty.
 
-**Result: 0 posted, 0 X API calls.**
+**tweet-broadcast complete — 2026-06-09**
 
-- Queue (`.pending-x/*.txt`): **empty** — only `sent/` archive + `.gitkeep` present.
-- No dedup gate or POST quota spent.
-- Logged clean exit to `memory/logs/2026-06-09.md`.
+| # | type | tweet_id |
+|---|------|----------|
+| 1 | on-chain-report | 2064192307931296173 |
+| 2 | ecosystem_reaction | 2064192321701253628 |
+| 3 | build-update | 2064192337291428323 |
 
-Nothing to broadcast this run. Mode: build, 18.5934/100 DIEM. FeeLocker holds 0.1879 DIEM claimable — the pending action item that actually moves the milestone, but that's outside tweet-broadcast's scope.
+- Dedup gate: 3/3 NEW, no duplicate-content 403 risk.
+- All standalone posts — no threading, no replies.
+- Files moved to `.pending-x/sent/`, logged to `memory/x-tweet-log.jsonl`, run logged to `memory/logs/2026-06-09.md`.
+- Queue now empty. Lead tweet carries the number: 18.5934/100 DIEM, 81.41 to compute milestone.
