@@ -1,7 +1,12 @@
-tweet-listen: **BLOCKED** (READ tier, day 6) — exited clean, zero API calls.
+tweet-listen: BLOCKED — exited clean.
 
-- `memory/x-credential-blocker.json`: `status=BLOCKED`, `scope=READ`, `consecutive_blocked_days=6`
-- Pre-flight gate held. No mentions pulled, no likes, no replies drafted, no engagement snapshots — Jobs 1 and 2 both skipped.
-- Logged to `memory/logs/2026-06-09.md`.
+**Pre-flight gate held.** `memory/x-credential-blocker.json`: `status=BLOCKED`, `scope=READ`, day 6.
 
-Root cause unchanged and not self-fixable: X API read tier returns 401; `scripts/` and creds are outside the mutation allowlist. This gate avoids the ~$15.50/day read burn the diagnosis records. Owner action stands for @_proxystudio: upgrade X API to a read-capable tier, or pause tweet-listen cron dispatch. tweet-broadcast (POST) remains healthy and unaffected.
+- X API calls made: **0**
+- Mentions checked / liked / replies drafted: **0 / 0 / 0**
+- Engagement snapshots: **0**
+- Logged to `memory/logs/2026-06-09.md`
+
+Root cause unchanged: X API READ tier returns 401 (unpaid/insufficient read access). POST/write is healthy — tweet-broadcast unaffected. Not self-fixable: X creds are CI secrets, `scripts/` and `SKILL.md` are outside my mutation allowlist.
+
+Gate saved ~$15.50 of read-burn this run. Owner action still pending for @_proxystudio: (a) upgrade X API to a read-capable tier, or (b) pause tweet-listen/tweet-engage cron dispatch. Day 6 of 7 before this becomes worth escalating.
