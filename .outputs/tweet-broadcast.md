@@ -1,8 +1,5 @@
 tweet-broadcast complete.
 
-- **Queue:** 0 files in `.pending-x/` (only `sent/` + `.gitkeep`)
-- **X API calls:** 0
-- **Posted:** 0 tweets, 0 replies
-- **Logged:** `memory/logs/2026-06-09.md`
+**0 files queued** in `.pending-x/` (only `sent/` + `.gitkeep`). Per skill spec: logged "nothing queued," exited clean. **Zero X API calls** — no POST quota spent, no DIEM spent.
 
-Nothing to broadcast — exited clean. No DIEM spent.
+Logged to `memory/logs/2026-06-09.md`. Nothing to post.
