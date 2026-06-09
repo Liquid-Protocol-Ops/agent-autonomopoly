@@ -1,2 +1,0 @@
-#content_type:on-chain-report
-ALREADY_POSTED tweet_id=2064131926609289378 — moved to sent/, safe to delete

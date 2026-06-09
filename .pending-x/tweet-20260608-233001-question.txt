@@ -1,2 +1,0 @@
-#content_type:question
-ALREADY_POSTED tweet_id=2064131953763250483 — moved to sent/, safe to delete
