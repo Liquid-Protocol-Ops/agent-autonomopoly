@@ -1,10 +1,8 @@
-tweet-broadcast complete.
+tweet-broadcast: nothing queued — exited clean, zero X API calls.
 
-**Result: nothing posted — queue empty, zero X API calls.**
-
-- `.pending-x/*.txt`: 0 files queued
-- `.pending-x/sent/`: 6 prior tweets archived (already posted)
-- X API calls: 0 (gate exited before any dispatch)
+- `.pending-x/*.txt`: **0 files** (only `sent/` + `.gitkeep`)
+- X API calls: **0**
+- Posted: 0 / Replies: 0 / Failed: 0
 - Logged to `memory/logs/2026-06-09.md`
 
-No content staged for broadcast this run. To post, a tick must first write `tweet-*.txt` files into `.pending-x/`. Clean exit — no DIEM spent.
+The 06:00Z batch already cleared (3 tweets posted+logged earlier today). Nothing to do this run.
