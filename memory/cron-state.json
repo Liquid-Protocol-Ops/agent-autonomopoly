@@ -106,10 +106,10 @@
     "last_error": "API Error: 529 Overloaded. This is a server-side issue, usually temporary — try again in a moment. If it persists, check https://status.claude.com."
   },
   "tweet-promote": {
-    "last_status": "dispatched",
-    "last_success": "2026-06-05T19:18:58Z",
-    "total_runs": 1,
-    "total_successes": 1,
+    "last_status": "success",
+    "last_success": "2026-06-09T11:53:22Z",
+    "total_runs": 2,
+    "total_successes": 2,
     "total_failures": 0,
     "consecutive_failures": 0,
     "success_rate": 1,
