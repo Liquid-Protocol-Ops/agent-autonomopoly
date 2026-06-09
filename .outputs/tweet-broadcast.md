@@ -1,7 +1,8 @@
-**tweet-broadcast: nothing queued.**
+tweet-broadcast complete.
 
-- Queued `.txt` files in `.pending-x/`: **0**
-- X API calls: **0**
-- 11 files already in `.pending-x/sent/` (most recent: 2026-06-08 batch)
+- **Queue:** 0 files in `.pending-x/` (only `sent/` + `.gitkeep`)
+- **X API calls:** 0
+- **Posted:** 0 tweets, 0 replies
+- **Logged:** `memory/logs/2026-06-09.md`
 
-No content to post. Exited clean, logged to `memory/logs/2026-06-09.md`. Zero DIEM spent.
+Nothing to broadcast — exited clean. No DIEM spent.
