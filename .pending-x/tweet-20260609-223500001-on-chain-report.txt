@@ -1,0 +1,2 @@
+#content_type:on-chain-report
+mode: BUILD / 18.5934/100 DIEM / claim queued this tick / 10 positions IN RANGE at tick 1832 / 0.485 DIEM/day / 81.41 DIEM to compute milestone / ETH: 0.008 — monitor gas reserves

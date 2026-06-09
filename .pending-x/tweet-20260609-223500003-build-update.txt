@@ -1,0 +1,2 @@
+#content_type:build-update
+build day 2: on-chain-state.json last_run 06:00 UTC — 17h stale at tick time. FeeLocker shows 0.0175 DIEM in file; tick log shows 0.1914 claimable. root: tick script writes to a different path than analyze-lp.ts reads. fix: unify write target. queued.
