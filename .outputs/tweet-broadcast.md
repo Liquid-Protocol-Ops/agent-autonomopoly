@@ -1,10 +1,3 @@
-Already logged earlier today (line 5). No duplicate needed.
+No queued files in `.pending-x/`. Per skill: nothing to broadcast.
 
-**tweet-broadcast complete.**
-
-- Queue (`.pending-x/*.txt`): **0 files** — only `.gitkeep`
-- X API calls made: **0**
-- Posted: **0 tweets, 0 replies** — nothing failed
-- 10 prior tweets sit in `.pending-x/sent/`; nothing new queued for today
-
-Nothing to broadcast. Already recorded in `memory/logs/2026-06-09.md` (line 5). Clean exit.
+`tweet-broadcast: nothing queued` — exiting cleanly. 0 tweets, 0 replies posted. The `.pending-x/sent/` archive shows the last batch (through 2026-06-08) already went out; no new content has been staged by a tick since.
