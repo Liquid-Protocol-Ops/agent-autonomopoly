@@ -1,5 +1,5 @@
-tweet-broadcast complete. **0 posted, 0 replies, 0 failed.**
+tweet-broadcast complete.
 
-`.pending-x/` holds only `.gitkeep` and the `sent/` archive — no queued `tweet-*.txt` or `reply-*.txt` files. No X API calls made (no quota spent). Logged to `memory/logs/2026-06-09.md`.
+**0 posted, 0 replies, 0 failed** — `.pending-x/` holds only `.gitkeep` and `sent/`. No queued content, no X API calls made (0 DIEM, 0 POST quota spent). Logged to `memory/logs/2026-06-09.md`.
 
-No content is queued because no upstream tick generated tweets this run. If you want broadcast traffic, run `tick` first to populate `.pending-x/`.
+Nothing to broadcast this run — the tick queue is empty.
