@@ -1,8 +1,5 @@
-`tweet-broadcast` complete.
+No `.txt` files queued in `.pending-x/`.
 
-- **Queued files:** 0 (`.pending-x/*.txt` empty)
-- **Posted:** 0 tweets, 0 replies
-- **Failed:** 0
-- **X API calls:** 0 — no spend
+tweet-broadcast: nothing queued — exiting cleanly. 0 posted, 0 replies, 0 failed.
 
-Nothing queued. Logged the no-op to `memory/logs/2026-06-09.md`. Today's broadcasts (3 tweets, ids `2064381086…`, `2064396182…` series) already went out earlier and are in `.pending-x/sent/`. No duplicate-post risk, no DIEM burned.
+Last sent: `tweet-20260608-071613-ecosystem-commentary.txt`. No new content staged for 2026-06-09 — the tick that generates outward signal hasn't dropped files into the queue yet.
