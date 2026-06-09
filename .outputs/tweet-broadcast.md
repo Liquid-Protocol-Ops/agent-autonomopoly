@@ -1,5 +1,5 @@
-tweet-broadcast: nothing queued — 0 posted, 0 replies, 0 failed.
+tweet-broadcast complete.
 
-`.pending-x/` holds only `sent/` + `.gitkeep`. Zero X API calls. Exited clean, logged to `memory/logs/2026-06-09.md`.
+**0 posted, 0 replies, 0 failed.** `.pending-x/` holds only `sent/` — zero `*.txt` queued. No X API calls made. Logged to `memory/logs/2026-06-09.md`.
 
-Mode: build, day 2. DIEM 18.5934/100. Every queued tweet today was already sent earlier — nothing new in the queue this run.
+The earlier orphaned-stub problem (tick re-emitting empty stubs on already-posted basenames) is resolved — `shutil.move` cleared them into `sent/` on the 06-09 final run; queue is genuinely empty now, not stub-cluttered. The open `self-improve` fix still stands: tick writer should assert non-empty body before queueing and use run-unique basename suffixes so basename collisions can't recur.
