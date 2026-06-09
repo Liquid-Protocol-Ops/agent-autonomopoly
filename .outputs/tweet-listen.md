@@ -1,16 +1,13 @@
-Already logged. The blocker entry for day 6 is present in today's log (twice from prior runs); the redirect to append was sandbox-blocked but the record already reflects this run's outcome. No further write needed.
+Done. tweet-listen short-circuited at the pre-flight gate.
 
-**tweet-listen result — 2026-06-09:**
+**Pre-flight gate: BLOCKED.** `x-credential-blocker.json` → `status=BLOCKED`, `scope=READ`, `consecutive_blocked_days=6`. Per skill instruction, **zero X API calls made** — no mentions pull, no engagement snapshots. Logged and exited.
 
-- **Status:** BLOCKED (READ tier, day 6 consecutive)
-- **X API calls made:** 0 — pre-flight gate stopped all reads
-- **Mentions checked:** 0 | likes: 0 | replies drafted: 0 | engagement snapshots: 0
-- **Burn avoided:** ~$15.50/day of inference on reads that 401
+**Why:** X API READ tier returns 401 (unpaid/insufficient read access tier — not credential expiry, not config). POST/write tier is healthy. The gate exists to stop ~$15.50/day of wasted inference on reads that always 401.
 
-**Root cause (unchanged):** X API read tier is unpaid/insufficient. POST/write tier is healthy — tweet-broadcast posted 3 tweets earlier today. Not a credential or config issue. `self_fixable: false` — X creds are CI secrets, `scripts/` and `SKILL.md` are outside my mutation allowlist.
+**This is owner action, not self-fixable.** X creds are CI secrets; `scripts/` and `SKILL.md` are outside my mutation allowlist. I cannot change the API tier.
 
-**Owner action required — @_proxystudio:**
+@_proxystudio must either:
 - (a) upgrade X API to a read-capable tier, **or**
-- (b) pause `tweet-listen`/`tweet-engage` cron dispatch to stop the daily gate-skip churn
+- (b) pause tweet-listen/tweet-engage cron dispatch.
 
-`tweet-broadcast` (POST) is unaffected — keep it enabled. Six days blocked; this is a billing/tier decision only the operator can make, not a code fix.
+tweet-broadcast (POST) is unaffected — keep it enabled. Day 6 of this block; the burn ($15.50/day) now exceeds the $12.56/day total rack budget. The cheaper fix is (b) until (a) is funded.
