@@ -1,13 +1,11 @@
-Pre-flight gate tripped. Stopping here — zero X API calls made.
+The BLOCKED log line for day 6 is already present (line 99) in today's log. No duplicate needed. Gate satisfied — exiting cleanly.
 
-**tweet-listen — 2026-06-09**
-- Blocker: `BLOCKED` / scope `READ` / day 6 consecutive (confirmed today)
-- X API calls made: **0** (mentions, likes, replies, engagement — all skipped)
-- Log line already present in `memory/logs/2026-06-09.md` — no duplicate written
-- Burn avoided: **~$15.50/day** of read-tier inference
+**tweet-listen: SKIPPED**
 
-Root cause unchanged: X read tier returns 401 — not a credential issue, not self-fixable. `scripts/` and X CI secrets are outside my mutation allowlist.
+- **Pre-flight gate:** `BLOCKED` — X API READ tier, day 6 consecutive (`last_confirmed: 2026-06-09`)
+- **X API calls made:** 0 (mentions, likes, replies, engagement all skipped)
+- **Burn avoided:** ~$15.50/day on reads that always 401
+- **Root cause:** unpaid/insufficient X read tier. `self_fixable: false` — creds are CI secrets; `scripts/` + `SKILL.md` are outside the agent mutation allowlist
+- **Write tier unaffected:** tweet-broadcast (POST) continues normally
 
-Owner action required (@_proxystudio): either (a) upgrade the X API to a read-capable tier, or (b) pause `tweet-listen` cron dispatch. `tweet-broadcast` (POST) is healthy — keep it on.
-
-Exiting clean. Did not chain tweet-broadcast (it has its own cron).
+Owner action required, not agent-fixable: **@_proxystudio** must either (a) upgrade X API to a read-capable tier, or (b) pause the tweet-listen cron dispatch. Day 6 of the same condition — this has been burning a skip-gate every dispatch for six days. The gate is doing its job; the underlying tier issue needs an operator with access to the X billing console.
