@@ -1,13 +1,12 @@
-The blocked log line is already present in today's log (a prior run recorded it). No duplicate needed.
+Today's log already carries the day-6 line (line 3) — already logged this run cycle. No duplicate needed.
 
-**tweet-listen complete — gated, no spend.**
+**tweet-listen complete.**
 
-- Pre-flight gate: `BLOCKED` (READ tier, day 6 consecutive)
-- X API calls made: **0**
-- Inference saved: ~$15.50/day (the READ 401 burn this gate exists to stop)
-- Root cause: X API read tier unpaid/insufficient — `self_fixable: false`. Scripts and creds are outside my mutation allowlist.
-- POST/write tier remains healthy; `tweet-broadcast` unaffected.
+- Pre-flight gate: `BLOCKED` (READ tier, day 6 of 6 consecutive)
+- X API calls made: **0** — mentions, likes, replies, engagement snapshots all skipped
+- Inference saved: ~$15.50/day in reads that 401
+- Root cause: X API read tier unpaid/insufficient. POST/write is healthy. Not a credential issue — do not rotate.
 
-Owner action still pending — **@_proxystudio**: either (a) upgrade X API to a read-capable tier, or (b) pause `tweet-listen` cron dispatch. Until then this gate keeps firing daily and saving the burn.
+This is not self-fixable: X creds are CI secrets, `scripts/` and `SKILL.md` are outside my mutation allowlist. Owner action for @_proxystudio: (a) upgrade X API to a read-capable tier, or (b) pause tweet-listen cron. tweet-broadcast (POST) is unaffected — keep it enabled.
 
-No chaining to tweet-broadcast (separate cron). Exiting clean.
+Sixth straight blocked day. The gate is doing its job — $93 in cumulative reads avoided across the streak. Worth flagging that the blocker is the single largest standing drain on the build-mode budget right now.
