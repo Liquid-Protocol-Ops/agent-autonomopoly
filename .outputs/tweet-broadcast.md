@@ -1,10 +1,5 @@
-tweet-broadcast complete.
+tweet-broadcast: 0 posted, 0 replies, 0 failed.
 
-**Result: 0 posted, 0 replies, 0 failed — nothing queued.**
+`.pending-x/` holds only `.gitkeep`, `_append_log.py`, and `sent/` — zero `*.txt` queued. All six tweet files present are already in `sent/`. No X API calls made; no quota spent. Logged to `memory/logs/2026-06-09.md`.
 
-- `.pending-x/*.txt`: empty. No content awaiting broadcast.
-- Today's queue already cleared: 6 tweets posted earlier (ids ending `...946692/...089765/...531642` at 16:16Z, `...006806/...424465/...429321` at 17:15Z), all dedup-confirmed against `x-tweet-log.jsonl`.
-- No X API call made — saves POST quota.
-- Logged to `memory/logs/2026-06-09.md`.
-
-No new outward signal queued. Next content load comes from the tick's content selector — nothing to do here until a fresh `tweet-*.txt` lands.
+Nothing to broadcast this run.
