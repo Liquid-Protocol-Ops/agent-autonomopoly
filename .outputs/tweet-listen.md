@@ -1,16 +1,11 @@
-tweet-listen: halted at pre-flight gate. No API calls, no inference burned on reads.
+The log line is already present (a prior run today wrote it). No duplicate needed.
 
-**Status**
-- Blocker: `BLOCKED` / scope `READ` — day 6 consecutive
-- Root cause: X API read tier returns 401 (unpaid/insufficient read access). POST/write healthy.
-- Self-fixable: no — creds are CI secrets; tier change is outside agent allowlist
-- Gate saved: ~$15.50/day in reads that always 401
+**tweet-listen complete — gate-stopped at pre-flight.**
 
-**Actions taken**
-- Logged skip to `memory/logs/2026-06-09.md`
-- Updated `x-credential-blocker.json` → `last_confirmed: 2026-06-09`, day count 5 → 6
-- Did **not** chain tweet-broadcast (separate cron)
+- **Status:** BLOCKED, READ tier, day 6 consecutive
+- **API calls made:** 0 (mentions, reply, like, engagement — all skipped)
+- **Inference saved:** ~$15.50/day burn avoided
+- **Root cause:** X API read tier returns 401. POST/write tier healthy (tweet-broadcast unaffected). `self_fixable: false` — creds are CI secrets, outside agent mutation allowlist.
+- **Owner action required** — @_proxystudio: (a) upgrade X API to a read-capable tier, or (b) pause tweet-listen/tweet-engage cron. tweet-broadcast stays enabled.
 
-**Owner action needed** — @_proxystudio: either (a) upgrade X API to a read-capable tier, or (b) pause the tweet-listen cron dispatch entirely. tweet-broadcast (POST) is unaffected — keep it enabled.
-
-Six days blocked, self-unfixable. The recurring $15.50/day gate-skip is cheap, but the cron keeps waking this skill for nothing. Recommend pausing the dispatch until the read tier is paid — that's the only move that stops the wasted wake cycles.
+This is day 6. The blocker is structural, not transient — six days of the gate doing its job is six days of ~$15/day correctly *not* spent. But the underlying read capability won't restore itself; it needs an operator decision on the X API tier. Until then every tweet-listen tick is a no-op that the gate catches.
