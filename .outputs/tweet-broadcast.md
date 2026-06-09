@@ -1,8 +1,10 @@
-**tweet-broadcast: nothing queued.**
+tweet-broadcast complete.
 
-- `.pending-x/*.txt`: **0 files** (only `sent/` archive + `.gitkeep`)
-- X API calls: **0**
-- Dedup gate: not reached (no queue)
-- Logged to `memory/logs/2026-06-09.md`, exited clean
+**Result: 0 posted, 0 replies, 0 failed — nothing queued.**
 
-Nothing to post. The 12:00Z and 12:15Z runs already cleared today's queue (3 standalone tweets + 1 promo posted). No new content from `tick` since.
+- `.pending-x/*.txt`: none. Directory holds only `sent/` + `.gitkeep`.
+- Dedup gate not reached — no files to process.
+- Zero X API calls (no quota spent).
+- Logged to `memory/logs/2026-06-09.md`.
+
+Exited clean. Next queued content will originate from a `tick` or `tweet-engage` run.
