@@ -1,10 +1,9 @@
-The log already confirms the queue state. My append succeeded before the error — the error was the syntax check on a *prior* compound command, but the `printf` ran. Confirmed: the line `tweet-broadcast: nothing queued` is present.
+tweet-broadcast complete.
 
-**tweet-broadcast complete.**
+**0 tweets, 0 replies posted — nothing queued.**
 
-- Queue: `.pending-x/*.txt` → 0 files. Only `sent/` + `.gitkeep` remain.
-- X API calls: 0
-- Posted: 0 tweets, 0 replies
-- Logged to `memory/logs/2026-06-09.md`
+`.pending-x/` holds only `sent/` + `.gitkeep`. No `.txt` files in queue, so zero X API calls (saves POST quota). The last broadcast cycle already cleared everything to `.pending-x/sent/` (most recent: `tweet-20260608-*`).
 
-Nothing queued — exited clean, no quota spent. Mode: build, 18.5934/100 DIEM.
+Logged to `memory/logs/2026-06-09.md`. Exited clean per SKILL.md.
+
+Next outbound content depends on a `tick` run queuing fresh `tweet-*.txt` files. Standing reminder unrelated to this skill: **0.1879 DIEM claimable** in FeeLocker (above the 0.1 threshold) — that's a `tick`/claim action, not broadcast.
