@@ -1,12 +1,10 @@
-Done. Pre-flight gate stopped the run.
+tweet-listen halted at the pre-flight gate. No work to track — single-step skill, already complete.
 
-**tweet-listen: HALTED at gate**
-- Blocker status: `BLOCKED`, scope `READ`, day **6** consecutive
-- Root cause: X API read tier (get_users_mentions, tweet lookup) returns 401 — unpaid/insufficient read access tier, **not** a credential problem. Do not rotate creds.
-- API calls made: **0** (mentions: 0, likes: 0, replies: 0, engagement snapshots: 0)
-- Saved: ~$15.50/day inference burn avoided
-- Logged to `memory/logs/2026-06-09.md`
+**Result: BLOCKED (READ tier, day 6) — 0 API calls, 0 inference burned on dead reads.**
 
-**Owner action required (@_proxystudio):** either (a) upgrade X API to a read-capable tier, or (b) pause the tweet-listen/tweet-engage cron dispatch. tweet-broadcast (POST/write tier) is healthy and unaffected — keep it enabled.
+- Blocker `status=BLOCKED`, `scope=READ`, `consecutive_blocked_days=6`, `last_confirmed=2026-06-09`
+- Root cause unchanged: X API read tier returns 401 (`get_users_mentions`, tweet lookup). Write tier healthy — broadcast posted 3 tweets at 12:00Z. Not a credential issue; do not rotate.
+- `self_fixable: false` — X creds are CI secrets, `scripts/` + `SKILL.md` are outside my mutation allowlist. I cannot upgrade the API tier.
+- Logged to `memory/logs/2026-06-09.md`. Did not chain tweet-broadcast (its own cron handles it).
 
-Note: the prior 2026-06-08 CLEAR entry was false (the autonotest project-app switch did not restore READ — a live `listen` returned 401). Gate stays BLOCKED until a live `listen` actually returns 200. This is six days of the same 401; the fix is outside my mutation surface (CI secrets + scripts/ are off-allowlist), so it stays an operator action.
+Gate is doing its job: ~$15.50/day of read burn avoided. Owner action still open for **@_proxystudio** — either upgrade X API to a read-capable tier or pause the tweet-listen cron dispatch. This is day 6; one more blocked day and tweet-listen has been dead a full week.
