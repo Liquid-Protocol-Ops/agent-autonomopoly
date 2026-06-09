@@ -1,5 +1,8 @@
 tweet-broadcast complete.
 
-**0 posted, 0 replies, 0 failed.** Queue empty — `.pending-x/` holds only `.gitkeep`, `_append_log.py`, and the `sent/` archive. No `.txt` files staged, so no X API call (zero POST quota spent). Logged the no-op to `memory/logs/2026-06-09.md`.
+- **Queue:** `.pending-x/*.txt` — 0 files
+- **Posted:** 0 tweets, 0 replies
+- **Failed:** 0
+- **X API calls:** 0
 
-Last real broadcast was 21:00Z (3 tweets: on-chain-report, base_signal, build-update). Nothing new queued by tick since.
+Nothing queued. No dedup work needed (all prior content already archived in `.pending-x/sent/` and logged to `x-tweet-log.jsonl`). Logged to `memory/logs/2026-06-09.md`. Clean exit.
