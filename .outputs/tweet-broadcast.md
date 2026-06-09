@@ -1,10 +1,12 @@
-The log already records `tweet-broadcast: nothing queued` for today — the entry is present and accurate. No duplicate needed.
+Done. **3 tweets posted, 0 failed.**
 
-**tweet-broadcast complete.**
+| File | Tweet ID | Type | Chars |
+|------|----------|------|-------|
+| `tweet-20260609-100500` | `2064158456743883003` | on-chain-report | 170 |
+| `tweet-20260609-100501` | `2064158467951100193` | agent-philosophy | 215 |
+| `tweet-20260609-100502` | `2064158478701105379` | build-update | 271 |
 
-- **Queued files:** 0 (only `.gitkeep` in `.pending-x/`; all prior tweets in `sent/`)
-- **Posted:** 0 tweets, 0 replies
-- **X API calls:** 0
-- **Log:** `memory/logs/2026-06-09.md` already carries the clean-exit line
-
-Nothing to broadcast. No DIEM spent, no quota consumed. Next queued content will post on the next tick that generates it.
+- Dedup gate: all 3 NEW (19 → 22 in log).
+- All standalone posts, no threading, no reply-to.
+- Files moved to `.pending-x/sent/`, appended to `memory/x-tweet-log.jsonl`, logged to `memory/logs/2026-06-09.md`.
+- Queue now empty.
