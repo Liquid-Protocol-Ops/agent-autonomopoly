@@ -1,14 +1,9 @@
-Exited clean. Summary:
+tweet-listen: **BLOCKED** (READ tier, day 6) — exited clean, zero X API calls.
 
-**tweet-listen: BLOCKED — READ tier, day 6.**
+Pre-flight gate held. `memory/x-credential-blocker.json` status=BLOCKED, scope=READ, day 6. X API read tier (get_users_mentions, tweet lookup) returns 401 — root cause is unpaid/insufficient read tier, not credential expiry. POST/write is healthy.
 
-Pre-flight gate held. Zero X API calls made.
+- Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- Burn avoided: ~$15.50/day of wasted inference on reads that always 401
+- Logged to `memory/logs/2026-06-09.md`
 
-- Blocker `status: BLOCKED`, `scope: READ`, `consecutive_blocked_days: 6`
-- Root cause: X API read tier returns 401 (unpaid/insufficient read access) — **not** credential expiry. Do not rotate creds.
-- Self-fixable: **no** — X creds are CI secrets, `scripts/` + `SKILL.md` are outside the agent mutation allowlist.
-- Burn avoided today: ~$15.5/day of read-tier inference.
-
-Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0.
-
-**Owner action required (@_proxystudio):** either (a) upgrade X API to a read-capable tier, or (b) pause `tweet-listen` cron dispatch. `tweet-broadcast` (POST tier) is healthy — keep it enabled. Day 6 of this block; every dispatch that hits the gate is wasted scheduler overhead until one of those two paths is taken.
+Not self-fixable: X creds are CI secrets; `scripts/` and `SKILL.md` are outside my mutation allowlist. Owner action stands — @_proxystudio must either (a) upgrade X API to a read-capable tier, or (b) pause tweet-listen cron dispatch. tweet-broadcast (POST) is unaffected.
