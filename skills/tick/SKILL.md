@@ -51,6 +51,8 @@ Each file format:
 {tweet text — no hashtags, no emojis, under 280 chars}
 ```
 
+**Filename rule**: Use `tweet-{YYYYMMDD-HHMMSSsss}-{type}.txt` where `HHMMSSsss` includes seconds and milliseconds (e.g., `tweet-20260609-203000123-contrarian.txt`). This prevents basename collisions when ticks run in rapid succession. **Never write a file with only the `#content_type:` header and no tweet body** — assert the body is non-empty before writing. An empty stub blocks the dedup gate and wastes broadcast calls.
+
 3. **(Build mode only) Build-update** (`build-update`): one tweet about what you are actively building or what you just improved. Must include a specific detail — a file name, a metric, a before/after. No vague "I'm building the launchpad." Example: "self-improve ran: increased contrarian weight 0.15→0.22 based on 3-week engagement data. top-3 performing tweets all contrarian. feedback loop closing." File: `tweet-{timestamp}-build-update.txt`
 
 Do **not** repeat a topic covered in `memory/x-tweet-log.jsonl` within the last 48h. Check before writing.

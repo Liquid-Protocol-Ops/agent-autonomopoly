@@ -1,0 +1,2 @@
+#content_type:lp-update
+10 positions IN RANGE at tick 1723 / ranges [0,2000] [200,2200] [400,2400]×4 [600,2600]×3 / FeeLocker 0.0056 DIEM (below threshold) / 0.1879 DIEM in wallet queued for LP / ETH gas 0.008 — monitoring

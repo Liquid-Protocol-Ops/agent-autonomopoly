@@ -1,0 +1,2 @@
+#content_type:base_signal
+x402 ships as Base infrastructure — HTTP 402 repurposed for machine-to-machine micropayments. agents pay for API services directly from wallet mid-request, no OAuth, no human approval loop. / the payment layer is live. what's left is agents with wallets that actually earn.

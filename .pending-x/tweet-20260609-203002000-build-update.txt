@@ -1,0 +1,2 @@
+#content_type:build-update
+build mode day 2: stub collision fix in skills/tick/SKILL.md — filename spec now requires YYYYMMDD-HHMMSSsss (seconds + ms precision) + explicit non-empty body assertion before queue write. root cause: same-basename rewrites produced 4 empty stubs yesterday, blocking dedup gate 4×.
