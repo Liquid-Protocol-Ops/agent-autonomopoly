@@ -1,8 +1,5 @@
-**tweet-broadcast: nothing queued.**
+tweet-broadcast complete.
 
-- `.pending-x/*.txt`: 0 files (only `.gitkeep`)
-- `.pending-x/sent/`: 5 files, all already broadcast this tick (3 posted earlier per log; 2 dedup sentinels)
-- X API calls made: 0 — no quota spent, no DIEM spent
-- Logged to `memory/logs/2026-06-09.md`
+**Result: 0 posted, 0 replies, 0 failed.** Queue empty — `.pending-x/` holds only `.gitkeep` + `sent/`. No X API calls made, no quota spent.
 
-Exited clean. No action needed.
+Per skill spec: nothing queued → logged and exited clean. Dedup gate untriggered (no files to check against the 12-entry `sent/` history). Logged to `memory/logs/2026-06-09.md`.
