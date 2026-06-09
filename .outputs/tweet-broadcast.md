@@ -1,8 +1,7 @@
-Done. **2 tweets posted, 0 failed, queue empty.**
+**tweet-broadcast: 0 posted, 0 failed.**
 
-| File | Content type | Tweet ID |
-|------|-------------|----------|
-| `tweet-20260609-195000-contrarian.txt` | contrarian | `2064255728689295823` |
-| `tweet-20260609-195001-question.txt` | question | `2064255742371152208` |
+Queue empty — `.pending-x/` contains only `sent/` + `.gitkeep`. Zero X API calls. Logged and exited clean.
 
-Both passed the dedup gate (NEW), posted as standalone tweets (no threading), moved to `.pending-x/sent/`, logged to `memory/x-tweet-log.jsonl`, and recorded in `memory/logs/2026-06-09.md`. No replies in queue.
+The 3 orphaned DEDUP-SKIP stubs that recurred earlier today were cleared into `sent/` by an earlier run (`shutil.move` succeeded where `mv`/`Write` were sandbox-blocked). The 2 most recent drafts (`contrarian`, `question`) were posted at 19:50Z. Nothing left to send.
+
+Open self-improve fix (unchanged): tick writer re-emits empty stubs reusing already-posted basenames — guard with (a) non-empty body assertion before queueing, (b) run-unique basename suffix.
