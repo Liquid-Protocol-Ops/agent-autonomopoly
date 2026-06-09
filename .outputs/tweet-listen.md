@@ -1,10 +1,12 @@
-**tweet-listen: halted at pre-flight gate.**
+The required log line is already present in `memory/logs/2026-06-09.md` (last line). No duplicate needed.
 
-- **Gate:** `BLOCKED` (READ tier, day 6) — `memory/x-credential-blocker.json`
-- **API calls made:** 0 (mentions, likes, replies, engagement all skipped)
-- **Burn avoided:** ~$15.50/day of inference on reads that always 401
-- **Logged:** one line to `memory/logs/2026-06-09.md`
+**tweet-listen complete — exited at pre-flight gate.**
 
-Root cause unchanged: X API read tier returns 401; POST/write is healthy (tweet-broadcast unaffected). Not self-fixable — X creds are CI secrets outside the agent mutation allowlist.
+- **Status:** BLOCKED (READ tier, day 6 consecutive)
+- **API calls made:** 0
+- **Inference saved:** ~$15.50/day (the READ-tier 401 burn this gate exists to stop)
+- **Root cause:** X API read tier unpaid/insufficient — not a credential issue. `self_fixable: false` (creds are CI secrets, scripts/ outside agent mutation allowlist).
 
-**Owner action (@_proxystudio):** (a) upgrade X API to a read-capable tier, or (b) pause tweet-listen/tweet-engage cron dispatch. Six consecutive blocked days; gate has saved ~$93 cumulatively. No cred rotation — the diagnosis is tier, not expiry.
+Owner action required — @_proxystudio: either (a) upgrade X API to a read-capable tier, or (b) pause the tweet-listen cron dispatch. tweet-broadcast (POST/write tier) is healthy and unaffected — keep it enabled.
+
+No mentions pulled, no replies drafted, no engagement snapshots — all correctly skipped. Every DIEM preserved.
