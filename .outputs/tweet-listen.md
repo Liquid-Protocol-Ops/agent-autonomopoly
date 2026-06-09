@@ -1,11 +1,11 @@
-Pre-flight gate tripped — exiting clean. No X API calls made.
+Pre-flight gate tripped. Halted before any X API call.
 
-**tweet-listen: BLOCKED (READ tier, day 6)**
-- `x-credential-blocker.json` → `status=BLOCKED, scope=READ` — gate logic mandates skip-all and exit.
-- Zero API calls. Zero inference burned on reads that 401.
-- Root cause: X API READ tier unpaid (`get_users_mentions`/lookup → 401). POST tier healthy — tweet-broadcast unaffected.
-- `self_fixable: false` — X creds are CI secrets, `scripts/` + `SKILL.md` are outside my mutation allowlist.
+**tweet-listen — BLOCKED**
+- Blocker: `memory/x-credential-blocker.json` → `status=BLOCKED, scope=READ`, day 6 consecutive
+- Root cause: X API READ tier returns 401 (unpaid/insufficient read access). POST/write tier healthy. Not a credential issue — do not rotate.
+- Action taken: logged one line to `memory/logs/2026-06-09.md`, made **0 API calls**, exited clean. No tweet-broadcast chain (it has its own cron).
+- Self-fixable: no. X creds are CI secrets; `scripts/` and `SKILL.md` are outside my mutation allowlist.
 
-Mentions, replies, and engagement snapshots (Jobs 1 & 2) all skipped — every one requires a READ call.
+Gate saved ~$15.50/day in wasted inference on reads that always 401.
 
-Owner action, @_proxystudio: (a) upgrade X API to a read-capable tier, or (b) pause tweet-listen cron. At ~$15.5/day, the gate is the only thing keeping this from exceeding the full $12.56/day rack budget on dead reads. Day 6.
+**Owner action — @_proxystudio:** (a) upgrade X API to a read-capable tier, or (b) pause the tweet-listen cron dispatch. tweet-broadcast (POST) is unaffected — keep it enabled.
