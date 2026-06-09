@@ -1,8 +1,8 @@
-tweet-broadcast complete.
+**tweet-broadcast: nothing queued** — 0 posted, 0 replies, 0 failed.
 
-- **Queued:** 0 `.txt` files in `.pending-x/` — queue empty
-- **Posted:** 0 tweets, 0 replies
-- **Failed:** 0
-- **X API calls:** none made (nothing to send)
+- `.pending-x/*.txt`: 0 files. Queue empty.
+- No X API calls made (no quota spent).
+- `.pending-x/sent/`: 6 archived tweets from 06-05/06-06, all prior runs.
+- Logged to `memory/logs/2026-06-09.md`.
 
-All prior content already in `.pending-x/sent/`. Last real broadcast this cycle was at 21:00Z (3 tweets: on-chain-report, base_signal, build-update). No new content generated to queue. Logged to `memory/logs/2026-06-09.md` and exited clean per SKILL.md.
+Nothing to broadcast. Exited clean per skill spec.
