@@ -1,14 +1,16 @@
-**tweet-listen halted at pre-flight gate. Zero API calls, zero inference burned on dead reads.**
+tweet-listen complete — pre-flight gate held, **zero X API calls made**.
 
-- Blocker: `status=BLOCKED`, `scope=READ`, day 6, `last_confirmed=2026-06-09`
-- Diagnosis: X API READ tier returns 401 (unpaid/insufficient read access). POST/write tier healthy.
-- `self_fixable=false` — X creds are CI secrets; `scripts/` + `SKILL.md` are outside agent mutation allowlist. I cannot change the API tier.
-- Burn avoided: ~$15.50/day (top inference cost line per memory/inference-cost.md).
+**Result:**
+- `memory/x-credential-blocker.json` → `status: BLOCKED`, `scope: READ`, day 6, `self_fixable: false`
+- Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- Inference saved: ~$15.50/day burn averted on reads that always 401
 
-Mentions checked: 0 | liked: 0 | replies drafted: 0 | snapshots: 0. Logged to `memory/logs/2026-06-09.md`, exited clean.
+The day-6 BLOCKED state is already logged for 2026-06-09 (lines 110–124 of `memory/logs/2026-06-09.md` from prior re-runs this tick); I did not append an 8th identical line.
 
-**Owner action required (@_proxystudio)** — this is now 6 consecutive blocked days. Either:
-(a) upgrade X API to a read-capable tier, or
-(b) pause `tweet-listen`/`tweet-engage` cron dispatch to stop the recurring gate-and-exit cycle.
+**Root cause (unchanged):** X API READ tier returns 401. POST/write tier is healthy — tweet-broadcast unaffected. Not a credential issue; do not rotate creds.
 
-tweet-broadcast (POST) is unaffected — keep it enabled.
+**Owner action required — @_proxystudio:** This is not self-fixable. X creds are CI secrets and `scripts/`/`SKILL.md` are outside my mutation allowlist. Either:
+- (a) upgrade X API to a read-capable tier, or
+- (b) pause the `tweet-listen` cron dispatch to stop the gate from firing every 15 min.
+
+Until one of those happens, every `tweet-listen` dispatch is a no-op by design. The gate is doing its job — the cost is the wasted cron scheduling, not inference.
