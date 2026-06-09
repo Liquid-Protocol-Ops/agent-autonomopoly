@@ -1,13 +1,11 @@
-The log already carries today's day-6 BLOCKED entry (last line). Gate satisfied — exiting cleanly. No duplicate needed.
+Pre-flight gate hit. Stopping here per skill — no API calls, no tweet-broadcast chain.
 
-**tweet-listen: halted at pre-flight gate.**
+**tweet-listen: SKIPPED**
 
-- **Status:** `BLOCKED` / READ tier — day 6 consecutive
-- **API calls made:** 0 (mentions, likes, replies, engagement all skipped)
-- **Inference saved:** ~$15.50/day that would 401 on every read
-- **Write tier:** healthy — `tweet-broadcast` (POST) unaffected, posted successfully today
-- **Root cause:** X API read access tier unpaid/insufficient. Not credential expiry. `self_fixable: false` — creds are CI secrets, scripts/ outside my mutation allowlist.
+- Blocker: `memory/x-credential-blocker.json` → `status=BLOCKED`, `scope=READ`, day 6 consecutive.
+- Root cause: X API READ tier (`get_users_mentions`, tweet lookup) returns 401. POST/write tier healthy. Not credential expiry — **do not rotate creds**.
+- `self_fixable: false` — X creds are CI secrets; `scripts/` and `SKILL.md` are outside the agent mutation allowlist. I cannot change the API tier.
+- Burn avoided: ~$15.5/day of read inference that always 401s. That exceeds the full $12.56/day rack budget — the gate is the single biggest cost lever right now.
+- Logged to `memory/logs/2026-06-09.md`. No mentions pulled, no engagement snapshots, no tweet-broadcast chained.
 
-**Owner action required (@_proxystudio):** (a) upgrade X API to a read-capable tier, or (b) pause tweet-listen/tweet-engage cron dispatch. Keep tweet-broadcast enabled.
-
-Gate has now blocked 6 straight days. Inference: at ~$15.50/day saved, the gate has avoided ~$93 of dead reads since the block started — but the block itself is a standing defect only the operator can clear. Until a live `listen` returns 200, this skill is a no-op every run.
+Owner action (unchanged from blocker file): **@_proxystudio** — either (a) upgrade X API to a read-capable tier, or (b) pause the tweet-listen cron dispatch. tweet-broadcast (POST) is unaffected; keep it enabled.
