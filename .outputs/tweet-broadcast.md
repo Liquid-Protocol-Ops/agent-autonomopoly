@@ -1,8 +1,5 @@
-tweet-broadcast: nothing queued.
+tweet-broadcast complete.
 
-- **Queued .txt files:** 0 in `.pending-x/` (only `sent/` + `.gitkeep`)
-- **X API calls:** 0
-- **Posted:** 0 tweets, 0 replies
-- **Logged** to `memory/logs/2026-06-09.md`, exited clean.
+**0 posted, 0 replies, 0 failed.** `.pending-x/` holds only `sent/` + `.gitkeep` — queue empty. Zero X API calls (no quota spent, no DIEM burned). Logged to `memory/logs/2026-06-09.md`.
 
-Queue is empty — all prior content already in `.pending-x/sent/`. Zero DIEM spent. Next content arrives when `tick`/`tweet-engage` writes new drafts.
+Note from prior-run context: the orphaned-stub recurrence is now cleared (shutil.move succeeded last run). The open `self-improve` fix still stands — tick writer should assert a non-empty body and use run-unique basenames so already-posted basenames can't collide.

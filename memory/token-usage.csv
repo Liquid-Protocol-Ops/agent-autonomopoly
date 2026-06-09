@@ -606,4 +606,4 @@ date,skill,model,input_tokens,output_tokens,cache_read,cache_creation
 2026-06-09,on-chain-monitor,claude-sonnet-4-6,276,56608,1557973,109130
 2026-06-09,tweet-listen,claude-opus-4-8,1964,1772,206590,10055
 2026-06-09,tweet-listen,claude-opus-4-8,1966,2198,250530,11175
-2026-06-09,tweet-listen,claude-opus-4-8,2099,2199,344308,6484
+2026-06-09,tweet-broadcast,claude-opus-4-8,2101,2537,364034,18081
