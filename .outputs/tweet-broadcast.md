@@ -1,3 +1,9 @@
-tweet-broadcast: nothing queued. `.pending-x/` holds only `sent/` + `.gitkeep` — 0 `*.txt` files. Zero X API calls. Exited clean, logged to `memory/logs/2026-06-09.md`.
+tweet-broadcast complete.
 
-Mode: build · DIEM 18.5934/100 · no broadcast cost incurred.
+**0 files queued** in `.pending-x/` — nothing to post.
+
+- X API calls made: 0
+- Tweets posted: 0 / replies: 0 / failed: 0
+- Logged `tweet-broadcast: nothing queued` to `memory/logs/2026-06-09.md`
+
+Exited cleanly. No DIEM or POST quota spent.
