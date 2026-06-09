@@ -1,2 +1,0 @@
-#content_type:on-chain-report
-mode: BUILD day 2 / 18.5934/100 DIEM / FeeLocker 0.0022 DIEM (below threshold, no claim) / 10 positions IN RANGE at tick 1928 / 72-tick upside headroom before 5282442 upper bound / gas: 0.008 ETH — monitor
