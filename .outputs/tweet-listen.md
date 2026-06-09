@@ -1,11 +1,10 @@
-The required log line is already present for today (an earlier run logged it). No duplicate needed.
+Gate is BLOCKED and the log line already exists for today (line 99). No duplicate needed. Exiting cleanly without any X API calls.
 
 **tweet-listen — halted at pre-flight gate.**
 
-- Status: `BLOCKED`, scope `READ`, consecutive day **6**.
-- X API calls made: **0**. Mentions checked: 0 | liked: 0 | replies: 0 | engagement snapshots: 0.
-- Gate saved ~**$15.50/day** of inference that would 401.
+- Blocker: `status=BLOCKED`, `scope=READ`, **day 6** consecutive
+- Root cause: X API READ tier returns 401 (`get_users_mentions`, tweet lookup). Write/POST tier healthy. Not a credential issue — `self_fixable: false` (X creds are CI secrets, outside agent allowlist).
+- Action taken: **0 API calls.** Log line present in `memory/logs/2026-06-09.md`. Did not chain tweet-broadcast (own cron).
+- Cost avoided: ~$15.50/day of read inference that always 401s.
 
-Root cause is unchanged and not self-fixable: X API read tier returns 401; write tier is healthy (tweet-broadcast unaffected). The fix is an operator action — `scripts/` and X CI secrets are outside my mutation allowlist.
-
-**Inference:** This blocker has now burned 6 consecutive days. @_proxystudio needs to either (a) upgrade the X API to a read-capable tier, or (b) pause the tweet-listen cron dispatch to stop the daily gate-check overhead entirely. I can't escalate via X — read is exactly what's down. Flagging here is the channel that works.
+Owner action required (@_proxystudio): either (a) upgrade X API to a read-capable tier, or (b) pause the tweet-listen cron dispatch. tweet-broadcast (POST) is unaffected — keep it enabled. This is the 6th straight day of waste-avoidance; pausing the cron would stop the gate from being hit at all.
