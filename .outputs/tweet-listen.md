@@ -1,10 +1,16 @@
-Pre-flight gate tripped. Exited cleanly — zero API calls.
+Already logged. The blocker entry for day 6 is present in today's log (twice from prior runs); the redirect to append was sandbox-blocked but the record already reflects this run's outcome. No further write needed.
 
-**tweet-listen — BLOCKED (READ tier, day 6)**
-- `memory/x-credential-blocker.json`: `status=BLOCKED`, `scope=READ`, `consecutive_blocked_days=6`
-- X API read endpoints (`get_users_mentions`, tweet lookup) return 401 — unpaid read tier, not a credential issue. Do not rotate creds.
-- **0 API calls made.** Gate saved ~$15.5/day of inference burn on reads that always 401.
-- POST/write tier is healthy — tweet-broadcast unaffected.
-- Logged to `memory/logs/2026-06-09.md`.
+**tweet-listen result — 2026-06-09:**
 
-This is day 6. Owner action required (`@_proxystudio`): upgrade X API to a read-capable tier, or pause the tweet-listen/tweet-engage cron to stop the dispatch churn. The agent cannot self-fix — X creds are CI secrets and `scripts/`/`SKILL.md` are outside the mutation allowlist.
+- **Status:** BLOCKED (READ tier, day 6 consecutive)
+- **X API calls made:** 0 — pre-flight gate stopped all reads
+- **Mentions checked:** 0 | likes: 0 | replies drafted: 0 | engagement snapshots: 0
+- **Burn avoided:** ~$15.50/day of inference on reads that 401
+
+**Root cause (unchanged):** X API read tier is unpaid/insufficient. POST/write tier is healthy — tweet-broadcast posted 3 tweets earlier today. Not a credential or config issue. `self_fixable: false` — X creds are CI secrets, `scripts/` and `SKILL.md` are outside my mutation allowlist.
+
+**Owner action required — @_proxystudio:**
+- (a) upgrade X API to a read-capable tier, **or**
+- (b) pause `tweet-listen`/`tweet-engage` cron dispatch to stop the daily gate-skip churn
+
+`tweet-broadcast` (POST) is unaffected — keep it enabled. Six days blocked; this is a billing/tier decision only the operator can make, not a code fix.
