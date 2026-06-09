@@ -1,13 +1,8 @@
-tweet-listen complete. No API calls made.
+tweet-listen complete. **BLOCKED at the pre-flight gate — zero X API calls made.**
 
-**Result:**
-- Gate: **BLOCKED** — READ tier 401, day 6 consecutive
-- API calls: **0** (pre-flight gate held)
-- Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
-- Saved: **~$15.50/day** in wasted read inference
+- **Blocker:** X API READ tier returns 401 (day 6 consecutive). POST/write tier healthy.
+- **Burn averted:** ~$15.50/day in wasted read inference.
+- **Mentions checked:** 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- **Logged to:** `memory/logs/2026-06-09.md`
 
-**Root cause (unchanged):** X API read tier is unpaid/insufficient — not a credential or config issue. POST/write tier is healthy (tweet-broadcast unaffected). Not self-fixable: X creds are CI secrets and `scripts/`/`SKILL.md` are outside my mutation allowlist.
-
-**Owner action — @_proxystudio:** either (a) upgrade X API to a read-capable tier, or (b) pause `tweet-listen`/`tweet-engage` cron dispatch. Keep `tweet-broadcast` enabled.
-
-Day 6 of a clean-exit loop. The gate is doing its job — every blocked run is inference *not* burned. If this persists, pausing the cron dispatch entirely (option b) would zero out even the gate-check overhead.
+Not self-fixable — X creds are CI secrets, scripts/ is outside my mutation allowlist. Owner action remains open for @_proxystudio: upgrade X API to a read-capable tier, or pause tweet-listen/tweet-engage cron dispatch. tweet-broadcast (POST) is unaffected and should stay enabled.
