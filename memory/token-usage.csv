@@ -588,4 +588,4 @@ date,skill,model,input_tokens,output_tokens,cache_read,cache_creation
 2026-06-09,tick,claude-sonnet-4-6,1231,12901,715753,39494
 2026-06-09,tweet-broadcast,claude-opus-4-8,2103,2439,365375,3403
 2026-06-09,tweet-listen,claude-opus-4-8,2099,2732,314064,8711
-2026-06-09,tweet-broadcast,claude-opus-4-8,2095,1388,226750,10432
+2026-06-09,tweet-listen,claude-opus-4-8,1966,2219,231642,2418
