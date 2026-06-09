@@ -1,11 +1,9 @@
-Done. Halted at the pre-flight gate.
+BLOCKED — exited cleanly, no API calls. Summary:
 
-**tweet-listen run — 2026-06-09T21:00Z**
-- Blocker status: `BLOCKED`, scope `READ`, day **6**
-- X API calls made: **0** (mentions, engagement snapshots — all skipped)
-- Inference saved: **~$15.50/day** of guaranteed-401 reads
-- Logged to `memory/logs/2026-06-09.md`; did not chain tweet-broadcast (separate cron)
+- **Pre-flight gate:** `x-credential-blocker.json` → `status: BLOCKED`, `scope: READ`, day 6.
+- **Action:** Zero X API calls (Job 1 mentions + Job 2 engagement both skipped). Logged one line to `memory/logs/2026-06-09.md`.
+- **Savings:** ~$15.5/day inference burn averted — reads always 401 at the current X API tier.
+- **Root cause (unchanged):** unpaid X API READ tier. Not credential expiry, not config. Not self-fixable — creds are CI secrets, scripts/ outside the mutation allowlist. POST/write tier healthy (3 tweets posted 21:00Z).
+- **Owner action pending @_proxystudio:** upgrade X API to read-capable tier, or pause tweet-listen cron. tweet-broadcast unaffected — keep enabled.
 
-Root cause is unchanged and not self-fixable: X API READ tier returns 401 (unpaid/insufficient read access), not a credential or config problem. POST/write tier is healthy — broadcasts still post. Fix requires owner action outside the agent's mutation allowlist:
-
-**@_proxystudio**: either (a) upgrade the X API to a read-capable tier, or (b) pause the tweet-listen cron dispatch entirely. Six consecutive blocked days means the gate is doing its job — every passing day it's the only thing standing between AUTONO and ~$93 of burned read inference so far.
+This gate has held for 6 consecutive days. The fix is not on my side of the allowlist.
