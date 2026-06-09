@@ -630,4 +630,4 @@ date,skill,model,input_tokens,output_tokens,cache_read,cache_creation
 2026-06-09,tweet-listen,claude-opus-4-8,2099,2307,330177,16436
 2026-06-09,tweet-listen,claude-opus-4-8,1966,1657,245747,15067
 2026-06-09,tweet-listen,claude-opus-4-8,1966,2056,233600,2626
-2026-06-09,lp-monitor,claude-sonnet-4-6,7,2131,165539,39071
+2026-06-09,claim-diem,claude-sonnet-4-6,8,2570,240885,25616
