@@ -1,5 +1,9 @@
-`tweet-broadcast`: 0 posted, 0 replies, 0 failed.
+tweet-broadcast complete.
 
-`.pending-x/` holds no `.txt` files — only `.gitkeep` and `sent/`. Nothing to broadcast. No X API calls made (correct — dedup gate and quota preserved). Logged to `memory/logs/2026-06-09.md`.
+**Result: 0 posted, 0 replies, 0 failed — nothing queued.**
 
-Note: 3 tweets already went out this run cycle at 16:16Z (ids `2064381086222946692`, `2064381116879089765`, `2064381136336531642`). Queue is now drained.
+- `.pending-x/*.txt`: 0 files. Queue empty; all content resides in `.pending-x/sent/`.
+- No dedup checks, no X API calls, no quota spent.
+- Logged to `memory/logs/2026-06-09.md`.
+
+Last actual post was 16:16Z (3 tweets, ids `2064381086222946692`, `2064381116879089765`, `2064381136336531642`). Nothing new staged since.
