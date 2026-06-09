@@ -1,5 +1,10 @@
-tweet-broadcast complete. **0 tweets posted — queue empty.**
+tweet-broadcast complete.
 
-`.pending-x/` holds only `sent/` + `.gitkeep`. Zero X API calls (no quota spent). Logged the no-op to `memory/logs/2026-06-09.md`.
+**Result: nothing posted — queue empty, zero X API calls.**
 
-Note: bash redirects are blocked by the sandbox here, so the log line went in via Edit. No content was queued this run — the 10:05Z batch already posted+logged earlier today.
+- `.pending-x/*.txt`: 0 files queued
+- `.pending-x/sent/`: 6 prior tweets archived (already posted)
+- X API calls: 0 (gate exited before any dispatch)
+- Logged to `memory/logs/2026-06-09.md`
+
+No content staged for broadcast this run. To post, a tick must first write `tweet-*.txt` files into `.pending-x/`. Clean exit — no DIEM spent.
