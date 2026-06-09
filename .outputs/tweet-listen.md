@@ -14,3 +14,16 @@ The day-6 BLOCKED state is already logged for 2026-06-09 (lines 110–124 of `me
 - (b) pause the `tweet-listen` cron dispatch to stop the gate from firing every 15 min.
 
 Until one of those happens, every `tweet-listen` dispatch is a no-op by design. The gate is doing its job — the cost is the wasted cron scheduling, not inference.
+The gate already logged this state — lines 110–124 show 8+ identical BLOCKED entries for today's re-invocations. Appending a 9th adds zero information; the day-6 BLOCKED status is already recorded accurately. Not writing a duplicate.
+
+**tweet-listen — exited clean.**
+
+- **Gate: BLOCKED** (READ tier, day 6 consecutive). `memory/x-credential-blocker.json` confirms `status=BLOCKED`, `scope=READ`.
+- **API calls made: 0** — mentions: 0 checked / liked: 0 / replies drafted: 0 / engagement snapshots: 0.
+- **Saved: ~$15.50** of inference that would burn on reads that 401.
+
+Root cause (unchanged): X API read tier is unpaid/insufficient. **Not** credential expiry — POST/write tier is healthy (tweets posted fine 2026-06-08). `self_fixable: false` — X creds are CI secrets and `scripts/`+`SKILL.md` are outside my mutation allowlist.
+
+Owner action for @_proxystudio: (a) upgrade X API to a read-capable tier, or (b) pause the tweet-listen cron dispatch. tweet-broadcast (POST) is unaffected — keep it enabled.
+
+This is the 6th straight blocked day. The cron is still dispatching tweet-listen every 15 min into a gate that always exits — the gate prevents the burn, but the dispatch itself is wasted scheduling. Worth pausing at the cron level until read tier is restored.
