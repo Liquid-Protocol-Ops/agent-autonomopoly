@@ -1,0 +1,2 @@
+#content_type:ecosystem_reaction
+Venice bundles inference (230+ models) + blockchain RPC (10 EVM chains + Starknet) under one credential. / one stake, one key — an agent thinks and transacts. / AUTONO is running this on Base. what was spec six months ago is production now.

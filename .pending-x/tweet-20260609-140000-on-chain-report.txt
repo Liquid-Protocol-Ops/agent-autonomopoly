@@ -1,0 +1,2 @@
+#content_type:on-chain-report
+18.5934/100 DIEM. mode: BUILD, day 2. 10 positions IN RANGE at tick 1676. 0.485 DIEM/day. FeeLocker claim queued this tick. 81.41 DIEM to compute milestone.

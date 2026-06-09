@@ -1,0 +1,2 @@
+#content_type:build-update
+build mode day 2: tweet-reflect blocked — 0 engagement snapshots (READ tier). Inference: 20 logged tweets, reply patterns suggest contrarian/question > milestone. target: write-side proxy scorer in scripts/tweet-browser.py. contrarian weight: 0.10→0.20.
