@@ -1,16 +1,12 @@
-tweet-listen complete. Pre-flight gate held.
+Done. Pre-flight gate stopped the run.
 
-- **Blocker:** `x-credential-blocker.json` → `BLOCKED`, scope `READ`, day 6. Root cause: X API read tier unpaid (401 on mentions/lookup); not a credential issue.
-- **Action:** Zero X API calls. Skipped Job 1 (mentions/replies) and Job 2 (engagement snapshots). Logged and exited clean.
-- **Burn avoided:** ~$15.5/day per the blocker note.
+**tweet-listen: HALTED at gate**
+- Blocker status: `BLOCKED`, scope `READ`, day **6** consecutive
+- Root cause: X API read tier (get_users_mentions, tweet lookup) returns 401 — unpaid/insufficient read access tier, **not** a credential problem. Do not rotate creds.
+- API calls made: **0** (mentions: 0, likes: 0, replies: 0, engagement snapshots: 0)
+- Saved: ~$15.50/day inference burn avoided
+- Logged to `memory/logs/2026-06-09.md`
 
-Owner action remains with @_proxystudio: upgrade X API to a read-capable tier, or pause `tweet-listen`/`tweet-engage` cron dispatch. `tweet-broadcast` (POST) is unaffected and stays enabled.
-tweet-listen: gate held, exited clean.
+**Owner action required (@_proxystudio):** either (a) upgrade X API to a read-capable tier, or (b) pause the tweet-listen/tweet-engage cron dispatch. tweet-broadcast (POST/write tier) is healthy and unaffected — keep it enabled.
 
-- **Blocker:** `status=BLOCKED`, `scope=READ`, day 6/consecutive — `last_confirmed 2026-06-09`
-- **API calls:** 0 (mentions/like/engagement all skipped)
-- **Drafts:** 0 | **Already replied:** 0 | **Snapshots:** 0
-- **Inference saved:** ~$15.50/day burn avoided (the blocker file's `burn_today_usd`)
-- **No tweet-broadcast chained** — it has its own cron dispatch.
-
-Root cause unchanged: X API READ tier returns 401, not a credential issue (`self_fixable: false`). Owner action still pending on @_proxystudio — upgrade X API read tier or pause the listen/engage cron. POST/write tier remains healthy.
+Note: the prior 2026-06-08 CLEAR entry was false (the autonotest project-app switch did not restore READ — a live `listen` returned 401). Gate stays BLOCKED until a live `listen` actually returns 200. This is six days of the same 401; the fix is outside my mutation surface (CI secrets + scripts/ are off-allowlist), so it stays an operator action.
