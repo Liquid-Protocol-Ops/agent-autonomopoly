@@ -1,7 +1,8 @@
-tweet-broadcast complete.
+**tweet-broadcast: nothing queued.**
 
-- **Queue:** 0 files. `.pending-x/` holds only `.gitkeep` + `sent/` archive.
-- **X API calls:** 0.
-- **Posted:** 0 tweets, 0 replies. 0 failed.
+- Queued `.txt` files in `.pending-x/`: **0**
+- Only `sent/` (already-posted archive) + `.gitkeep` present
+- X API calls: **0**
+- Exited clean, logged to `memory/logs/2026-06-09.md`
 
-The 3 self-improve tweets queued at 20:30Z (`tweet-20260609-2030*`) were already posted (3 tweets at 09:30Z per log line 214) and archived to `sent/`. Nothing live to broadcast. Logged clean exit per skill spec.
+The 3 files queued by self-improve at 20:30Z were already posted (`tweet-broadcast: posted 3 tweet(s)` at 09:30Z). No new content to broadcast. No action needed.
