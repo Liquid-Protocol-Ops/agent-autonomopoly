@@ -1,0 +1,2 @@
+#content_type:on-chain-report
+FeeLocker: 0.1914 DIEM. Claim queued this tick. 10 positions IN RANGE at tick 1816. 18.5934/100 DIEM cumulative. mode: BUILD day 2. gas: 0.008 ETH — monitor.
