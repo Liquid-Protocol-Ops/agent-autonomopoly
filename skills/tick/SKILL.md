@@ -36,14 +36,20 @@ tick: nothing to claim/LP | maintenance inference ran
 
 ## After every tick — queue tweet content
 
+Read `memory/goals.json`. If `tweetingPaused` is `true`, skip this entire section — do not write any files to `.pending-x/`. Log "tick: tweet generation skipped (tweetingPaused=true)" to `memory/logs/{today}.md`.
+
 After the tick runs, generate tweet files in `.pending-x/`.
 
 **In accumulate mode**: generate 2 tweets (see below).
 **In build mode**: generate 3 tweets — add a build-update tweet (see below).
 
-1. **Self-report** (`on-chain-report` or `lp-update`): one tweet about AUTONO's current state — balance, mode, LP position, or fee rate. Use real numbers from the tick output. File: `tweet-{timestamp}-on-chain-report.txt`
+**Filename format:** `tweet-{YYYYMMDD-HHMMSSsss}-{type}.txt` — use seconds **and** milliseconds (e.g. `tweet-20260609-143022847-on-chain-report.txt`). This prevents same-basename collisions when two tweets are generated in the same second. Generate the timestamp once at the start of this section and reuse it for all files in this run.
 
-2. **Outward signal** — read the `## Content Type Weights` table from `memory/x-strategy.md`. Select a content type using the weights as probabilities, excluding `on-chain-report` and `lp-update` (those are self-report types). If the file is absent or all relevant weights are `insufficient_data`, use equal weights across: `base_signal`, `ecosystem_reaction`, `agent-philosophy`, `contrarian`, `question`, `milestone`. Then web-search at least one source from `## External signal sources` in `memory/x-strategy.md`. Pick the most interesting result from the last 48h and write a tweet with a specific take — not generic commentary. If no compelling signal is found, fall back to `agent-philosophy` (one concrete belief from `identity/SOUL.md`, stated plainly in one sentence). File: `tweet-{timestamp}-{type}.txt`
+**Non-empty body assertion:** Before writing any file, assert that the tweet body (everything after the `#content_type:` line) is non-empty and under 280 characters. If the body is empty, log an error to `memory/logs/{today}.md` and skip that file — do not write an empty stub.
+
+1. **Self-report** (`on-chain-report` or `lp-update`): one tweet about AUTONO's current state — balance, mode, LP position, or fee rate. Use real numbers from the tick output. File: `tweet-{YYYYMMDD-HHMMSSsss}-on-chain-report.txt`
+
+2. **Outward signal** — read the `## Content Type Weights` table from `memory/x-strategy.md`. Select a content type using the weights as probabilities, excluding `on-chain-report` and `lp-update` (those are self-report types). If the file is absent or all relevant weights are `insufficient_data`, use equal weights across: `base_signal`, `ecosystem_reaction`, `agent-philosophy`, `contrarian`, `question`, `milestone`. Then web-search at least one source from `## External signal sources` in `memory/x-strategy.md`. Pick the most interesting result from the last 48h and write a tweet with a specific take — not generic commentary. If no compelling signal is found, fall back to `agent-philosophy` (one concrete belief from `identity/SOUL.md`, stated plainly in one sentence). File: `tweet-{YYYYMMDD-HHMMSSsss}-{type}.txt`
 
 Each file format:
 ```
@@ -51,9 +57,7 @@ Each file format:
 {tweet text — no hashtags, no emojis, under 280 chars}
 ```
 
-**Filename rule**: Use `tweet-{YYYYMMDD-HHMMSSsss}-{type}.txt` where `HHMMSSsss` includes seconds and milliseconds (e.g., `tweet-20260609-203000123-contrarian.txt`). This prevents basename collisions when ticks run in rapid succession. **Never write a file with only the `#content_type:` header and no tweet body** — assert the body is non-empty before writing. An empty stub blocks the dedup gate and wastes broadcast calls.
-
-3. **(Build mode only) Build-update** (`build-update`): one tweet about what you are actively building or what you just improved. Must include a specific detail — a file name, a metric, a before/after. No vague "I'm building the launchpad." Example: "self-improve ran: increased contrarian weight 0.15→0.22 based on 3-week engagement data. top-3 performing tweets all contrarian. feedback loop closing." File: `tweet-{timestamp}-build-update.txt`
+3. **(Build mode only) Build-update** (`build-update`): one tweet about what you are actively building or what you just improved. Must include a specific detail — a file name, a metric, a before/after. No vague "I'm building the launchpad." Example: "self-improve ran: increased contrarian weight 0.15→0.22 based on 3-week engagement data. top-3 performing tweets all contrarian. feedback loop closing." File: `tweet-{YYYYMMDD-HHMMSSsss}-build-update.txt`
 
 Do **not** repeat a topic covered in `memory/x-tweet-log.jsonl` within the last 48h. Check before writing.
 

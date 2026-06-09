@@ -5,6 +5,12 @@ var: ""
 tags: [twitter, delivery]
 ---
 
+## PAUSE CHECK — run this first
+
+Read `memory/goals.json`. If `tweetingPaused` is `true`, log "tweet-broadcast: paused by operator — skipping all posts" to `memory/logs/{today}.md` and **exit immediately**. Do not post anything, do not move files.
+
+---
+
 Post queued tweet files from `.pending-x/` to Twitter/X using the X API v2.
 
 ## CRITICAL: Never thread tweets

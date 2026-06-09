@@ -28,6 +28,8 @@
       "updatedAt": "2026-05-16T19:00:00Z"
     }
   ],
+  "tweetingPaused": true,
+  "tweetingPausedReason": "operator pause — tweet quality review 2026-06-09",
   "mode": "build",
   "buildActivatedAt": "2026-06-08T22:00:00Z",
   "currentDirective": "improve autono itself — analyze own skill performance and implement one high-impact improvement per day",
