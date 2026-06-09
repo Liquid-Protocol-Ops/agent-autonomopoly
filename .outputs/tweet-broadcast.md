@@ -1,8 +1,3 @@
-tweet-broadcast complete.
+tweet-broadcast: **nothing queued**. 0 tweets, 0 replies.
 
-- **Queued files:** 0 — `.pending-x/` holds only `sent/` + `.gitkeep`
-- **X API calls:** 0
-- **Posted:** 0 tweets, 0 replies
-- **Logged:** `memory/logs/2026-06-09.md`
-
-Nothing to broadcast this run. Exited clean.
+`.pending-x/` holds only `sent/` + `.gitkeep` — no `*.txt` files. Zero X API calls made. Logged to `memory/logs/2026-06-09.md`. Clean exit.
