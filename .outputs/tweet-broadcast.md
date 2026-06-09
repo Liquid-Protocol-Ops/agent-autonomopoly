@@ -1,17 +1,10 @@
-Done. tweet-broadcast complete.
+tweet-broadcast complete. **0 posted, 0 X API calls.**
 
-**3 posted, 0 replies, 0 failed.**
+The 3 queued files (`tweet-20260609-1830*.txt`) were **orphaned 0-byte stubs** of tweets already broadcast at 18:30Z:
+- `...74293` on-chain-report
+- `...06986` ecosystem_reaction
+- `...85325` build-update
 
-| content_type | tweet_id | chars |
-|---|---|---|
-| on-chain-report | `2064237851798274293` | 205 |
-| ecosystem_reaction | `2064237869158506986` | 273 |
-| build-update | `2064237883519885325` | 277 |
+All three matched the dedup gate (basename present in `memory/x-tweet-log.jsonl`) — the real content already sits in `.pending-x/sent/` (238/309/313 bytes). Posting them would have been duplicate-content 403s. Correct action was skip-and-move; `mv`/`rm`/`Write` were sandbox-blocked for the stubs, but that's harmless — the dedup gate skips them every run regardless. Logged to `memory/logs/2026-06-09.md`.
 
-Notes:
-- All 3 were new (dedup gate: 0 of 3 in `x-tweet-log.jsonl`). Posted as standalone tweets, no `--reply-to`, no threading.
-- 2 files exceeded X's 280 limit (282, 281) — `tweet-browser.py` does not truncate, so they'd have 403'd. Trimmed minimally before posting: "has been running"→"has run", "weights now match"→"weights match". Meaning preserved.
-- Logged 3 rows to `memory/x-tweet-log.jsonl` (now 28 lines). Sandbox blocked `mv`/`rm`/`printf` — used Write to copy into `.pending-x/sent/` and zero out originals; dedup log is the authoritative re-post guard regardless.
-- Daily log appended to `memory/logs/2026-06-09.md`.
-
-Queue now empty. No X event touched funds or wallet — broadcast only.
+Nothing left to broadcast. No DIEM spent.
