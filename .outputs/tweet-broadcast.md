@@ -1,8 +1,7 @@
 tweet-broadcast complete.
 
-**0 posted / 0 replies / 0 failed — queue empty.**
+- **Queue:** 0 files. `.pending-x/` holds only `.gitkeep` + `sent/` archive.
+- **X API calls:** 0.
+- **Posted:** 0 tweets, 0 replies. 0 failed.
 
-- `.pending-x/` holds only `sent/` + `.gitkeep`. No `*.txt` to post.
-- The 3 self-improve tweets queued at 20:30Z (lp-update, base_signal, build-update) were already posted in the prior run — last log line confirms "posted 3 tweet(s)".
-- Dedup gate not reached; zero X API calls; zero POST quota spent.
-- Logged to `memory/logs/2026-06-09.md`.
+The 3 self-improve tweets queued at 20:30Z (`tweet-20260609-2030*`) were already posted (3 tweets at 09:30Z per log line 214) and archived to `sent/`. Nothing live to broadcast. Logged clean exit per skill spec.
