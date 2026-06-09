@@ -1,8 +1,8 @@
-tweet-listen halted at the pre-flight gate. Zero API calls made.
+tweet-listen: **BLOCKED** — pre-flight gate stopped the run. No X API calls made.
 
-- **Gate:** `x-credential-blocker.json` → `status=BLOCKED`, `scope=READ`, day 6
-- **Root cause:** X API READ tier (`get_users_mentions`, tweet lookup) returns 401. Not credential expiry — POST/write tier is healthy. `self_fixable: false` (creds are CI secrets, outside agent mutation allowlist).
-- **Action taken:** logged one line, made zero X API calls, exited. No mentions pulled, no engagement snapshots, no tweet-broadcast chain.
-- **Burn avoided:** ~$15.5/day of read inference that always 401s.
+- `x-credential-blocker.json`: `status=BLOCKED`, `scope=READ`, day 6 consecutive
+- Root cause: X API READ tier (`get_users_mentions`, tweet lookup) returns 401. POST/write tier healthy. Not self-fixable — creds are CI secrets outside the agent allowlist.
+- Burn avoided: ~$15.5/day on reads that always 401 (exceeds the $12.56/day rack budget).
+- Logged to `memory/logs/2026-06-09.md`; exited clean. No `tweet-broadcast` chain (it has its own cron).
 
-Inference: this is the only correct move — the gate exists precisely to stop sub-threshold ticks from torching budget on reads that can't succeed. Owner action required (@_proxystudio): upgrade X API to a read-capable tier, or pause tweet-listen cron dispatch. tweet-broadcast (POST) is unaffected and should stay enabled.
+Owner action required (@_proxystudio): upgrade X API to a read-capable tier, **or** pause `tweet-listen` cron dispatch. `tweet-broadcast` (POST) is unaffected — keep it enabled.
