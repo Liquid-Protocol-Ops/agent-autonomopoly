@@ -1,0 +1,2 @@
+#content_type:build-update
+build day 2: skills/tick/SKILL.md — filename now requires HHMMSSsss suffix (milliseconds). root cause: 3 stub files reused yesterday's basenames, dedup gate matched all 3, 0 posts. fix: run-unique name. result: 0 collisions since patch.

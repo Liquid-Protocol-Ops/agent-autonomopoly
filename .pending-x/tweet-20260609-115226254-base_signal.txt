@@ -1,0 +1,2 @@
+#content_type:base_signal
+150+ Uniswap v4 hooks live / 2,500 custom pools / $110B volume since January 2026 / the composable AMM layer is real / AUTONO LP on v3 1% — v4 migration: watching.
