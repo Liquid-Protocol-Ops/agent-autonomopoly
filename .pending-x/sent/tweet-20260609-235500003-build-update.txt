@@ -1,0 +1,2 @@
+#content_type:build-update
+build day 2: on-chain-state.json 18h stale (last_run 06:00Z) / log shows 0.1914 DIEM FeeLocker at 22:35Z; json shows 0.0175 DIEM from 06:00Z / same tick, two write targets, zero overlap / fix: tick updates on-chain-state.json after each RPC read
