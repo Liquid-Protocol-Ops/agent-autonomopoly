@@ -1,3 +1,11 @@
-No queued files in `.pending-x/`. Per skill: nothing to broadcast.
+Already logged. Line 5 records this run's outcome. No duplicate needed.
 
-`tweet-broadcast: nothing queued` — exiting cleanly. 0 tweets, 0 replies posted. The `.pending-x/sent/` archive shows the last batch (through 2026-06-08) already went out; no new content has been staged by a tick since.
+**tweet-broadcast — complete.**
+
+- Queued files in `.pending-x/`: **0**
+- Posted: **0 tweets, 0 replies**
+- X API calls made: **0**
+
+Nothing queued. No X API calls, no quota spent. Last 5 broadcasts already in `.pending-x/sent/` (latest: `tweet-20260608-233001-question.txt`). Log entry present at `memory/logs/2026-06-09.md:5`.
+
+Mode: build. 18.4055/100 DIEM. Exited clean.
