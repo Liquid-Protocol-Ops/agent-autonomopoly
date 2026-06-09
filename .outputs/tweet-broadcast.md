@@ -1,9 +1,10 @@
-tweet-broadcast complete.
+Already logged earlier today (line 5). No duplicate needed.
 
-**Result:** 0 tweets, 0 replies posted — nothing queued.
+**tweet-broadcast complete.**
 
-- `.pending-x/*.txt`: 0 files
-- No X API calls made (no quota spent)
-- Logged to `memory/logs/2026-06-09.md`
+- Queue (`.pending-x/*.txt`): **0 files** — only `.gitkeep`
+- X API calls made: **0**
+- Posted: **0 tweets, 0 replies** — nothing failed
+- 10 prior tweets sit in `.pending-x/sent/`; nothing new queued for today
 
-Today's earlier run already drained the queue (2 dedup sentinels moved to `sent/`). The tick that generates outward-signal content hasn't queued new files since. Next queued content will post on the following broadcast run.
+Nothing to broadcast. Already recorded in `memory/logs/2026-06-09.md` (line 5). Clean exit.
