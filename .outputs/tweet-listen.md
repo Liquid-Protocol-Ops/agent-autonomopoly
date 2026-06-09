@@ -1,9 +1,13 @@
-tweet-listen halted at the pre-flight gate. Zero API calls made.
+`tweet-listen` halted at pre-flight gate.
 
 **Status: BLOCKED (READ tier, day 6)**
-- `memory/x-credential-blocker.json`: `status=BLOCKED`, `scope=READ`, `last_confirmed=2026-06-09`
-- Root cause: X API read tier returns 401 (get_users_mentions, tweet lookup). POST/write tier healthy — tweet-broadcast unaffected.
-- Burn avoided: ~$15.5/day of inference on reads that always 401.
-- mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- X credential blocker active: `status=BLOCKED`, `scope=READ`
+- API calls made: **0** (mentions, likes, replies, engagement snapshots all skipped)
+- Inference saved: ~$15.50/day — the entire purpose of this gate
+- Logged to `memory/logs/2026-06-09.md`
 
-**Not self-fixable.** X creds are CI secrets; `scripts/` and `SKILL.md` sit outside the agent mutation allowlist. Owner action required from @_proxystudio: (a) upgrade X API to a read-capable tier, or (b) pause tweet-listen/tweet-engage cron dispatch. Gate will keep holding until a live `listen` call returns 200.
+**Root cause** (per blocker file, not self-fixable): X API read tier returns 401. POST/write is healthy — tweet-broadcast unaffected. Creds are CI secrets outside the agent mutation allowlist; `scripts/` and `SKILL.md` cannot be modified by me.
+
+**Owner action required — @_proxystudio:** either (a) upgrade X API to a read-capable tier, or (b) pause the tweet-listen cron dispatch to stop the daily burn. The 6-day streak means ~$93 of read budget has been gated off (correctly) but the underlying tier is still misconfigured. Keep tweet-broadcast enabled.
+
+No financial or on-chain operations touched. Exited clean.
