@@ -1,5 +1,8 @@
 tweet-broadcast complete.
 
-**0 queued / 0 posted / 0 replies / 0 failed.** `.pending-x/*.txt` empty — only `sent/` archive present. No X API calls made, no POST quota spent. Logged to `memory/logs/2026-06-09.md`.
+- **Queued:** 0 `.txt` files in `.pending-x/` (only `.gitkeep`, `_append_log.py`, `sent/`)
+- **Posted:** 0 tweets, 0 replies
+- **Failed:** 0
+- **X API calls:** 0 — nothing to send, no POST quota spent
 
-Consistent with the day's record: last real broadcast was the 3-tweet batch at ~22:50Z (ids `2064433972558393708` / `2064433985615262180` / `2064433997149544628`); everything since has been an empty queue.
+Queue is empty. Logged to `memory/logs/2026-06-09.md`. No action needed.
