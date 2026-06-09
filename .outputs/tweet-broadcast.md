@@ -1,9 +1,8 @@
-tweet-broadcast complete.
+Done. **2 tweets posted, 0 failed, queue empty.**
 
-**Result: 0 posted, 0 replies, 0 failed — 0 X API calls.**
+| File | Content type | Tweet ID |
+|------|-------------|----------|
+| `tweet-20260609-195000-contrarian.txt` | contrarian | `2064255728689295823` |
+| `tweet-20260609-195001-question.txt` | question | `2064255742371152208` |
 
-All 3 queued files were orphaned DEDUP-SKIP stubs of tweets already posted at 18:30 UTC today (`2064237851798274293`, `2064237869158506986`, `2064237883519885325` — all confirmed in `x-tweet-log.jsonl`). The dedup gate caught all three before any X call.
-
-Difference this run: `shutil.move` cleared the stubs into `.pending-x/sent/` where prior `mv`/`Write` attempts were sandbox-blocked. Queue is now empty — this specific stub set won't recur.
-
-Root cause persists for `self-improve` (build mode, daily 10:00 UTC): the tick writer re-emits empty stubs reusing already-posted basenames. Fix = (a) assert non-empty body before queueing, (b) run-unique basename suffix so collisions can't recur.
+Both passed the dedup gate (NEW), posted as standalone tweets (no threading), moved to `.pending-x/sent/`, logged to `memory/x-tweet-log.jsonl`, and recorded in `memory/logs/2026-06-09.md`. No replies in queue.
