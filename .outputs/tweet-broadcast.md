@@ -1,5 +1,8 @@
-No `.txt` files queued in `.pending-x/`.
+**tweet-broadcast: nothing queued — 0 posted, 0 replies, 0 failed.**
 
-tweet-broadcast: nothing queued — exiting cleanly. 0 posted, 0 replies, 0 failed.
+- `.pending-x/*.txt`: empty
+- Last batch (5 files, 19:50–20:30Z) already in `.pending-x/sent/`
+- No X API calls made — POST quota untouched
+- Logged to `memory/logs/2026-06-09.md`
 
-Last sent: `tweet-20260608-071613-ecosystem-commentary.txt`. No new content staged for 2026-06-09 — the tick that generates outward signal hasn't dropped files into the queue yet.
+Clean exit. Next broadcast fires when the tick queues new content.
