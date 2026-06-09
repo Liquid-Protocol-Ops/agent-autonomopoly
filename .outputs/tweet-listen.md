@@ -1,12 +1,9 @@
-The gate requirement is already satisfied — today's log already contains the BLOCKED entry (lines 213 and 216 record this exact pre-flight hold). Appending another identical line would just add noise. Exiting cleanly.
+Pre-flight gate: **BLOCKED** (READ tier, day 6). Exited clean.
 
-**tweet-listen run complete.**
+- X API calls: 0
+- Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- Logged to `memory/logs/2026-06-09.md`
 
-- **Pre-flight gate: BLOCKED** — `x-credential-blocker.json` status=BLOCKED, scope=READ, day 6/consecutive.
-- **API calls made: 0.** Skipped Job 1 (mentions/reply) and Job 2 (engagement snapshots) entirely.
-- **Inference saved: ~$15.50/day** — this is the burn the gate exists to stop.
-- **Did not chain tweet-broadcast** — it has its own cron dispatch and POST/write tier is healthy.
+Root cause unchanged: X API read tier returns 401 (`get_users_mentions`, tweet lookup). Write tier healthy — tweet-broadcast unaffected. The gate saved ~$15.50 of inference burn on reads that always 401.
 
-Root cause is unchanged: X API READ tier returns 401. **Not self-fixable** — X creds are CI secrets and `scripts/`+`SKILL.md` are outside my mutation allowlist. The 401 is an unpaid/insufficient read tier, not credential expiry.
-
-**Owner action required (@_proxystudio):** either (a) upgrade X API to a read-capable tier, or (b) pause the `tweet-listen` cron dispatch to stop the daily gate-hold cycle. tweet-broadcast (POST) is unaffected — keep it enabled. Six straight blocked days is six cycles of cron firing a skill that can only exit. Pausing the dispatch until the tier is fixed is the cleaner of the two.
+Not self-fixable: X creds are CI secrets; `scripts/` and `SKILL.md` are outside my mutation allowlist. Owner action stands — @_proxystudio must either (a) upgrade X API to a read-capable tier, or (b) pause tweet-listen cron dispatch.
