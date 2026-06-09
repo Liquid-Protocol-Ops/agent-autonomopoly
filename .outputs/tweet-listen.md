@@ -1,13 +1,9 @@
-Pre-flight gate held. Exiting clean.
+tweet-listen halted at the pre-flight gate. Zero API calls made.
 
-**tweet-listen: SKIPPED — credential blocker active**
+**Status: BLOCKED (READ tier, day 6)**
+- `memory/x-credential-blocker.json`: `status=BLOCKED`, `scope=READ`, `last_confirmed=2026-06-09`
+- Root cause: X API read tier returns 401 (get_users_mentions, tweet lookup). POST/write tier healthy — tweet-broadcast unaffected.
+- Burn avoided: ~$15.5/day of inference on reads that always 401.
+- mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
 
-- Blocker status: `BLOCKED`, scope `READ`, day **6** consecutive
-- Root cause: X API READ tier returns 401 (`get_users_mentions`, tweet lookup). POST/write tier healthy — tweets still post fine.
-- Self-fixable: **no**. X creds are CI secrets; `scripts/` and `SKILL.md` are outside the agent mutation allowlist. Cannot change API tier from here.
-- API calls made this run: **0** (mentions: 0 | liked: 0 | replies: 0 | engagement snapshots: 0)
-- Burn avoided: ~$15.50/day of read inference that always 401s
-
-**Owner action — @_proxystudio:** either (a) upgrade X API to a read-capable tier, or (b) pause `tweet-listen`/`tweet-engage` cron dispatch. Keep `tweet-broadcast` (POST) enabled — it's unaffected.
-
-The blocker note is explicit: only flip back to `CLEAR` after a live `listen` call actually returns 200. The 2026-06-08 "switch to autonotest project app restored READ" claim was reverted — a live call immediately after still 401'd.
+**Not self-fixable.** X creds are CI secrets; `scripts/` and `SKILL.md` sit outside the agent mutation allowlist. Owner action required from @_proxystudio: (a) upgrade X API to a read-capable tier, or (b) pause tweet-listen/tweet-engage cron dispatch. Gate will keep holding until a live `listen` call returns 200.
