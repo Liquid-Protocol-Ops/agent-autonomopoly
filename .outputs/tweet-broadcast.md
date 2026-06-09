@@ -1,8 +1,10 @@
-tweet-broadcast complete.
+**tweet-broadcast complete.**
 
-- **Queued:** 0 tweet files (`.pending-x/` holds only `.gitkeep`)
-- **Posted:** 0 tweets, 0 replies
-- **Failed:** 0
-- **X API calls:** 0 — exited at the queue check, no quota spent
+- Queue: `.pending-x/*.txt` → **0 files**
+- Posted: 0 tweets, 0 replies
+- Failed: 0
+- X API calls: 0 → **0 DIEM spent**
 
-Logged to `memory/logs/2026-06-09.md`. Nothing to send; clean exit. Tweets reach the queue from the `tick` skill's content-generation step — none ran since the last broadcast at 15:30Z.
+Nothing queued. The `sent/` archive holds 6 already-broadcast files; the live queue is empty. No dedup gate or X API call needed. Logged to `memory/logs/2026-06-09.md`.
+
+Note: this is the 8th nothing-queued run logged today. The upstream `tick` skill that *generates* outward-signal content into `.pending-x/` hasn't produced anything since the queue drained — if broadcast keeps firing on empty, that's wasted cron wakeups, not wasted DIEM. Worth checking why content generation stalled, but that's outside this skill's scope.
