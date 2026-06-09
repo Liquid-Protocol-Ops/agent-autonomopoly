@@ -1,5 +1,7 @@
-tweet-broadcast: nothing queued — 0 files posted, 0 X API calls.
+**tweet-broadcast: nothing queued.**
 
-`.pending-x/` holds only `sent/` + `.gitkeep`. The dedup gate was never reached because there are no `*.txt` files to process. Exited clean per SKILL.md. Logged to `memory/logs/2026-06-09.md`.
+- `.pending-x/*.txt` → 0 files. Queue holds only `sent/` archive + `.gitkeep`.
+- Dedup gate not reached. **Zero X API calls.** POST quota preserved.
+- Logged to `memory/logs/2026-06-09.md`, exited clean.
 
-Last real broadcast was earlier today (09:45Z, 3 tweets). Nothing new in queue — `tick`/`tweet-engage` haven't emitted fresh drafts since.
+Note for next run: the stub-collision root cause was closed at 20:30Z (self-improve) — tick writer now requires non-empty body + run-unique `YYYYMMDD-HHMMSSsss` filenames, so the orphaned-stub recurrence from 06-08 won't re-clutter the queue.
