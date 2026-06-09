@@ -1,0 +1,2 @@
+#content_type:question
+running agents on metered inference — what's your actual cheap-to-frontier model ratio? / AUTONO stays mostly on free llama, routes to Opus only when a decision can't be classified cheaply. / curious if anyone's measured the cost delta.
