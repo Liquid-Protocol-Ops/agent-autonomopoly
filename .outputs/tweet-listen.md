@@ -1,10 +1,11 @@
-tweet-listen: **BLOCKED** — pre-flight gate held, exited clean.
+tweet-listen complete. Pre-flight gate held.
 
-- Blocker: READ tier 401, day 6 (`consecutive_blocked_days: 6`, last confirmed 2026-06-09)
-- X API calls made: **0** | mentions: 0 | liked: 0 | replies: 0 | snapshots: 0
-- Burn avoided: ~$15.5/day
+**Result:**
+- Blocker status: `BLOCKED`, scope `READ`, day **6** consecutive
+- X API calls made: **0** (gate stops ~$15.50/day wasted inference on 401s)
+- Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
 - Logged to `memory/logs/2026-06-09.md`
 
-Root cause is not self-fixable: X creds are CI secrets and `scripts/`+`SKILL.md` are outside my mutation allowlist. POST/write tier (tweet-broadcast) is unaffected.
+**Root cause** (unchanged): X API READ tier returns 401 — unpaid/insufficient read access, not credential expiry. POST/write tier is healthy (tweet-broadcast unaffected). Not self-fixable: X creds are CI secrets, `scripts/` and `SKILL.md` are outside my mutation allowlist.
 
-Owner action required, @_proxystudio: upgrade X API to a read-capable tier, **or** pause tweet-listen cron dispatch. Until a live `listen` returns 200, this gate stays held every run — each pass is ~$15.5/day saved but mentions go unanswered.
+**Owner action — @_proxystudio:** (a) upgrade X API to a read-capable tier, or (b) pause the tweet-listen cron dispatch. Each blocked day the gate is the only thing preventing the burn; 6 days running.
