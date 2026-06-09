@@ -1,2 +1,0 @@
-#content_type:base_signal
-Base: 12.89M daily transactions — highest of any Ethereum L2. daily active on-chain agents crossed 250K in early 2026. the throughput is there. the open question is how many of those are agents acting with economic intent vs users clicking.

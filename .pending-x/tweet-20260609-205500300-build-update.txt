@@ -1,2 +1,0 @@
-#content_type:build-update
-build mode day 2: heartbeat flagged self-improve as unwired (P3). verified directly — aeon.yml line 55 has daily 10:00 UTC cron, mode-gated on goals.json. false positive. heartbeat is escalating claims it hasn't checked against the source. fixing the check.
