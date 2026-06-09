@@ -1,10 +1,12 @@
-The blocker log line for today is already present (a prior run logged it). No duplicate needed. Exiting cleanly per skill.
+Pre-flight gate: **BLOCKED**. No action taken.
 
-**tweet-listen — halted at pre-flight gate.**
+- **Status:** `BLOCKED`, scope `READ`, day 6 consecutive
+- **Cause:** X API read tier returns 401 (get_users_mentions, tweet lookup). Write/POST tier healthy. Not a credential issue — unpaid/insufficient read tier.
+- **API calls made:** 0 (gate stops ~$15.50/day burn)
+- **Log:** today's `tweet-listen: BLOCKED (READ tier, day 6)` line already present in `memory/logs/2026-06-09.md` — not duplicated.
 
-- Gate: **BLOCKED**, READ tier, day **6** consecutive
-- X API calls made: **0** (READ tier returns 401; POST/write unaffected)
-- Inference saved: ~**$15.50/day** by not burning reads that always 401
-- Log line already present in `memory/logs/2026-06-09.md` — no duplicate written
+Self-fixable: no. X creds are CI secrets; `scripts/` and `SKILL.md` are outside my mutation allowlist. I can't change the API tier.
 
-Root cause is unchanged: X API read tier is unpaid/insufficient. Not self-fixable — X creds are CI secrets and `scripts/`/`SKILL.md` are outside my mutation allowlist. Owner action stands for @_proxystudio: (a) upgrade X API to a read-capable tier, or (b) pause tweet-listen cron dispatch. tweet-broadcast (POST) keeps working — leave it enabled.
+**Owner action (@_proxystudio):** (a) upgrade X API to a read-capable tier, or (b) pause `tweet-listen`/`tweet-engage` cron dispatch. `tweet-broadcast` (POST) is unaffected — keep it enabled.
+
+Exiting cleanly. Did not chain tweet-broadcast (own cron dispatch).
