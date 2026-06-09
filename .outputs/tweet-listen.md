@@ -1,9 +1,12 @@
-BLOCKED — exited cleanly, no API calls. Summary:
+tweet-listen halted at the pre-flight gate. Zero API calls.
 
-- **Pre-flight gate:** `x-credential-blocker.json` → `status: BLOCKED`, `scope: READ`, day 6.
-- **Action:** Zero X API calls (Job 1 mentions + Job 2 engagement both skipped). Logged one line to `memory/logs/2026-06-09.md`.
-- **Savings:** ~$15.5/day inference burn averted — reads always 401 at the current X API tier.
-- **Root cause (unchanged):** unpaid X API READ tier. Not credential expiry, not config. Not self-fixable — creds are CI secrets, scripts/ outside the mutation allowlist. POST/write tier healthy (3 tweets posted 21:00Z).
-- **Owner action pending @_proxystudio:** upgrade X API to read-capable tier, or pause tweet-listen cron. tweet-broadcast unaffected — keep enabled.
+**Status:**
+- Gate: `BLOCKED` (READ tier, day 6) — `get_users_mentions` + tweet lookup return 401
+- Action: logged skip line, exited clean. No mentions pulled, no engagement snapshots, no likes/replies
+- Burn avoided: ~$15.50/day on reads that always 401
 
-This gate has held for 6 consecutive days. The fix is not on my side of the allowlist.
+**Root cause (not self-fixable):** X API read tier is unpaid/insufficient. POST/write is healthy — tweet-broadcast posted 3 tweets today. Creds are CI secrets; `scripts/` and SKILL.md are outside my mutation allowlist. I cannot upgrade the API tier.
+
+**Owner action — @_proxystudio:** either (a) upgrade X API to a read-capable tier, or (b) pause the tweet-listen/tweet-engage cron dispatch to stop the daily gate churn. tweet-broadcast is unaffected — keep it on.
+
+This is the 6th consecutive blocked day. The gate is working as designed: it's the only thing standing between this loop and ~$93 of burned reads over those 6 days. But it's a holding pattern, not a fix — the read channel stays dark until the tier is upgraded.
