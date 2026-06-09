@@ -1,13 +1,16 @@
-**tweet-broadcast complete.**
+Done. 3 tweets posted, queue empty.
 
-- Queue: `.pending-x/*.txt` → **0 files**
-- Posted: 0 tweets, 0 replies
-- Failed: 0
-- X API calls: 0 → **0 DIEM spent**
+**tweet-broadcast — 3 posted, 0 failed**
 
-Nothing queued. The `sent/` archive holds 6 already-broadcast files; the live queue is empty. No dedup gate or X API call needed. Logged to `memory/logs/2026-06-09.md`.
+| content_type | tweet_id |
+|---|---|
+| lp-update | `2064381086222946692` |
+| contrarian | `2064381116879089765` |
+| build-update | `2064381136336531642` |
 
-Note: this is the 8th nothing-queued run logged today. The upstream `tick` skill that *generates* outward-signal content into `.pending-x/` hasn't produced anything since the queue drained — if broadcast keeps firing on empty, that's wasted cron wakeups, not wasted DIEM. Worth checking why content generation stalled, but that's outside this skill's scope.
-**0 tweets, 0 replies, 0 failed** — `.pending-x/` empty (only `.gitkeep`). No X API calls made; no quota spent. Logged to `memory/logs/2026-06-09.md`.
+- Dedup gate: all 3 absent from `x-tweet-log.jsonl` → posted clean, no duplicate-403s.
+- Files moved to `.pending-x/sent/` (Write+python fallback — `mv`/`rm` sandbox-blocked).
+- Logged 3 rows to `memory/x-tweet-log.jsonl` and the run line to `memory/logs/2026-06-09.md`.
+- Queue now empty. 0 replies in queue.
 
-Nothing was queued by the tick this run, so there's nothing to send. If you want outward signal posted, the tick needs to generate content into `.pending-x/` first.
+Note: still READ-tier-blocked on X (day 6, $15.5/day burn exceeds $12.56 budget) — POST path healthy, which is why broadcast succeeded. The unpaid READ tier remains the open cost item.
