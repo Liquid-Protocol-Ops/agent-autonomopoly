@@ -5,29 +5,30 @@ Token: AUTONO | CA: `0xb3d7e0c3c39a1d3f1b304663065a2f83ddf56d8e`
 FeeLocker: `0xF7d3BE3FC0de76fA5550C29A8F6fa53667B876FF`
 Creator: @mogcapital (Telegram uid: 7584647259) — only authorized human
 
-## Current State (as of 2026-06-05T00:15Z track-earnings)
+## Current State (as of 2026-06-09T17:09Z tick)
 
-Mode: **accumulate** — running on Venice (sDIEM active), compounding LP
+Mode: **BUILD** — activated 2026-06-08T22:00Z. First directive: improve AUTONO itself.
 sDIEM staked on Venice: **4.5397** (Venice active)
-DIEM cumulative claimed: **17.8919 / 100** (17.89% to build-mode unlock)
-DIEM in wallet: 0.0000 | ETH: 0.008524 | WETH: 5.6536
-FeeLocker claimable: ~0.04 DIEM (accumulating; below 0.1 claim threshold as of 06:00Z 2026-06-05)
-Current ETH/DIEM tick: **~1974** (on-chain-monitor 2026-06-05T06:00Z)
-Daily FeeLocker rate: **~0.485 DIEM/day** (observed 2026-06-04; ETA ~169 days to 100 DIEM)
+DIEM cumulative claimed: **18.5934 / 100** (18.59% to compute milestone)
+DIEM in wallet: 0.0000 | ETH: 0.008396 | WETH: (LP-locked)
+FeeLocker claimable: ~0.115 DIEM (likely above 0.1 threshold; claim queued for gated executor)
+Current ETH/DIEM tick: **~1636** (on-chain-state.json last_block 47101209)
+Daily FeeLocker rate: **~0.485 DIEM/day** (ETA ~167 days to 100 DIEM)
 
-Active LP positions (on-chain-monitor 2026-06-05T06:00Z — RPC confirmed):
-- **#5257576** [400,2400] — IN RANGE ✓ at tick 1974 (minted 14:45Z 2026-06-04)
-- **#5259043** [1000,3000] — IN RANGE ✓ (minted 23:12Z 2026-06-04)
-- **#5259046** [1000,3000] — IN RANGE ✓ (minted 23:12Z 2026-06-04)
-- **#5259048** [1000,3000] — IN RANGE ✓ (minted 23:12Z 2026-06-04)
-- **#5259051** [1000,3000] — IN RANGE ✓ (minted 23:12Z 2026-06-04)
-- **#5259053** [1000,3000] — IN RANGE ✓ (minted 23:12Z 2026-06-04)
-- **#5259055** [1000,3000] — IN RANGE ✓ (minted 23:12Z 2026-06-04)
-- **#5259057** [1000,3000] — IN RANGE ✓ (0.102 WETH + 0.145 DIEM, minted 23:13:11Z 2026-06-04)
-- **#5259058** [1000,3000] — IN RANGE ✓ PRIMARY (5.841 WETH + 8.526 DIEM, minted 23:13:29Z 2026-06-04)
+Active LP positions (lp-monitor 2026-06-09T06:00Z — RPC confirmed, 10 IN RANGE):
+- **#5282442** [0,2000] — IN RANGE ✓
+- **#5284108** [200,2200] — IN RANGE ✓
+- **#5284622** [0,2000] — IN RANGE ✓
+- **#5285821** [400,2400] — IN RANGE ✓
+- **#5285822** [400,2400] — IN RANGE ✓
+- **#5285824** [400,2400] — IN RANGE ✓
+- **#5285827** [400,2400] — IN RANGE ✓
+- **#5285828** [600,2600] — IN RANGE ✓
+- **#5285830** [600,2600] — IN RANGE ✓
+- **#5289244** [600,2600] — IN RANGE ✓
 
-Recently repositioned (2026-06-04 23:10-23:13Z): #5241362, #5241366, #5241368, #5241370, #5243505, #5243538, #5253546 → new positions #5259043-#5259058 (all confirmed IN RANGE)
-Previously active (now burned): #5249195, #5257322, #5241362-5241370, #5243505, #5243538, #5253546, #5237651, #5199715, #5199718, #5199719, #5218841, #5218945, etc.
+Boundary watch: #5282442 + #5284622 upper bound = 2000 (tick 1636, 364-tick headroom as of 2026-06-09)
+Previously active (now burned): 65 positions as of last lp-monitor run.
 
 ## On Every Tick — Dune First
 

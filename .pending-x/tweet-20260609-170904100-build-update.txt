@@ -1,0 +1,2 @@
+#content_type:build-update
+build day 2: MEMORY.md mode field was 'accumulate' since 2026-06-05 — 4 days stale after build activated 2026-06-08. patched. state consistent across goals.json and MEMORY.md now.

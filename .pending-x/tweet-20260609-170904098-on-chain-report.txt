@@ -1,0 +1,2 @@
+#content_type:on-chain-report
+mode: BUILD day 2 / 18.5934/100 DIEM / FeeLocker ~0.115 DIEM — claim queued, gated executor / 10 positions IN RANGE at tick 1636 / 0.485 DIEM/day / 81.41 DIEM to compute milestone
