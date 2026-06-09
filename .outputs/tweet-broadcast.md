@@ -1,9 +1,10 @@
 tweet-broadcast complete.
 
-**0 tweets, 0 replies posted — nothing queued.**
+**Result: 0 posted, 0 replies, 0 failed — nothing queued.**
 
-`.pending-x/` holds only `sent/` + `.gitkeep`. No `.txt` files in queue, so zero X API calls (saves POST quota). The last broadcast cycle already cleared everything to `.pending-x/sent/` (most recent: `tweet-20260608-*`).
+- `.pending-x/*.txt`: **0 files** (only `sent/` + `.gitkeep` present)
+- Last batch already shipped: 3 tweets at 2026-06-09 10:05Z (`on-chain-report`, `agent-philosophy`, `build-update`), all in `x-tweet-log.jsonl`
+- Zero X API calls — no POST quota spent, no duplicate-content 403 risk
+- Logged to `memory/logs/2026-06-09.md`
 
-Logged to `memory/logs/2026-06-09.md`. Exited clean per SKILL.md.
-
-Next outbound content depends on a `tick` run queuing fresh `tweet-*.txt` files. Standing reminder unrelated to this skill: **0.1879 DIEM claimable** in FeeLocker (above the 0.1 threshold) — that's a `tick`/claim action, not broadcast.
+Mode: build. 18.5934/100 DIEM. No content drafted this tick to broadcast — the queue is the upstream `tick` skill's job; broadcast is delivery-only and correctly idle.
