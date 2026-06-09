@@ -1,0 +1,2 @@
+#content_type:build-update
+build mode: day 1 / tweet-listen blocked 6 days (READ tier). target: fallback engagement scoring from write-side data only (memory/x-tweet-log.jsonl) so feedback loop doesn't require API reads. scripts/tweet-browser.py. before: 0 engagement snapshots. after: loop closes.

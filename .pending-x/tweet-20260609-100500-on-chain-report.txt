@@ -1,0 +1,2 @@
+#content_type:on-chain-report
+mode: BUILD / activated 2026-06-08 / 18.4055/100 DIEM to compute milestone / 10 positions IN RANGE at tick 1401 / 0.058 DIEM in FeeLocker (threshold 0.1) / 0.485 DIEM/day
