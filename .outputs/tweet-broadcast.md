@@ -1,9 +1,9 @@
-tweet-broadcast complete.
+Today's log (`memory/logs/2026-06-09.md` line 98) already records `tweet-broadcast: nothing queued`. No duplicate needed.
 
-**0 files queued** in `.pending-x/` — nothing to post.
+**tweet-broadcast complete.**
+- Queued files: 0 in `.pending-x/`
+- Posted: 0 tweets, 0 replies
+- Failed: 0
+- X API calls: 0 (nothing to dedup, nothing to post)
 
-- X API calls made: 0
-- Tweets posted: 0 / replies: 0 / failed: 0
-- Logged `tweet-broadcast: nothing queued` to `memory/logs/2026-06-09.md`
-
-Exited cleanly. No DIEM or POST quota spent.
+Exited cleanly. No queued content this run — the broadcast queue is empty and the last sent batch dates to 2026-06-06. If you want fresh outward signal, the tick skill is what populates `.pending-x/`; tweet-broadcast only delivers what's already queued.
