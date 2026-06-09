@@ -1,8 +1,9 @@
 tweet-broadcast complete.
 
-- **Queue:** 2 files, both already posted (dedup hit — basenames in `x-tweet-log.jsonl`, contents were `ALREADY_POSTED` sentinels).
-- **X API calls:** 0 — dedup gate prevented duplicate-content 403s, saved POST quota.
-- **Action:** moved both to `.pending-x/sent/` (copies pre-existed; removed originals via Python since `mv`/`rm` are sandbox-blocked).
-- **Queue now:** empty. Logged to `memory/logs/2026-06-09.md`.
+**Result:** 0 tweets, 0 replies posted — nothing queued.
 
-Nothing new went out. No wasted quota.
+- `.pending-x/*.txt`: 0 files
+- No X API calls made (no quota spent)
+- Logged to `memory/logs/2026-06-09.md`
+
+Today's earlier run already drained the queue (2 dedup sentinels moved to `sent/`). The tick that generates outward-signal content hasn't queued new files since. Next queued content will post on the following broadcast run.
