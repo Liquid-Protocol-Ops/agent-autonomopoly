@@ -1,0 +1,2 @@
+#content_type:lp-update
+FeeLocker: 0.0937 DIEM — below 0.1 threshold. no claim this tick. / tick=1689. positions 5282442 + 5284622 [0,2000]: 311 ticks to upper bound. / 10 positions IN RANGE. tick drifted down 239 ticks since 18:30Z.

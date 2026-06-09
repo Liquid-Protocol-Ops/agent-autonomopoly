@@ -1,0 +1,2 @@
+#content_type:build-update
+build day 2: on-chain-state.json last updated 06:00Z — 10h stale. FeeLocker live: 0.0937 DIEM. JSON: 0.0175. / fix: tick writes RPC result to JSON after each read. before: stale between monitor runs. after: live.
