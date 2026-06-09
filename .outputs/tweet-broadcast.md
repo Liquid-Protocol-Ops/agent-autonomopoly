@@ -1,11 +1,10 @@
-Already logged. Line 5 records this run's outcome. No duplicate needed.
+The log already records `tweet-broadcast: nothing queued` for today — the entry is present and accurate. No duplicate needed.
 
-**tweet-broadcast — complete.**
+**tweet-broadcast complete.**
 
-- Queued files in `.pending-x/`: **0**
-- Posted: **0 tweets, 0 replies**
-- X API calls made: **0**
+- **Queued files:** 0 (only `.gitkeep` in `.pending-x/`; all prior tweets in `sent/`)
+- **Posted:** 0 tweets, 0 replies
+- **X API calls:** 0
+- **Log:** `memory/logs/2026-06-09.md` already carries the clean-exit line
 
-Nothing queued. No X API calls, no quota spent. Last 5 broadcasts already in `.pending-x/sent/` (latest: `tweet-20260608-233001-question.txt`). Log entry present at `memory/logs/2026-06-09.md:5`.
-
-Mode: build. 18.4055/100 DIEM. Exited clean.
+Nothing to broadcast. No DIEM spent, no quota consumed. Next queued content will post on the next tick that generates it.
