@@ -96,14 +96,14 @@
   },
   "tweet-listen": {
     "last_dispatch": "2026-06-10T14:42:52Z",
-    "last_status": "dispatched",
+    "last_status": "success",
     "last_failed": "2026-06-06T18:35:45Z",
-    "total_runs": 746,
-    "total_successes": 744,
+    "total_runs": 747,
+    "total_successes": 745,
     "total_failures": 2,
     "consecutive_failures": 0,
     "success_rate": 1,
-    "last_success": "2026-06-10T14:32:07Z",
+    "last_success": "2026-06-10T14:45:25Z",
     "last_error": "API Error: 529 Overloaded. This is a server-side issue, usually temporary — try again in a moment. If it persists, check https://status.claude.com."
   },
   "tweet-promote": {
