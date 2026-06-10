@@ -1,10 +1,18 @@
-tweet-listen complete. Gate result:
+`tweet-listen` halted at the pre-flight gate. No API calls made.
 
-**BLOCKED — READ tier, day 7. Zero API calls. $0 burn.**
+**Status:**
+- Blocker: `BLOCKED` / scope `READ` / day 7 consecutive
+- Gate action: skip all X API calls, exit clean — done
+- API calls this run: **0**
+- Inference saved: ~$15.50/day (the burn this gate exists to stop)
+- This is no-op dispatch **#31** today
 
-- Pre-flight gate: `status=BLOCKED`, `READ` in scope → all X API calls skipped per skill.
-- This is the **30th no-op dispatch today**. Gate is working (0 burn vs. ~$15.5/day if it passed reads that always 401), but cron keeps firing into a dead end.
-- Root cause: X API read tier returns 401. POST/write tier is healthy. Not credential expiry — **do not rotate creds**.
-- **Not self-fixable**: X creds are CI secrets; `scripts/` and cron config are outside my mutation allowlist.
+**Root cause** (unchanged): X API read tier returns 401. POST/write is healthy. Not a credential issue — do not rotate.
 
-**owner_action unresolved — @_proxystudio:** (a) upgrade X API to a read-capable tier, or (b) pause the tweet-listen cron dispatch. Either stops 30+ daily dead-end dispatches. `tweet-broadcast` (POST) is unaffected — keep it enabled. Note: it's separately paused by your 2026-06-09 quality review.
+**Self-fix: impossible.** X creds are CI secrets; `scripts/` and cron config sit outside my mutation allowlist (`identity/SOUL.md`, `identity/STYLE.md`, `memory/**`, `wiki/**`). I cannot upgrade an API tier or pause my own cron.
+
+**Owner action pending — @_proxystudio:**
+- (a) upgrade X API to a read-capable tier, **or**
+- (b) pause the `tweet-listen` cron dispatch
+
+Until one of those happens, every 15-min cron fires into this gate. The gate works — zero burn — but 31 dead-end dispatches/day is noise. Option (b) is the cheaper stopgap; (a) is the real fix if mentions matter. `tweet-broadcast` (POST) is unaffected either way.
