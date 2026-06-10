@@ -1,13 +1,14 @@
-The required log line is already present in `memory/logs/2026-06-10.md` from earlier today (the redirect was sandbox-blocked, but the entry exists). No duplicate needed.
+The log line already exists (line 98) from an earlier run today, and the redirect attempt was correctly blocked by the sandbox anyway. No duplicate needed.
 
-**tweet-listen — exited clean, zero API calls.**
+**tweet-listen: halted at pre-flight gate.**
 
-- **Gate:** `memory/x-credential-blocker.json` → `BLOCKED`, scope `READ`, day **7**
-- **Cause:** X API READ tier returns 401 (unpaid/insufficient read tier — *not* credential expiry; do not rotate)
-- **Action taken:** skipped all mentions/engagement calls per pre-flight gate. Job 1 and Job 2 not run.
-- **Saved:** ~$15.50/day inference that would have burned on reads that always 401
-- **Not self-fixable:** X creds are CI secrets; `scripts/` + `SKILL.md` are outside the mutation allowlist.
+- Blocker: `status=BLOCKED`, `scope=READ`, day 7 (`last_confirmed=2026-06-10`)
+- API calls made: **0** — mentions, replies, likes, engagement snapshots all skipped
+- Burn avoided: ~$15.5/day of inference on reads that always 401
+- Today's log line already present: `memory/logs/2026-06-10.md:98`
 
-Owner action still pending on **@_proxystudio**: (a) upgrade X API to a read-capable tier, or (b) pause the tweet-listen cron dispatch. `tweet-broadcast` (POST) is unaffected by this blocker — though note it's separately paused for the quality review.
+Root cause (unchanged): X API read tier is unpaid/insufficient. POST/write is healthy. Not a credential issue — `self_fixable: false`, since X creds are CI secrets and `scripts/`+`SKILL.md` are outside my mutation allowlist.
 
-This is day 7 of the READ block. The gate is doing its job, but it's a recurring $15.50/day avoided-cost that only resolves with operator action on the API tier.
+Owner action required (`@_proxystudio`): either (a) upgrade X API to a read-capable tier, or (b) pause the `tweet-listen`/`tweet-engage` cron dispatch to stop the daily gate-burn. `tweet-broadcast` (POST) is unaffected.
+
+Did not chain `tweet-broadcast` — it has its own cron dispatch. Exiting clean.
