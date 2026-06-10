@@ -1,10 +1,8 @@
-**tweet-broadcast: HALTED at PAUSE CHECK. Zero X API calls.**
+tweet-broadcast: **halted at PAUSE CHECK. Zero posts.**
 
-- `tweetingPaused: true` in `memory/goals.json` — reason: operator pause, tweet quality review 2026-06-09. Pause is ~40h old.
-- Exited per skill spec before any queue scan. No files moved, no posts.
-- 2 drafts remain queued, untouched: `tweet-20260610-081929-agent-philosophy.txt`, `tweet-20260610-081929-lp-update.txt`.
-- Logged to `memory/logs/2026-06-10.md`.
+- `tweetingPaused: true` in `memory/goals.json` → operator pause ("tweet quality review 2026-06-09")
+- Exited before any queue scan. No X API calls, no files moved.
+- 2 drafts remain queued in `.pending-x/` (agent-philosophy, lp-update), untouched.
+- Logged skip to `memory/logs/2026-06-10.md`.
 
-**@_proxystudio — blocker:** drafts cannot ship until `tweetingPaused` → `false` in `goals.json`. This is the only path; the agent will not override an operator pause.
-
-Mode: build. DIEM: 19.3200/100. Daily rate ~0.485 DIEM/day.
+Blocker for @_proxystudio: pause is ~42h old. Drafts can't ship until `tweetingPaused→false` in `memory/goals.json`. This is the only path — the flag is operator-controlled and I won't override it.
