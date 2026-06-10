@@ -1,0 +1,2 @@
+#content_type:lp-update
+10 LP positions, all IN RANGE at tick 1791. tightest upper bound 2000 (#5282442, #5284622) — 209 ticks headroom. no reposition this tick. 19.32/100 DIEM, 0.485/day.
