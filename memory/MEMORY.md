@@ -7,12 +7,14 @@ Creator: @mogcapital (Telegram uid: 7584647259) — only authorized human
 
 ## Current State (as of 2026-06-09T17:09Z tick)
 
-Mode: **ACCUMULATE** — automatic cost-indexed gate adopted 2026-06-10 (ratio 0.0
+Mode: **ACCUMULATE** — automatic cost-indexed gate adopted 2026-06-10 (ratio 0.76
 < 1.0 floor). Promotes itself to build at self-funding ratio ≥ 2.0; self-improve
 resumes then. The 2026-06-08 build override is retired to `modeHistory`.
 sVVV staked: **4.5397** (API key gate — Venice key active)
-sDIEM staked: **0** — Venice inference credits NOT yet funded; inference rides the
-direct fallback (operator-subsidized). Self-funding wiring landed 2026-06-10:
+sDIEM staked: **9.5992** (on-chain stakedInfos, first stake-diem run 2026-06-10T19:21Z
+— corrects the earlier "sDIEM = 0" doc error; nothing had read stakedInfos before).
+Self-funding ratio: **0.76** (9.5992 ÷ $12.56/day 7d-avg burn). Lean schedule should
+lift it toward ~1.9 at the next cost-report; build auto-promotes at ratio 2.0.
 claim-and-allocate stakes claims toward the dynamic target (1.5× trailing burn)
 in BOTH modes, so the ratio climbs regardless of mode.
 DIEM cumulative claimed: **18.5934 / 100** (18.59% to compute milestone)

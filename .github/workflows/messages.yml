@@ -816,8 +816,8 @@ jobs:
 
           # Build agent identity context for this invocation
           AGENT_MODE=$(jq -r '.mode // "accumulate"' memory/goals.json 2>/dev/null || echo "accumulate")
-          DIEM_CURRENT=$(jq -r '.milestones[0].current // "?"' memory/goals.json 2>/dev/null || echo "?")
-          DIEM_TARGET=$(jq -r '.milestones[0].target // 100' memory/goals.json 2>/dev/null || echo 100)
+          DIEM_CURRENT=$(jq -r '(.milestones[] | select(.id=="accumulate-100-diem") | .current) // "?"' memory/goals.json 2>/dev/null || echo "?")
+          DIEM_TARGET=$(jq -r '(.milestones[] | select(.id=="accumulate-100-diem") | .target) // 100' memory/goals.json 2>/dev/null || echo 100)
           SOUL_EXCERPT=$(sed -n '/^## Who the agent is/,/^## /{ /^## Who/d; /^## [^W]/d; p }' identity/SOUL.md 2>/dev/null | head -8 || echo "")
 
           PROMPT="You are AUTONOMOPOLY — an autonomous agent on Base mainnet (wallet: 0x8767Df39eCeeaeB11554642237aC4E08660aB6A3).
