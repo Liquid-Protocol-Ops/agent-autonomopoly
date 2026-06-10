@@ -95,7 +95,13 @@ jobs:
             # runs are often delayed past the hour, which made hour-matching no-op.
             case "${{ github.event.schedule }}" in
               '0 9 * * 1') echo "name=cost-report" >> "$GITHUB_OUTPUT" ;;
-              '0 9 * * 0') echo "name=tweet-reflect" >> "$GITHUB_OUTPUT" ;;
+              '0 9 * * 0')
+                # Weekly reflect is pointless (and not free) while posting is paused
+                PAUSED=$(jq -r '.tweetingPaused // false' memory/goals.json 2>/dev/null || echo false)
+                if [ "$PAUSED" != "true" ]; then
+                  echo "name=tweet-reflect" >> "$GITHUB_OUTPUT"
+                fi
+                ;;
               '0 10 * * *')
                 # Daily — self-improve, only in build mode (needs Early checkout)
                 AGENT_MODE=$(jq -r '.mode // "accumulate"' memory/goals.json 2>/dev/null || echo "accumulate")
@@ -114,6 +120,13 @@ jobs:
           if [ -n "${{ steps.skill.outputs.name }}" ]; then
             echo "mode=skill" >> "$GITHUB_OUTPUT"
             echo "label=${{ steps.skill.outputs.name }}" >> "$GITHUB_OUTPUT"
+            # Deterministic skills run as plain scripts — no LLM step, no Venice/CCR
+            # setup. Removes the 529/CLI-drift failure surface for jobs that don't
+            # need judgment, and costs zero inference.
+            case "${{ steps.skill.outputs.name }}" in
+              stake-diem|track-earnings) echo "script_only=true" >> "$GITHUB_OUTPUT" ;;
+              *) echo "script_only=false" >> "$GITHUB_OUTPUT" ;;
+            esac
           else
             echo "Nothing to do"
           fi
@@ -147,11 +160,13 @@ jobs:
         run: npm ci --ignore-scripts
 
       - name: Install Claude Code
-        if: steps.work.outputs.mode != ''
-        run: npm install -g @anthropic-ai/claude-code @musistudio/claude-code-router
+        if: steps.work.outputs.mode != '' && steps.work.outputs.script_only != 'true'
+        # Pinned: an unpinned install broke every run when the CLI dropped the
+        # --system flag (May 30 incident). Bump deliberately, not implicitly.
+        run: npm install -g @anthropic-ai/claude-code@2.1.170 @musistudio/claude-code-router
 
       - name: Validate skill secrets
-        if: steps.work.outputs.mode != ''
+        if: steps.work.outputs.mode != '' && steps.work.outputs.script_only != 'true'
         env:
           XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
           COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
@@ -188,7 +203,7 @@ jobs:
           exit 0
 
       - name: Run pre-fetch scripts
-        if: steps.work.outputs.mode != ''
+        if: steps.work.outputs.mode != '' && steps.work.outputs.script_only != 'true'
         env:
           XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -210,7 +225,7 @@ jobs:
           done
 
       - name: Refresh Venice key (privileged — no LLM)
-        if: steps.work.outputs.mode != ''
+        if: steps.work.outputs.mode != '' && steps.work.outputs.script_only != 'true'
         env:
           # Privileged + idempotent: mints the agent's Venice inference key via Privy
           # signing and writes it back to the repo secret (needs secrets:write). Runs
@@ -231,7 +246,7 @@ jobs:
 
       - name: Run
         id: run
-        if: steps.work.outputs.mode != ''
+        if: steps.work.outputs.mode != '' && steps.work.outputs.script_only != 'true'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -567,10 +582,24 @@ jobs:
           SYSTEM_PROMPT=$(cat identity/SOUL.md identity/STYLE.md 2>/dev/null)
           SYSTEM_PROMPT="${SYSTEM_PROMPT:-You are AUTONOMOPOLY, an autonomous agent on Base mainnet.}"
 
-          if ! CLAUDE_OUTPUT=$(echo "$PROMPT" | claude -p - \
-            --system-prompt "$SYSTEM_PROMPT" \
-            --model "$MODEL" --allowedTools "$ALLOWED" \
-            --output-format json 2>&1); then
+          # Retry transient overloads (529) before invoking the fallback path
+          CLAUDE_OK=false
+          for attempt in 1 2 3; do
+            if CLAUDE_OUTPUT=$(echo "$PROMPT" | claude -p - \
+              --system-prompt "$SYSTEM_PROMPT" \
+              --model "$MODEL" --allowedTools "$ALLOWED" \
+              --output-format json 2>&1); then
+              CLAUDE_OK=true
+              break
+            fi
+            if [ "$attempt" -lt 3 ] && echo "$CLAUDE_OUTPUT" | grep -qiE '529|overloaded'; then
+              echo "::warning::Provider overloaded (attempt $attempt/3) — retrying in $((attempt * 30))s"
+              sleep $((attempt * 30))
+              continue
+            fi
+            break
+          done
+          if [ "$CLAUDE_OK" != "true" ]; then
             # Hard failure — attempt direct fallback before giving up (catches 400s from gateway)
             if [ "$GATEWAY" != "direct" ] && [ -n "${SAVED_OAUTH_TOKEN:-}" ]; then
               echo "::warning::Gateway returned hard failure — retrying with direct Anthropic auth"
@@ -640,9 +669,31 @@ jobs:
 
           echo "::notice::Token usage — input: $INPUT_TOKENS, output: $OUTPUT_TOKENS, cache_read: $CACHE_READ, cache_creation: $CACHE_CREATION, total: $TOTAL_TOKENS"
 
+      - name: Run script skill (deterministic — no LLM)
+        id: script_run
+        if: steps.work.outputs.mode != '' && steps.work.outputs.script_only == 'true'
+        env:
+          # Read-only on-chain access. No Privy here — any tx the script wants goes
+          # through the intent queue and the signing chokepoint below validates it.
+          RPC_URL: ${{ secrets.RPC_URL }}
+          AGENT_WALLET: '0x8767Df39eCeeaeB11554642237aC4E08660aB6A3'
+        run: |
+          set -o pipefail
+          SKILL="${{ steps.skill.outputs.name }}"
+          case "$SKILL" in
+            stake-diem)     SCRIPT="scripts/stake-diem-check.ts" ;;
+            track-earnings) SCRIPT="scripts/track-earnings.ts" ;;
+            *) echo "no-script-mapping-for-$SKILL" > /tmp/skill-error.txt; exit 1 ;;
+          esac
+          if node --import tsx "$SCRIPT" 2>&1 | tee /tmp/skill-result.txt; then
+            exit 0
+          fi
+          tail -c 300 /tmp/skill-result.txt | tr '\n' ' ' > /tmp/skill-error.txt
+          exit 1
+
       - name: Execute on-chain intents
         id: execute
-        if: steps.work.outputs.mode != '' && steps.run.outcome == 'success'
+        if: steps.work.outputs.mode != '' && (steps.run.outcome == 'success' || steps.script_run.outcome == 'success')
         env:
           # Signing chokepoint: holds the Privy credential, runs NO LLM. It executes
           # only the allow-listed intents the model queued in the (no-Privy) Run step.
@@ -864,7 +915,7 @@ jobs:
           echo "::notice::Skill quality — $SKILL: score=$SCORE, avg=$AVG — $ASSESSMENT"
 
       - name: Send pending notifications
-        if: steps.work.outputs.mode != '' && steps.run.outcome == 'success'
+        if: steps.work.outputs.mode != '' && (steps.run.outcome == 'success' || steps.script_run.outcome == 'success')
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -954,7 +1005,7 @@ jobs:
           done
 
       - name: Enforce write allow-list
-        if: steps.work.outputs.mode != '' && steps.run.outcome == 'success'
+        if: steps.work.outputs.mode != '' && (steps.run.outcome == 'success' || steps.script_run.outcome == 'success')
         env:
           ALLOWLIST_BASE_REF: ${{ steps.checkout_sha.outputs.sha }}
         run: |
@@ -1062,9 +1113,17 @@ jobs:
         if: always() && steps.skill.outputs.name != ''
         run: |
           SKILL="${{ steps.skill.outputs.name }}"
-          RUN_OUTCOME="${{ steps.run.outcome }}"
+          # Script-only skills run in script_run; LLM skills in run
+          if [ "${{ steps.work.outputs.script_only }}" = "true" ]; then
+            RUN_OUTCOME="${{ steps.script_run.outcome }}"
+          else
+            RUN_OUTCOME="${{ steps.run.outcome }}"
+          fi
           NOW_ISO=$(date -u +%FT%TZ)
-          STATE_FILE="memory/cron-state.json"
+          # Per-skill state file — concurrent skill jobs used to race on a single
+          # cron-state.json (rebase clobbers showed up as phantom failures/lag).
+          # Legacy memory/cron-state.json is frozen as of 2026-06-10.
+          STATE_FILE="memory/cron-state/${SKILL}.json"
           QUALITY_SCORE="${{ steps.analyze.outputs.QUALITY_SCORE }}"
 
           # Determine status from step outcome
@@ -1141,7 +1200,7 @@ jobs:
 
           apply_state_update
 
-          mkdir -p memory
+          mkdir -p memory/cron-state
           echo "$STATE" | jq '.' > "$STATE_FILE"
 
           git add "$STATE_FILE"

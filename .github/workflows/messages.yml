@@ -151,8 +151,14 @@ jobs:
             [ "$SCHED" = "workflow_dispatch" ] && continue
             [ "$SCHED" = "reactive" ] && continue
 
-            # Read state for this skill
-            LAST_STATUS=$(echo "$STATE" | jq -r --arg s "$SKILL" '.[$s].last_status // "none"')
+            # Run outcomes live in per-skill files (memory/cron-state/<skill>.json,
+            # written by the aeon workflow). This scheduler's own STATE_FILE keeps
+            # only dispatch bookkeeping; fall back to it for never-run skills.
+            if [ -f "memory/cron-state/${SKILL}.json" ]; then
+              LAST_STATUS=$(jq -r --arg s "$SKILL" '.[$s].last_status // "none"' "memory/cron-state/${SKILL}.json")
+            else
+              LAST_STATUS=$(echo "$STATE" | jq -r --arg s "$SKILL" '.[$s].last_status // "none"')
+            fi
             LAST_DISPATCH=$(echo "$STATE" | jq -r --arg s "$SKILL" '.[$s].last_dispatch // "1970-01-01T00:00:00Z"')
             LAST_DISPATCH_EPOCH=$(date -u -d "$LAST_DISPATCH" +%s 2>/dev/null || echo 0)
             MINUTES_SINCE=$(( (NOW_EPOCH - LAST_DISPATCH_EPOCH) / 60 ))

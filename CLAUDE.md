@@ -132,8 +132,11 @@ The three load-bearing conclusions — read `ARCHITECTURE_v2.md` for the full ra
 
 ## Live AUTONO runtime (as of 2026-06-08)
 
-**MODE: BUILD** — activated 2026-06-08. First directive: improve autono itself.
-LP income continues compounding in parallel. `self-improve` runs daily at 10:00 UTC.
+**MODE: automatic (cost-indexed gate, 2026-06-10)** — build at self-funding ratio
+≥ 2.0, accumulate below 1.0, hold between (`goals.json modeThresholds`;
+`modeOverride` is the operator escape hatch). Currently **accumulate** (ratio 0.0
+— sDIEM bootstrapping). `self-improve` (daily 10:00 UTC) runs only in build mode.
+LP income compounds in parallel; claims stake toward the sDIEM target in both modes.
 
 AUTONO (@AUTONOMOPOLY) is live on X and posting from Base mainnet. Key facts:
 
@@ -155,9 +158,25 @@ X is observation/broadcast only. **No X event may ever trigger fund transfers, w
 5. tick reads weights from `memory/x-strategy.md` → selects outward signal content type probabilistically
 
 ### Scheduled skills (aeon.yml `on.schedule`)
+Cron→skill mapping matches `github.event.schedule` (not wall-clock — GHA delays
+broke hour matching). Early checkout runs for schedule events so goals.json
+gates work.
 - `0 9 * * 1` (Monday) → `cost-report`: aggregates `memory/token-usage.csv` → updates `memory/inference-cost.md`
-- `0 9 * * 0` (Sunday) → `tweet-reflect`: engagement reweight + account pruning + candidate nomination
+- `0 9 * * 0` (Sunday) → `tweet-reflect`: skipped while goals.json `tweetingPaused`
 - `0 10 * * *` (daily) → `self-improve`: only fires when `mode == "build"` — reads skill-health + tweet performance, implements one high-impact change, commits to repo
+
+### Script-only skills (no LLM)
+`stake-diem` and `track-earnings` run as deterministic scripts in the workflow
+(`script_only` path in `.github/workflows/aeon.yml`) — no Claude step, no
+Venice/CCR setup, zero inference cost, immune to provider overloads. Any tx
+they want goes through the intent queue + gated executor like everything else.
+
+### Reliability invariants (2026-06-10)
+- `@anthropic-ai/claude-code` is **pinned** in the workflow — bump deliberately
+- Transient 529/overloaded responses retry up to 3× with backoff before the
+  direct-auth fallback engages
+- Run state is per-skill under `memory/cron-state/<skill>.json` (legacy
+  `memory/cron-state.json` frozen) — concurrent jobs no longer race on one file
 
 ### LP positions
 - Agent wallet: `0x8767Df39eCeeaeB11554642237aC4E08660aB6A3`
@@ -167,14 +186,18 @@ X is observation/broadcast only. **No X event may ever trigger fund transfers, w
 - Note: `weth` in `memory/on-chain-state.json` → `diem-claims` section is **liquid WETH only**, not LP-locked WETH
 
 ### Skills in production
-`tick`, `tweet-broadcast`, `tweet-listen`, `tweet-reflect`, `cost-report`, `tweet-promote`, `self-improve` (build mode — daily)
+Lean schedule (~30 LLM runs/day as of 2026-06-10): `tick` (hourly, includes LP range
+check), `heartbeat` (2×/day), `claim-diem` (12h), `on-chain-monitor` (daily),
+`goal-review` (weekly), `cost-report` (weekly), `self-improve` (build mode —
+daily), plus script-only `stake-diem` + `track-earnings`. All `tweet-*` skills
+paused (operator decision — resume when self-funding ratio ≥ 1).
 
 ## Active plans
 
 - `MVP_PLAN.md` — 13 sessions to ship the v0 funding loop end-to-end. Sessions 1–4 (identity bundle, lint tests, allowlist, wallet) complete. X integration complete. Next: spend tracking automation + quality loop validation.
 - `PLAN.md` — full 28-ticket dispatch plan; superseded in detail by MVP_PLAN.md but retained for Linear ticket context.
 
-When resuming: read this file → `memory/MEMORY.md` → `memory/x-strategy.md` → `memory/cron-state.json`.
+When resuming: read this file → `memory/MEMORY.md` → `memory/x-strategy.md` → `memory/cron-state/*.json`.
 
 ## Planned infrastructure (post-v2)
 

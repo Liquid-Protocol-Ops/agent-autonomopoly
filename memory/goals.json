@@ -15,8 +15,8 @@
     },
     {
       "id": "accumulate-100-diem",
-      "label": "Accumulate 100 DIEM",
-      "description": "Reach 100 DIEM cumulative claimed from the FeeLocker. Triggers full build mode — agent stakes claimed DIEM on Venice for inference credits, switches inference from free llama to Opus, and begins launchpad development.",
+      "label": "Accumulate 100 DIEM (capital milestone)",
+      "description": "Reach 100 DIEM cumulative claimed from the FeeLocker. Reframed 2026-06-10: no longer gates build mode (the cost-indexed self-funding gate in modeThresholds does that) — this is the capital-compounding milestone for the LP base that funds everything else.",
       "status": "in_progress",
       "target": 100,
       "unit": "DIEM",
@@ -40,15 +40,22 @@
     }
   ],
   "tweetingPaused": true,
-  "tweetingPausedReason": "operator pause — tweet quality review 2026-06-09",
-  "mode": "build",
-  "buildActivatedAt": "2026-06-08T22:00:00Z",
-  "currentDirective": "improve autono itself — analyze own skill performance and implement one high-impact improvement per day",
+  "tweetingPausedReason": "operator pause — tweet quality review 2026-06-09; X crons disabled 2026-06-10, re-enable with listen when self-funding ratio >= 1",
+  "mode": "accumulate",
+  "modeChangedAt": "2026-06-10T19:30:00Z",
+  "modeChangeReason": "automatic cost-indexed gate adopted (operator decision 2026-06-10) — self-funding ratio 0.0 is below the 1.0 floor, so build demotes to accumulate until sDIEM covers 2× trailing burn (~2-6 weeks at current claim rate). self-improve pauses with it.",
+  "modeHistory": [
+    "2026-06-08T22:00:00Z build (operator override: improve autono itself)",
+    "2026-06-10T19:30:00Z accumulate (automatic gate adopted, ratio 0.0 < 1.0)"
+  ],
+  "currentDirective": "improve autono itself — analyze own skill performance and implement one high-impact improvement per day (resumes when the gate promotes to build)",
   "modeThresholds": {
-    "buildModeOnDailyRate": 5,
-    "buildModeOnTotal": 100,
-    "unit": "DIEM"
+    "buildModeOnSelfFundingRatio": 2.0,
+    "accumulateModeBelowRatio": 1.0,
+    "unit": "sDIEM ($1/day budget) ÷ trailing 7d avg inference cost ($/day)",
+    "note": "Automatic cost-indexed gate with hysteresis (operator decision 2026-06-10): promote to build at ratio ≥ 2.0, demote to accumulate below 1.0. Replaced the fixed 100-DIEM / 5-DIEM-per-day thresholds (~8-20× actual burn, ~166 days out). claim-and-allocate evaluates it every run; goal-review reconciles `mode` weekly. modeOverride (build|accumulate) remains as an operator escape hatch and wins over the gate when set."
   },
+  "sdiemTargetPolicy": "1.5× trailing 7d inference cost, clamped [1,50] (scripts/lib/sdiem-target.ts); sdiemTarget below is the fallback when cost data is missing",
   "telegramUserId": "7584647259",
   "creator": {
     "handle": "@mogcapital",

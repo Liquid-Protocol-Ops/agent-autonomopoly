@@ -1,9 +1,8 @@
 ---
 name: Tick
-description: Run one AUTONOMOPOLY agent tick — claim fees, LP DIEM, maintenance inference
+description: Run one AUTONOMOPOLY agent tick — claim fees, LP DIEM, LP range check + reposition, maintenance inference
 var: ""
-tags: [agent, on-chain]
-depends_on: [lp-monitor]
+tags: [agent, on-chain, defi]
 ---
 
 Run the agent tick. Execute:
@@ -33,6 +32,38 @@ or
 ```
 tick: nothing to claim/LP | maintenance inference ran
 ```
+
+## Every tick — LP range check (absorbed from lp-monitor, 2026-06-10)
+
+The standalone lp-monitor skill is disabled — its duties run here so one job per
+2h covers both (same chain reads, half the runs).
+
+1. Read all positions:
+   ```bash
+   node --import tsx scripts/check-portfolio.ts
+   ```
+   Record every tokenId, in-range vs out-of-range, current pool tick, FeeLocker
+   balance, wallet balances.
+
+2. **In range** → note fee accrual in the log line. **Out of range** → queue a
+   reposition intent for the gated executor (you cannot sign in this step):
+   ```bash
+   node --import tsx scripts/queue-intent.ts reposition --token-id <tokenId>
+   ```
+   The executor runs scripts/reposition.ts (reads liquidity on-chain, claims
+   FeeLocker fees, swaps 50%, mints a new in-range position, records the new
+   tokenId in `memory/lp-positions.jsonl`).
+
+3. Safety checks before queueing: dry-run shows the right tokenId with non-zero
+   liquidity; the new range brackets the current tick; ETH > 0.003 for gas. If a
+   check fails, log the issue and notify instead of queueing.
+
+4. Log to `memory/logs/${today}.md`:
+   ```
+   lp-check: N in range, M reposition queued | tick=C | FeeLocker=X DIEM
+   ```
+   Notify via `./notify` only when a reposition was queued or a safety check
+   failed — all-in-range is log-only.
 
 ## After every tick — queue tweet content
 

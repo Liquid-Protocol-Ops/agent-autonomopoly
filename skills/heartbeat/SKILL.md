@@ -14,7 +14,7 @@ Read memory/MEMORY.md and the last 2 days of memory/logs/ for context.
 
 ### P0 — Failed & stuck skills (check first)
 
-Read `memory/cron-state.json`. This file tracks every scheduled skill's state and quality metrics:
+Read `memory/cron-state/*.json` (one file per skill, keyed by skill name; legacy `memory/cron-state.json` is frozen as of 2026-06-10). These files track every scheduled skill's state and quality metrics:
 ```json
 {
   "skill-name": {
@@ -51,7 +51,7 @@ Flag these conditions:
 
 ### P3 — Missing scheduled skills
 
-Read `aeon.yml` for enabled skills with schedules. Cross-reference with `memory/cron-state.json`:
+Read `aeon.yml` for enabled skills with schedules. Cross-reference with `memory/cron-state/*.json`:
 - If an enabled skill has **no entry at all** in the state file, it has never been dispatched by the scheduler.
 - If a skill's `last_success` is **>2x its schedule interval** old (e.g., a daily skill hasn't succeeded in >48h), flag it.
 
@@ -73,7 +73,7 @@ Batch all findings into a **single notification**, grouped by priority tier:
 After the priority checks (even when everything is green — this step **always** runs), regenerate `docs/status.md` so the public GitHub Pages site reflects current fleet health.
 
 ### Data sources
-- `memory/cron-state.json` — per-skill run state (authoritative)
+- `memory/cron-state/*.json` — per-skill run state (authoritative; legacy cron-state.json frozen)
 - `memory/issues/INDEX.md` — open issue table
 - `aeon.yml` — enabled skill list with schedules
 - Latest `articles/token-report-*.md` (most recent by filename date) — optional; powers the Token Pulse section. Skipped silently when no file exists.
@@ -133,14 +133,14 @@ _(if INDEX.md has any open rows, render them here; otherwise: "No open issues.")
 ```
 
 ### Rules
-- Include **all** enabled skills from `aeon.yml` (not only those with recent runs). For skills with no entry in cron-state.json, show `—` for timestamp and `not yet run` in status.
+- Include **all** enabled skills from `aeon.yml` (not only those with recent runs). For skills with no per-skill state file, show `—` for timestamp and `not yet run` in status.
 - Sort the skill table by last-run timestamp descending (most recent first); skills that have never run sink to the bottom.
 - Format timestamps as `YYYY-MM-DD HH:MM UTC` (strip seconds and the `Z`).
 - Success rate shows `total_successes / total_runs × 100` rounded to whole percent; display `—` when `total_runs == 0`.
 - Status column icons: `✅ success`, `❌ failed`, `⏳ dispatched` (if last_dispatch within 45min), `🕸 stuck` (if last_dispatch > 45min and last_status still dispatched), `—` (never run).
 - For the `Next scheduled run:` line, pick the enabled skill with the soonest upcoming cron time relative to now.
 - Dedup state: re-running heartbeat overwrites `docs/status.md` wholesale each time — do not append.
-- Never expose values from `.env`, secrets, or anything outside cron-state.json + issues/INDEX.md + aeon.yml + articles/token-report-*.md. This file is public.
+- Never expose values from `.env`, secrets, or anything outside memory/cron-state/ + issues/INDEX.md + aeon.yml + articles/token-report-*.md. This file is public.
 
 ### Token pulse rules
 - Pick the **latest** `articles/token-report-*.md` by filename date (sort descending, take the first match).

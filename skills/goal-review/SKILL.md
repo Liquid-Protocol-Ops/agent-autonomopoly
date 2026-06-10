@@ -18,7 +18,7 @@ creator. **Read-only on-chain — this skill never queues transactions.**
 2. `memory/diem-claims.jsonl` (last 20 non-dry-run entries) — actual claim rate.
 3. `memory/earnings.jsonl` (last 14 entries) — LP earning trend.
 4. `memory/inference-cost.md` — 7d daily average inference cost.
-5. `memory/cron-state.json` — per-skill `last_success` and `consecutive_failures`.
+5. `memory/cron-state/*.json` (per-skill; legacy `memory/cron-state.json` frozen 2026-06-10) — per-skill `last_success` and `consecutive_failures`.
 6. On-chain (public RPC, read-only): sDIEM via `stakedInfos(agent)` on the DIEM
    contract (`goals.json → diemAddress`), FeeLocker `availableFees`.
 
@@ -53,8 +53,21 @@ consistency-check results, and **exactly one recommended action** for the coming
 week (the highest-leverage change toward self-funding ratio ≥ 1.0).
 
 Update `memory/goals.json`: refresh `current`, `updatedAt`, and ETA notes on
-quantitative milestones. Do not change `mode`, thresholds, or the creator block —
-those are operator decisions; recommend, don't act.
+quantitative milestones.
+
+**Mode reconciliation (automatic cost-indexed gate with hysteresis):** compute
+`ratio = sDIEM ÷ 7d avg daily cost`; promote to build at
+≥ `buildModeOnSelfFundingRatio` (2.0), demote to accumulate below
+`accumulateModeBelowRatio` (1.0), hold inside the band.
+- If `modeOverride` is set (operator escape hatch): do NOT change `mode`; report
+  "override active; gate would say X" in the review.
+- Otherwise, if the gate result differs from `mode`: update `mode`, set
+  `modeChangedAt` + `modeChangeReason`, append one line to `modeHistory`, and
+  lead the creator notification with the change. Note that self-improve runs
+  only in build mode — say so when demoting.
+
+Never change thresholds, `modeOverride`, or the creator block — those are
+operator decisions; recommend, don't act.
 
 ## Step 5 — Report to creator
 
