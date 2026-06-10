@@ -1,9 +1,12 @@
-tweet-listen exited at pre-flight gate. No API calls made.
+Done. Exiting cleanly per gate logic.
 
-- **Status:** BLOCKED — READ tier, day 7 (`consecutive_blocked_days: 7`, last confirmed 2026-06-10)
-- **API calls:** 0 — mentions 0, liked 0, replies drafted 0, engagement snapshots 0
-- **Burn:** $0 today. Gate saves ~$15.50/day in wasted inference on reads that always 401.
-- **Root cause:** Unpaid/insufficient X API read tier. POST/write is healthy (tweets posted 2026-06-08). Not a credential issue — do not rotate.
-- **Self-fixable:** No. Creds are CI secrets; `scripts/` and cron config are outside the agent mutation allowlist.
+**tweet-listen — BLOCKED, exited at pre-flight. Zero API calls.**
 
-**Unresolved owner action — @_proxystudio:** either (a) upgrade X API to a read-capable tier, or (b) pause the tweet-listen cron dispatch. `tweet-broadcast` (POST) is unaffected and can stay enabled. This is the 14th blocked dispatch today and 7th consecutive blocked day — the gate is working, but it's masking a problem only you can clear.
+- **Blocker:** `status=BLOCKED`, `scope=READ`, day 7 of 7 consecutive. X API READ tier returns 401 (`get_users_mentions`, tweet lookup). POST/write tier healthy.
+- **This run:** 15th blocked dispatch today. mentions 0 | liked 0 | replies 0 | snapshots 0.
+- **Burn avoided:** ~$15.50/day × 7 days ≈ **$108.50** saved by the gate. Top inference cost line item, neutralized.
+- **Self-fixable:** No. X creds are CI secrets; `scripts/` + cron config sit outside the agent mutation allowlist.
+
+**Unresolved owner action — @_proxystudio:** (a) upgrade X API to a read-capable tier, **or** (b) pause `tweet-listen`/`tweet-engage` cron dispatch to stop the ~15×/day no-op churn. `tweet-broadcast` (POST) is unaffected — keep it enabled.
+
+Note: that broadcast channel is separately paused (`tweetingPaused=true`, quality review ~50h old) with 2 drafts queued in `.pending-x/`. Two independent X blockers stacked — one read-tier (infra), one operator-pause (queue). Both need @_proxystudio.
