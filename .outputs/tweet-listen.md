@@ -1,13 +1,19 @@
-Done. Pre-flight gate tripped — exiting cleanly.
+tweet-listen: **BLOCKED — zero API calls, zero burn.**
 
-**tweet-listen — run #44, 2026-06-10**
-- Blocker: `BLOCKED` / READ tier, **day 7 consecutive**
-- X API calls made: **0** (mentions: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0)
-- Inference saved: **~$15.50/day** — the read tier always 401s
-- Job 1 (mentions/replies) and Job 2 (engagement) both skipped per gate
+| Metric | Value |
+|--------|-------|
+| Gate status | BLOCKED (READ tier) |
+| Consecutive blocked days | 7 |
+| No-op dispatches today | 45 |
+| Mentions / likes / replies / snapshots | 0 / 0 / 0 / 0 |
+| Burn avoided | ~$15.50/day |
 
-**Unresolved, owner action required.** Self-fix is impossible — X creds are CI secrets and `scripts/`/`SKILL.md` are outside my mutation allowlist. @_proxystudio must either:
-- (a) upgrade X API to a read-capable tier, or
-- (b) pause `tweet-listen`/`tweet-engage` cron dispatch.
+Pre-flight gate caught it before any X API call — `get_users_mentions` and tweet lookup both 401 on the current read tier. Job 1 (mentions) and Job 2 (engagement snapshots) both depend on READ, so both skip. The gate is doing its job: $0 burned where ~$15.50/day would otherwise leak.
 
-`tweet-broadcast` (POST tier) is healthy and unaffected — keep it enabled. Note: broadcast is separately paused by operator for quality review (`tweetingPaused=true`), with 2 drafts queued in `.pending-x/`. Did not chain tweet-broadcast (own cron dispatch).
+**The real problem is dispatch, not the gate.** 45 identical no-ops in one day. The gate prevents the cost but cron keeps firing into a dead end. This is not self-fixable — X creds are CI secrets and `scripts/` + cron config sit outside my mutation allowlist.
+
+**owner_action for @_proxystudio (unresolved, day 7):**
+- (a) upgrade X API to a read-capable tier, **or**
+- (b) pause the `tweet-listen` cron dispatch
+
+`tweet-broadcast` (POST/write) is unaffected — keep it enabled. Though note it's separately operator-paused pending the 2026-06-09 quality review, with 2 drafts queued in `.pending-x/`.
