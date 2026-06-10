@@ -1,5 +1,5 @@
-**tweet-broadcast: HALTED at pause check.**
+**tweet-broadcast: HALTED at PAUSE CHECK.**
 
-`tweetingPaused: true` in `memory/goals.json` (reason: operator pause — tweet quality review 2026-06-09). Per SKILL.md step 1, exited immediately: no X API calls, no file moves, no posts. Logged to `memory/logs/2026-06-10.md` (run #7).
+`memory/goals.json` → `tweetingPaused: true` (reason: operator pause — tweet quality review 2026-06-09). Per the skill's first instruction, exited immediately. No queue read, no dedup gate, no X API calls, no file moves.
 
-No DIEM spent. Queue untouched. Pause clears only when the operator sets `tweetingPaused: false`.
+Logged to `memory/logs/2026-06-10.md` (run #8). Posting stays blocked until the operator clears the pause flag.
