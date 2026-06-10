@@ -23,15 +23,33 @@ skills:
   # Track LP earnings per position per day — writes to memory/earnings.jsonl
   track-earnings: { enabled: true, schedule: "55 23 * * *", model: "claude-sonnet-4-6" }  # end of day UTC
 
+  # Weekly goal audit — recompute milestone ETAs, self-funding ratio, mode
+  # consistency; report to creator. The follow-up loop for memory/goals.json.
+  goal-review: { enabled: true, schedule: "0 8 * * 1", model: "claude-sonnet-4-6" }  # Monday 08:00 UTC
+
+  # Safety net for Venice inference credits: if sDIEM < stake_min_diem, queue a
+  # stake-diem intent for the gated executor (stakes liquid wallet DIEM only).
+  stake-diem: { enabled: true, schedule: "30 */6 * * *", model: "claude-sonnet-4-6" }
+  # Config for stake-diem + claim-and-allocate build-mode staking:
+  stake_min_diem: 5        # keep sDIEM at or above this (≈ $5/day inference budget)
+
   # Aggregate token-usage.csv → memory/inference-cost.md for self-optimization
   cost-report: { enabled: true, schedule: "0 20 * * 0", model: "claude-sonnet-4-6" }  # Sunday 20:00 UTC (after tweet-reflect)
 
   # Twitter/X content lifecycle — browser-use + Venice (paid from DIEM staking)
   tweet-engage:    { enabled: true, schedule: "0 6 * * *",     model: "claude-opus-4-8" }  # daily 06:00 UTC — generate drafts
   tweet-broadcast: { enabled: true, schedule: "0 14 * * *",    model: "claude-opus-4-8" }  # daily 14:00 UTC — post queued content
-  tweet-listen:    { enabled: true, schedule: "*/5 * * * *",   model: "claude-opus-4-8" }  # every 5min fallback (Vercel cron + X webhook dispatch at api/cron/listen + api/webhook/x)
+  # Disabled 2026-06-10: X READ tier has blocked all GET endpoints for 7+ days —
+  # every 5-min dispatch was a no-op (44/day). This is owner_action (b) the skill
+  # kept requesting. Re-enable when the X API read tier is restored.
+  tweet-listen:    { enabled: false, schedule: "*/5 * * * *",   model: "claude-opus-4-8" }  # every 5min fallback (Vercel cron + X webhook dispatch at api/cron/listen + api/webhook/x)
   tweet-reflect:   { enabled: true, schedule: "0 20 * * 0",    model: "claude-opus-4-8" }  # Sunday 20:00 UTC — strategy update
   tweet-promote:   { enabled: true, schedule: "0 10 * * 2,5", model: "claude-opus-4-8" }  # Tue/Fri 10:00 UTC — video promo generation
+
+  # self-improve runs daily 10:00 UTC via the cron in .github/workflows/aeon.yml
+  # (gated on goals.json mode == "build" there). NOT listed as an entry here on
+  # purpose — a skills entry would make the messages.yml scheduler dispatch it a
+  # second time on the same schedule.
 
   # Launch a VVV-denominated token from memory/launch-queue.jsonl
   launch-vvv-token: { enabled: false, schedule: "0 10 * * *", model: "claude-sonnet-4-6" }

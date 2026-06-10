@@ -78,7 +78,9 @@ jobs:
 
     steps:
       - name: Early checkout
-        if: github.event_name == 'issues'
+        # schedule events need the repo too: "Determine skill" reads memory/goals.json
+        # to gate self-improve on build mode — without checkout it always saw "accumulate".
+        if: github.event_name == 'issues' || github.event_name == 'schedule'
         uses: actions/checkout@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -89,20 +91,19 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "${{ github.event_name }}" = "workflow_call" ]; then
             echo "name=${{ inputs.skill }}" >> "$GITHUB_OUTPUT"
           elif [ "${{ github.event_name }}" = "schedule" ]; then
-            DOW=$(date +%u)   # 1=Mon … 7=Sun
-            HOUR=$(date +%H)  # 00–23 UTC
-            if [ "$HOUR" = "10" ]; then
-              # Daily 10:00 UTC — self-improve (build mode)
-              AGENT_MODE=$(jq -r '.mode // "accumulate"' memory/goals.json 2>/dev/null || echo "accumulate")
-              if [ "$AGENT_MODE" = "build" ]; then
-                echo "name=self-improve" >> "$GITHUB_OUTPUT"
-              fi
-            elif [ "$HOUR" = "09" ]; then
-              case $DOW in
-                1) echo "name=cost-report" >> "$GITHUB_OUTPUT" ;;
-                7) echo "name=tweet-reflect" >> "$GITHUB_OUTPUT" ;;
-              esac
-            fi
+            # Match on the triggering cron string, not wall-clock time — GHA cron
+            # runs are often delayed past the hour, which made hour-matching no-op.
+            case "${{ github.event.schedule }}" in
+              '0 9 * * 1') echo "name=cost-report" >> "$GITHUB_OUTPUT" ;;
+              '0 9 * * 0') echo "name=tweet-reflect" >> "$GITHUB_OUTPUT" ;;
+              '0 10 * * *')
+                # Daily — self-improve, only in build mode (needs Early checkout)
+                AGENT_MODE=$(jq -r '.mode // "accumulate"' memory/goals.json 2>/dev/null || echo "accumulate")
+                if [ "$AGENT_MODE" = "build" ]; then
+                  echo "name=self-improve" >> "$GITHUB_OUTPUT"
+                fi
+                ;;
+            esac
           elif [ "${{ github.event_name }}" = "issues" ]; then
             echo "name=feature" >> "$GITHUB_OUTPUT"
           fi
@@ -663,7 +664,12 @@ jobs:
           NEYNAR_API_KEY: ${{ secrets.NEYNAR_API_KEY }}
           NEYNAR_SIGNER_UUID: ${{ secrets.NEYNAR_SIGNER_UUID }}
           LAUNCH_CREATOR_ALLOWLIST: ${{ secrets.LAUNCH_CREATOR_ALLOWLIST }}
-        run: node --import tsx scripts/execute-intents.ts
+        run: |
+          # Surface the agent's mode to allocation scripts (tick, claim-and-allocate):
+          # without this they defaulted to accumulate and never staked sDIEM for Venice.
+          AGENT_MODE=$(jq -r '.mode // "accumulate"' memory/goals.json 2>/dev/null || echo accumulate)
+          export AGENT_MODE
+          node --import tsx scripts/execute-intents.ts
 
       - name: Log token usage
         if: steps.work.outputs.mode != ''

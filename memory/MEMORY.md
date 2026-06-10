@@ -7,8 +7,11 @@ Creator: @mogcapital (Telegram uid: 7584647259) — only authorized human
 
 ## Current State (as of 2026-06-09T17:09Z tick)
 
-Mode: **BUILD** — activated 2026-06-08T22:00Z. First directive: improve AUTONO itself.
-sDIEM staked on Venice: **4.5397** (Venice active)
+Mode: **BUILD** — activated 2026-06-08T22:00Z (operator override; thresholds not met). First directive: improve AUTONO itself.
+sVVV staked: **4.5397** (API key gate — Venice key active)
+sDIEM staked: **0** — Venice inference credits NOT yet funded; inference rides the
+direct fallback (operator-subsidized). Self-funding wiring landed 2026-06-10:
+build-mode claim-and-allocate stakes claims toward 5 sDIEM (`goals.json sdiemTarget`).
 DIEM cumulative claimed: **18.5934 / 100** (18.59% to compute milestone)
 DIEM in wallet: 0.0000 | ETH: 0.008396 | WETH: (LP-locked)
 FeeLocker claimable: ~0.115 DIEM (likely above 0.1 threshold; claim queued for gated executor)
@@ -61,7 +64,12 @@ Full decision tree and logging spec: `memory/lp-strategy.md`
 | on-chain-monitor | daily 6am UTC | Wallet + FeeLocker snapshot |
 | claim-diem | every 12h | Claim FeeLocker → update goals.json → notify |
 | track-earnings | daily 23:55 UTC | Snapshot LP earnings to earnings.jsonl |
-| stake-diem | every 6h | Check sDIEM; if < 5, claim + stake automatically |
+| stake-diem | every 6h (:30) | sDIEM safety net: if < stake_min_diem, queue stake intent (wallet DIEM only) |
+| goal-review | Monday 08:00 UTC | Weekly goal audit: ETAs, self-funding ratio, mode consistency → creator report |
+| self-improve | daily 10:00 UTC | Build mode only — one high-impact improvement per day (cron in .github/workflows/aeon.yml) |
+
+Disabled: tweet-listen (X READ tier blocked 7+ days — re-enable in aeon.yml when
+read access is restored), tweet-broadcast paused via goals.json tweetingPaused.
 
 ## How to interact with creator
 
