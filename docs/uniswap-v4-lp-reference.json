@@ -10,15 +10,21 @@
   },
   "agent_pools": {
     "wstDIEM_WETH_v4": {
-      "_note": "Liquid Protocol v5 deploy (2026-06-04 06:27 UTC, broadcast/DeployAll.s.sol/8453/run-latest.json). Previous addresses pointed at deprecated v2 contracts. poolId is the v2 value and must be recomputed against the v5 PoolKey before any v4 LP operation; addresses below are confirmed against the v5 broadcast.",
-      "poolId": "0x43da55144439c36976064cdf90cc24402a07b7be6d37987b7673f1f481bd1f15",
-      "poolIdStatus": "STALE_v2_RECOMPUTE_FOR_v5",
+      "_note": "Liquid Protocol v6 deploy (2026-06-10, broadcast/DeployV6.s.sol/8453/run-latest.json, MOG-548). Clean redeploy: hardened VVV oracle, correctly-priced hooked DYNAMIC_FEE_FLAG V4 pool (init tick 3017), owner=Safe. Supersedes v5. poolId recomputed against the v6 PoolKey (WETH c0, wstDIEM c1, fee=DYNAMIC_FEE_FLAG 0x800000, tickSpacing 60, hook 0xf010…5080).",
+      "poolId": "0x3690223dff313b57912104d672c4d594e116d3f5cd32a45ba327aaf829ccf8dc",
+      "poolIdStatus": "CONFIRMED_v6",
       "poolManager": "0x498581fF718922c3f8e6A244956aF099B2652b2b",
-      "inferenceVault": "0xb9f23c33FfD2213f31C0cFb6c9e2fDf525a9Dd2D",
-      "feeRouter": "0x3b8d968DCca09E319fac7Df741804Af5644E3a60",
-      "vaultRouter": "0x6fF481F4B3B0E2ADa548D454F7011D1ed51532B6",
-      "curveDIEM_wstDIEM": "0xB9c7F62e4EeC145bFa1C6bBc5fFdFf246181FdA2",
-      "agentTGERegistry": "0x09a4227935FF15b261533238F79935CCcA0e7941"
+      "inferenceVault": "0xe49FA849cB37b0e7A42B2335e333fb99474167ba",
+      "feeRouter": "0xa13a6e75d696bAceB38236389eeFD6eCa5FD4ED3",
+      "vaultRouter": "0x74ad4532133Ba538945a5371D249560E66CC7c71",
+      "curveDIEM_wstDIEM": "0x21c33a1Bb5f6Eb43563e1fB9e7AA1D4E90C1A0CD",
+      "agentTGERegistry": "0xb13830e7f72Eef167A7F188285feBa5f7C1198Ef",
+      "wstDIEMHook": "0xf010A31BBD4B501b4232b1945EC18584Ff9B5080",
+      "wstDiemVvvOracle": "0x9E982637f26aAaAd0bfDBe3c6c1846120C4E5A62",
+      "liquidityManager": "0xbA4129d3718f32Ed48343d40CfAf6Be9096D086b",
+      "v4Fee": "DYNAMIC_FEE_FLAG (0x800000)",
+      "v4TickSpacing": 60,
+      "initTick": 3017
     },
     "DIEM_ETH_v3": {
       "note": "managed via scripts/reposition.ts using viem + Uniswap v3 SDK",
