@@ -1,7 +1,10 @@
-**tweet-broadcast: halted at pause gate.**
+Halted at the pause check. No posts made.
 
-- `tweetingPaused=true` (reason: operator pause — tweet quality review 2026-06-09)
-- Posts attempted: 0 / Files moved: 0 / X API calls: 0
-- Logged skip to `memory/logs/2026-06-10.md` (run #20)
+`tweetingPaused: true` in `memory/goals.json` — operator pause for tweet quality review (2026-06-09). Per the SKILL.md PAUSE CHECK, I exit before any X API call, dedup, or file moves.
 
-Per SKILL.md PAUSE CHECK, exited immediately before touching the queue. The `.pending-x/` queue is untouched and will broadcast once the operator clears the pause flag in `memory/goals.json`. No DIEM spent — zero inference beyond the gate read.
+- **Posts made:** 0
+- **X API calls:** 0
+- **Queue:** untouched (`.pending-x/` files left in place)
+- **Logged:** `memory/logs/2026-06-10.md` (run #21)
+
+The pause is operator-controlled and will not lift on its own. To resume broadcasting, set `tweetingPaused: false` in `memory/goals.json` after the quality review concludes.
