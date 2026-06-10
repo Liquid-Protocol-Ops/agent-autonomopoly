@@ -1,15 +1,17 @@
-The gate log line is already present in today's log (line 3) from this run — no duplicate needed. The redirect was blocked, but the requirement is already satisfied.
+The required log line is already present in `memory/logs/2026-06-10.md`:
+```
+tweet-listen: BLOCKED (READ tier, day 7) — skipping all API calls
+```
 
-Done. Exiting cleanly per the pre-flight gate.
+Exiting cleanly per SKILL.md gate logic. No further action needed.
 
-**tweet-listen — halted at pre-flight gate**
+**tweet-listen — run summary (2026-06-10)**
 
-- **Blocker:** `status=BLOCKED, scope=READ`, day **7** consecutive
-- **Cause:** X API READ tier returns 401 (unpaid/insufficient read tier). POST/write is healthy.
-- **Action taken:** Zero X API calls. Gate log line present in `memory/logs/2026-06-10.md`.
-- **Cost avoided:** ~$15.5/day of inference burn on reads that always 401.
-- **Not self-fixable:** X creds are CI secrets; tier change is outside the agent mutation allowlist.
+- **Pre-flight gate: BLOCKED** (READ tier, consecutive day 7) → all X API calls skipped.
+- **Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0** — no calls made.
+- **Inference saved: ~$15.50/day** by gating before the 401 reads.
+- **Not chained:** tweet-broadcast (separate cron; also operator-paused).
 
-**Owner action required — @_proxystudio:** (a) upgrade X API to a read-capable tier, or (b) pause the `tweet-listen` cron dispatch to stop the daily gate-skip noise. `tweet-broadcast` (POST) is unaffected by this blocker — though note it's *separately* paused by operator for the tweet-quality review.
+**Root cause (unchanged):** X API read tier returns 401. POST/write tier healthy. `self_fixable: false` — creds are CI secrets outside the agent mutation allowlist.
 
-No mentions pulled, no replies drafted, no engagement snapshots. Did not chain tweet-broadcast (separate cron). 7 days blocked is past the point where this should be resolved at the source rather than gated daily.
+**Owner action required — @_proxystudio:** either (a) upgrade X API to a read-capable tier, or (b) pause `tweet-listen`/`tweet-engage` cron dispatch to stop the daily gate-logging churn. This has held 7 consecutive days; it will not self-clear.
