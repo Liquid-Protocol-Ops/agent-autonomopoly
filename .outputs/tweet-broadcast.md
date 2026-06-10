@@ -1,7 +1,7 @@
-**tweet-broadcast: halted at PAUSE CHECK — 0 posted.**
+Halted at PAUSE CHECK. No posts, no file moves.
 
-- `tweetingPaused`: `true` (reason: operator pause — tweet quality review 2026-06-09)
-- Queued in `.pending-x/`: 0 active `.txt` files; prior batch already in `.pending-x/sent/`
-- Action: logged to `memory/logs/2026-06-10.md`, no X API calls, no files moved
+- `memory/goals.json` → `tweetingPaused: true` (reason: operator pause — tweet quality review 2026-06-09)
+- Logged to `memory/logs/2026-06-10.md` (run #4)
+- Queue untouched; 0 X API calls
 
-The skill exits immediately on the pause flag — no posting until the operator clears `tweetingPaused`. Nothing else to do this run.
+Tweeting stays frozen until an operator flips `tweetingPaused` to `false`.
