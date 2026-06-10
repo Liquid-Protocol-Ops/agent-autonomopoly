@@ -135,5 +135,9 @@
     "total_failures": 0,
     "consecutive_failures": 0,
     "success_rate": 1
+  },
+  "stake-diem": {
+    "last_dispatch": "2026-06-10T19:19:31Z",
+    "last_status": "dispatched"
   }
 }
