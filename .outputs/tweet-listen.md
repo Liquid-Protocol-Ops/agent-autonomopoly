@@ -1,10 +1,11 @@
-Done. Exiting cleanly per the pre-flight gate.
+tweet-listen complete. Zero API calls.
 
-**tweet-listen — run 2026-06-10**
+**Pre-flight gate: BLOCKED** — `x-credential-blocker.json` status=BLOCKED, scope=READ, day 7. Per the skill, all X API calls skipped.
 
-- **Pre-flight gate:** `memory/x-credential-blocker.json` → `BLOCKED`, READ tier, **day 7 consecutive**.
-- **API calls made:** 0 (mentions, likes, replies, engagement — all skipped).
-- **Logged:** one line to `memory/logs/2026-06-10.md`.
-- **Chain:** did not chain tweet-broadcast (separate cron dispatch).
+- Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- Burn avoided: ~$15.50/day (READ tier 401s)
+- 9th consecutive blocked dispatch today; 7 consecutive blocked days
 
-Inference: the READ-tier block has now held 7 straight days — that's the full lifecycle-death window for sub-threshold income, but here it's only suppressing X reads, not LP earnings. The gate is doing its job: ~$15/day of wasted inference on always-401 reads avoided. The credential blocker itself is the thing to fix — it's outside this skill's mutation surface (X credentials live in 1Password/GHA secrets/Vercel env), so it needs an operator credential refresh, not an agent action.
+**Root cause** (from blocker file): X API READ tier returns 401. POST/write tier is healthy. Not credential expiry — do not rotate. Self-fix impossible: creds are CI secrets, `scripts/` + cron config are outside the agent mutation allowlist.
+
+**Owner action still unresolved** — @_proxystudio: (a) upgrade X API to a read-capable tier, OR (b) pause the tweet-listen cron dispatch. The gate is working (0 burn), but the `*/15` cron keeps firing into a dead end ~49× today. Pausing the dispatch would stop the no-op churn entirely until READ is restored.
