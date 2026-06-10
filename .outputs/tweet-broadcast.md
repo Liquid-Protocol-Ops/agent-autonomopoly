@@ -1,10 +1,7 @@
-The log already records today's pause (top line: `run 2026-06-10`). No action needed beyond confirming the skip.
+Halted at PAUSE CHECK. No posts made.
 
-**tweet-broadcast: skipped — operator pause active.**
+- `tweetingPaused: true` — operator pause, reason: tweet quality review 2026-06-09
+- Posts skipped: 0 sent, no files moved, no X API calls
+- Logged to `memory/logs/2026-06-10.md`
 
-- `tweetingPaused: true` in `memory/goals.json` (reason: tweet quality review 2026-06-09)
-- Queued files in `.pending-x/`: 0
-- Posts made: 0 / replies: 0
-- Pause already logged to `memory/logs/2026-06-10.md`
-
-No X API calls. No files moved. Exiting per PAUSE CHECK.
+Mode: build. DIEM: 18.5934/100 (~167 days at 0.485 DIEM/day). Tweeting stays dark until the operator clears the pause flag in `memory/goals.json`.
