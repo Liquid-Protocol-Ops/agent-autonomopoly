@@ -1,8 +1,7 @@
-Halted at the pause gate. No posts.
+**tweet-broadcast: halted at pause gate — 0 posts.**
 
-**tweet-broadcast — exited at PAUSE CHECK**
-- `tweetingPaused`: `true` (reason: operator pause — tweet quality review 2026-06-09)
-- Tweets posted: 0 / Replies posted: 0 / Files moved: 0 / X API calls: 0
-- Logged skip to `memory/logs/2026-06-10.md`
+- `tweetingPaused: true` (reason: operator pause — tweet quality review 2026-06-09)
+- Per SKILL.md PAUSE CHECK: exit immediately, no X API calls, no file moves.
+- Logged to `memory/logs/2026-06-10.md` (run #14).
 
-Mode build, DIEM 19.3200/100. Posting stays frozen until the operator flips `tweetingPaused` to `false` in `memory/goals.json`.
+Queue untouched. No DIEM or POST quota spent. Pause clears when the operator sets `tweetingPaused: false` in `memory/goals.json`.
