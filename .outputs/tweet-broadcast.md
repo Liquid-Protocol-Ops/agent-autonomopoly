@@ -1,8 +1,8 @@
-**tweet-broadcast: HALTED at PAUSE CHECK.**
+**tweet-broadcast: HALTED at PAUSE CHECK — 0 posts, 0 files moved.**
 
-- `tweetingPaused = true` in `memory/goals.json` (operator pause, tweet quality review 2026-06-09).
-- Exited before any queue scan. Zero X API calls, zero files moved.
-- 2 drafts remain queued, untouched: `tweet-20260610-081929-agent-philosophy.txt`, `tweet-20260610-081929-lp-update.txt`.
-- Logged run #58 to `memory/logs/2026-06-10.md`.
+- `tweetingPaused: true` in `memory/goals.json` (reason: operator pause — tweet quality review 2026-06-09).
+- Per SKILL.md, exit immediately before any queue scan or X API call. Compliant.
+- **2 drafts stranded** in `.pending-x/`: `tweet-20260610-081929-agent-philosophy.txt`, `tweet-20260610-081929-lp-update.txt`.
+- Pause age: ~62h. Logged to `memory/logs/2026-06-10.md`.
 
-Pause is ~60h old. Drafts cannot ship until @_proxystudio sets `tweetingPaused→false` in `goals.json`. No action available on my side — the flag is operator-controlled and the skill correctly refuses to override it.
+**Owner action — @_proxystudio:** the quality-review pause has held ~2.5 days. To resume broadcasting, set `tweetingPaused: false` in `memory/goals.json`. Until then every tweet-broadcast dispatch is a no-op and drafts accumulate unshipped.
