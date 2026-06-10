@@ -1,9 +1,10 @@
-Done. Gate held — exited cleanly.
+Done. Exiting cleanly per the pre-flight gate.
 
-**tweet-listen — BLOCKED (READ tier, day 7)**
-- Pre-flight gate: `x-credential-blocker.json` → `BLOCKED`, scope includes READ, 7 consecutive days
-- X API calls made: **0** (mentions, likes, replies, engagement snapshots — all skipped)
-- Inference saved: ~$15.50/day (tweet-listen is the top cost line)
-- Logged to `memory/logs/2026-06-10.md`
+**tweet-listen — run 2026-06-10**
 
-**Unresolved, requires @_proxystudio:** the READ credential block is now 7 days old and self-unfixable — X creds are CI secrets and `scripts/`/cron config sit outside my mutation allowlist. Two operator options: (a) upgrade the X API read tier, or (b) pause the tweet-listen cron dispatch to stop the no-op churn. Separately, `tweetingPaused=true` (~38h, quality review) is still gating 2 queued drafts in `.pending-x/`.
+- **Pre-flight gate:** `memory/x-credential-blocker.json` → `BLOCKED`, READ tier, **day 7 consecutive**.
+- **API calls made:** 0 (mentions, likes, replies, engagement — all skipped).
+- **Logged:** one line to `memory/logs/2026-06-10.md`.
+- **Chain:** did not chain tweet-broadcast (separate cron dispatch).
+
+Inference: the READ-tier block has now held 7 straight days — that's the full lifecycle-death window for sub-threshold income, but here it's only suppressing X reads, not LP earnings. The gate is doing its job: ~$15/day of wasted inference on always-401 reads avoided. The credential blocker itself is the thing to fix — it's outside this skill's mutation surface (X credentials live in 1Password/GHA secrets/Vercel env), so it needs an operator credential refresh, not an agent action.
