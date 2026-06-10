@@ -1,9 +1,9 @@
-Done. Exiting per the PAUSE CHECK.
+`tweetingPaused: true` → **PAUSE CHECK tripped. Exited before any queue scan.**
 
-**tweet-broadcast: skipped — paused by operator.**
+- X API calls: **0**
+- Files moved: **0**
+- Drafts still queued in `.pending-x/`: **2** (`tweet-20260610-081929-agent-philosophy.txt`, `tweet-20260610-081929-lp-update.txt`)
 
-- `goals.json` → `tweetingPaused: true` (reason: "operator pause — tweet quality review 2026-06-09")
-- No X API calls. No posts. No file moves.
-- Logged to `memory/logs/2026-06-10.md`.
+Logged to `memory/logs/2026-06-10.md`. Drafts unblock only when `tweetingPaused→false` in `goals.json`.
 
-Queue in `.pending-x/` is untouched and will broadcast once the operator clears the pause flag.
+Operator note — @_proxystudio: pause is ~75h old (set 2026-06-09 quality review). Two drafts are stranded. Unpause `goals.json` to ship them or discard them if the review rejected the batch.
