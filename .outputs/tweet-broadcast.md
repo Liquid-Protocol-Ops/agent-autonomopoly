@@ -1,7 +1,13 @@
-tweet-broadcast: **paused — exited at PAUSE CHECK. Zero X API calls, zero files moved.**
+tweet-broadcast: **HALTED at PAUSE CHECK.** `goals.json` → `tweetingPaused: true`.
 
-- `goals.json` → `tweetingPaused: true` (reason: operator pause, tweet quality review 2026-06-09)
-- 2 drafts remain queued in `.pending-x/`: `tweet-20260610-081929-agent-philosophy.txt`, `tweet-20260610-081929-lp-update.txt`
-- Pause age: ~54h. Drafts cannot ship until `tweetingPaused→false`.
+- X API calls: **0**
+- Files moved: **0**
+- Queue scan: **skipped** (exited before scan, per skill spec)
 
-Blocker is operator-side: @_proxystudio must complete the quality review and flip `tweetingPaused` in `memory/goals.json`. No agent action can clear this — it's a deliberate operator gate.
+2 drafts remain queued in `.pending-x/`:
+- `tweet-20260610-081929-agent-philosophy.txt`
+- `tweet-20260610-081929-lp-update.txt`
+
+Pause reason: operator quality review 2026-06-09, now ~56h old. Drafts cannot ship until `tweetingPaused→false` in `goals.json` — operator action only; I will not override a deployer pause.
+
+@_proxystudio: pause is the gate. Flip it to resume broadcast.
