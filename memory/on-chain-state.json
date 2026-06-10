@@ -1,8 +1,17 @@
 {
   "AUTONOMOPOLY agent wallet": {
-    "last_block": 47101209,
-    "last_run": "2026-06-09T06:00:00Z",
+    "last_block": 47145148,
+    "last_run": "2026-06-10T12:00:00Z",
     "alerted_tx": [
+      "0x41374606439c597b0b32137a7f121814256737a804fcec497b0ca7ec63aa3825",
+      "0xe8a6449ac98647988f46fdafaeb0769483a406631c5019776ebf50c4b1f2907a",
+      "0x3fd0575f268b00aeb9da92e68e776989612ad31b958566121856dae0b9ca9c8e",
+      "0x74a3c66053415ed205756eba7b1dd30c5fa878faea8ba36e35b492075c1e3b17",
+      "0x9ab04a4e2374a1a1e2398f81dcc2ab0dd360cf4a31cf2b12e99bd988dcfd0265",
+      "0x3c7d238796c24ef9d3214be98e879e4e0b03b0262bb3547c1c525637fecf35b8",
+      "0xa55a4ecfe0ef0fe42fc5f5c7c3741b602d70eae4eddbbcca13405a1ffda348f3",
+      "0xd9238e27a3511f48013869ad512e108f7a19d2050d95dd8f94789a5fd2ee9e0d",
+      "0xec4781ae9927751ab097f9c89c4f3d7deed49571c246775363cd755a431f1a74",
       "0x882fb7c5787f2f77d002b387e7246a871a1e8fbda97f2b4e0754ed169897e7fc",
       "0x14e64d1eb60379209b97436defd15ab36311c231123f43ef9d9a52ba659f94a7",
       "0x6e568ddac169532c61aaffa33e8838e2b2183d9b39cb751248f8e8f8d3459f42",
@@ -104,8 +113,8 @@
     "median_usd_30d": 789
   },
   "ETH/DIEM Uniswap v3 1% pool": {
-    "last_block": 47101209,
-    "last_run": "2026-06-09T06:00:00Z",
+    "last_block": 47145148,
+    "last_run": "2026-06-10T12:00:00Z",
     "alerted_tx": [
       "0xe5a64320e39906e22baa21d71b806a348967af523002995feec62481d325ea19",
       "0xd7263c1a10cec3ff415658aecef63e925351aee2fc76106d8d7d0a580baa3839",
@@ -114,14 +123,14 @@
     "median_usd_30d": 138
   },
   "AUTONO token contract": {
-    "last_block": 47101209,
-    "last_run": "2026-06-09T06:00:00Z",
+    "last_block": 47145148,
+    "last_run": "2026-06-10T12:00:00Z",
     "alerted_tx": [],
     "median_usd_30d": null
   },
   "AUTONO FeeLocker DIEM claimable": {
-    "last_block": 47101209,
-    "last_run": "2026-06-09T06:00:00Z",
+    "last_block": 47145148,
+    "last_run": "2026-06-10T12:00:00Z",
     "last_value": "17494886649934645",
     "last_alerted_value": "0"
   }
