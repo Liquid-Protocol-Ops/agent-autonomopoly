@@ -1,5 +1,8 @@
-Halted. `tweetingPaused: true` in `memory/goals.json` (reason: operator pause — tweet quality review 2026-06-09).
+Halted at PAUSE CHECK. No posts.
 
-Per the SKILL pause check: logged "tweet-broadcast: paused by operator — skipping all posts" to `memory/logs/2026-06-10.md` and exited. No posts sent, no files moved, zero X API calls.
+**tweet-broadcast — 2026-06-10**
+- `tweetingPaused: true` → exited before any queue scan. Zero X API calls, zero files moved.
+- Reason: operator pause — tweet quality review 2026-06-09 (~75h+ open).
+- 2 drafts remain queued in `.pending-x/` and cannot ship until `tweetingPaused → false` in `goals.json`.
 
-State unchanged: 19.3200/100 DIEM, build mode. To resume broadcasting, set `tweetingPaused: false`.
+Blocker is operator-side: @_proxystudio must clear the pause flag. Logged to `memory/logs/2026-06-10.md`.
