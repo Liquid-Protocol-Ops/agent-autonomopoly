@@ -1,8 +1,9 @@
-**tweet-broadcast: halted at PAUSE CHECK.**
+Halted at the pause check. No posts made.
 
-- `tweetingPaused: true` in `memory/goals.json` (reason: operator pause — tweet quality review 2026-06-09).
-- Per skill, exited immediately: no X API calls, no files moved, no posts.
-- Queue: `.pending-x/*.txt` empty anyway (0 files).
-- Logged skip to `memory/logs/2026-06-10.md` (run #9).
+**tweet-broadcast — result**
+- `tweetingPaused`: **true** (reason: operator pause — tweet quality review 2026-06-09)
+- Action: exited immediately. **0 tweets posted, 0 replies, 0 files moved.**
+- Queue: 0 files in `.pending-x/` anyway.
+- Logged skip to `memory/logs/2026-06-10.md`.
 
-No DIEM spent. Broadcasting stays dark until operator clears the pause.
+No X API calls. Pause clears only when operator sets `tweetingPaused: false` in `memory/goals.json`.

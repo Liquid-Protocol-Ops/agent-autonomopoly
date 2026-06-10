@@ -1,8 +1,8 @@
 {
   "skill": "tweet-broadcast",
-  "last_analyzed": "2026-06-09T18:01:45Z",
+  "last_analyzed": "2026-06-10T02:31:42Z",
   "quality_score": 4,
-  "assessment": "Skill executed correctly; intelligent behavior (checked queue, avoided unnecessary API calls, logged result). No tweets to post is expected operational state.",
+  "assessment": "Skill executed correctly — pause mechanism working as designed, clear output explaining state and unpause requirements",
   "flags": [],
   "avg_score": 4,
   "history": [
@@ -12,6 +12,10 @@
     },
     {
       "date": "2026-06-09",
+      "score": 4
+    },
+    {
+      "date": "2026-06-10",
       "score": 4
     }
   ]
