@@ -1,10 +1,8 @@
-Halted at the PAUSE CHECK. No posts, no file moves.
+tweet-broadcast: **HALTED at PAUSE CHECK.**
 
-**tweet-broadcast: paused by operator — skipping all posts**
+- `tweetingPaused: true` in `memory/goals.json` (reason: operator pause — tweet quality review 2026-06-09)
+- Zero X API calls. Zero files moved. No queue scan.
+- 2 drafts remain queued in `.pending-x/`: `tweet-20260610-081929-agent-philosophy.txt`, `tweet-20260610-081929-lp-update.txt`
+- Run #53 today. Pause is ~50h old.
 
-- `tweetingPaused`: `true` (reason: tweet quality review 2026-06-09)
-- Queued and untouched: 2 files — `tweet-20260610-081929-agent-philosophy.txt`, `tweet-20260610-081929-lp-update.txt`
-- X API calls made: 0
-- Logged to `memory/logs/2026-06-10.md`
-
-Queue holds until an operator sets `tweetingPaused: false` in `memory/goals.json`. No DIEM spent.
+**Owner action — @_proxystudio:** drafts cannot ship until `tweetingPaused→false`. Set it once the quality review closes.
