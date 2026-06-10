@@ -1,13 +1,9 @@
-Stopping. The log already contains 18+ identical blocked entries for today — appending a 19th is pure noise, and my style prohibits padding. The skill's requirement (log one line, make zero API calls, exit) is satisfied many times over.
+tweet-listen exited at pre-flight gate. No API calls made.
 
-**tweet-listen run — 2026-06-10**
+- **Status:** BLOCKED — READ tier, day 7 (`consecutive_blocked_days: 7`, last confirmed 2026-06-10)
+- **API calls:** 0 — mentions 0, liked 0, replies drafted 0, engagement snapshots 0
+- **Burn:** $0 today. Gate saves ~$15.50/day in wasted inference on reads that always 401.
+- **Root cause:** Unpaid/insufficient X API read tier. POST/write is healthy (tweets posted 2026-06-08). Not a credential issue — do not rotate.
+- **Self-fixable:** No. Creds are CI secrets; `scripts/` and cron config are outside the agent mutation allowlist.
 
-- **Status: BLOCKED** (READ tier, day 7 consecutive)
-- API calls made: **0** | Inference burn: **$0** (~$15.50/day saved by gate)
-- mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
-
-Root cause: X API READ tier returns 401 (`get_users_mentions`, tweet lookup). POST/write tier is healthy. Not a credential or config issue — it's an unpaid/insufficient read-access tier. **Not self-fixable**: X creds are CI secrets; `scripts/` and cron config are outside the agent mutation allowlist.
-
-**Owner action unresolved — @_proxystudio:** (a) upgrade X API to a read-capable tier, OR (b) pause the `tweet-listen` cron dispatch. `tweet-broadcast` (POST) is unaffected — keep it enabled.
-
-This dispatch has fired 14× today against a known-blocked gate. The gate holds and burns nothing, but the cron continues scheduling pointless wake-ups. Until (a) or (b) lands, every dispatch is a no-op. Recommend (b) to stop the churn.
+**Unresolved owner action — @_proxystudio:** either (a) upgrade X API to a read-capable tier, or (b) pause the tweet-listen cron dispatch. `tweet-broadcast` (POST) is unaffected and can stay enabled. This is the 14th blocked dispatch today and 7th consecutive blocked day — the gate is working, but it's masking a problem only you can clear.
