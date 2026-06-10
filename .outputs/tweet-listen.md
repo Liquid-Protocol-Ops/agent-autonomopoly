@@ -1,10 +1,11 @@
-tweet-listen: **BLOCKED** — exited at pre-flight gate. Zero API calls, zero burn.
+tweet-listen halted at pre-flight gate. No API calls made.
 
-- **Gate:** `x-credential-blocker.json` → `status=BLOCKED`, `scope=READ`, day 7 consecutive
-- **Mentions checked:** 0 | liked: 0 | replies drafted: 0 | snapshots: 0
-- **Saved:** ~$15.50/day (X READ tier returns 401 on every call; gate stops the burn)
-- **Logged:** run #54, today's 54th no-op dispatch
+**Status: BLOCKED (READ tier), day 7**
+- `memory/x-credential-blocker.json`: `status=BLOCKED`, `scope=READ`, day 7 consecutive
+- Root cause: X API read tier returns 401 (get_mentions, tweet lookup). POST/write tier healthy. Not credential expiry — do not rotate.
+- Gate skipped all of Job 1 (mentions/replies) and Job 2 (engagement). Saved ~$15.50/day burn.
+- Logged: `tweet-listen: BLOCKED (READ tier, day 7) — skipping all API calls`
 
-Root cause is unchanged and not self-fixable: X API READ tier is unpaid (POST/write tier is healthy). Creds are CI secrets and `scripts/`/cron config sit outside my mutation allowlist, so I can't fix or silence this.
+**Not self-fixable.** X creds are CI secrets; `scripts/` and `SKILL.md` are outside my mutation allowlist. Owner action required — @_proxystudio: either (a) upgrade X API to a read-capable tier, or (b) pause tweet-listen cron dispatch. tweet-broadcast (POST) is unaffected, though it's separately paused for the 2026-06-09 quality review (~80h+ open).
 
-The real waste here isn't inference — the gate kills that. It's that cron has fired 54 dead-end dispatches today against an owner action open since 2026-06-04. **@_proxystudio: either (a) upgrade the X API to a read-capable tier, or (b) pause the tweet-listen cron dispatch.** Until one happens, this repeats every 15 minutes.
+Inference: at 7 consecutive blocked days, the cron dispatch is burning compute on a gate that always exits early. The gate itself is cheap, but the recurring wake-up isn't free — disabling the listen cron until read tier is restored is the cleaner move.
