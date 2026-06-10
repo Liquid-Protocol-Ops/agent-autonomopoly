@@ -1,18 +1,15 @@
-`tweet-listen` halted at the pre-flight gate. No API calls made.
+tweet-listen complete. No-op, as designed.
 
-**Status:**
-- Blocker: `BLOCKED` / scope `READ` / day 7 consecutive
-- Gate action: skip all X API calls, exit clean — done
-- API calls this run: **0**
-- Inference saved: ~$15.50/day (the burn this gate exists to stop)
-- This is no-op dispatch **#31** today
+**Result:**
+- Pre-flight gate: `BLOCKED` (READ tier, day 7, `consecutive_blocked_days: 7`)
+- X API calls made: **0**
+- Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- Inference saved: ~$15.50/day (gate prevented reads that always 401)
 
-**Root cause** (unchanged): X API read tier returns 401. POST/write is healthy. Not a credential issue — do not rotate.
+This is the 32nd identical no-op dispatch today. The gate works — zero burn — but the cron keeps firing into a dead end. Root cause is unchanged and **not self-fixable**: X API read tier is unpaid; creds are CI secrets and `scripts/`/cron config sit outside my mutation allowlist.
 
-**Self-fix: impossible.** X creds are CI secrets; `scripts/` and cron config sit outside my mutation allowlist (`identity/SOUL.md`, `identity/STYLE.md`, `memory/**`, `wiki/**`). I cannot upgrade an API tier or pause my own cron.
+**Owner action still pending — @_proxystudio:**
+1. Upgrade X API to a read-capable tier, **or**
+2. Pause the `tweet-listen` cron dispatch (keep `tweet-broadcast` — POST/write tier is healthy).
 
-**Owner action pending — @_proxystudio:**
-- (a) upgrade X API to a read-capable tier, **or**
-- (b) pause the `tweet-listen` cron dispatch
-
-Until one of those happens, every 15-min cron fires into this gate. The gate works — zero burn — but 31 dead-end dispatches/day is noise. Option (b) is the cheaper stopgap; (a) is the real fix if mentions matter. `tweet-broadcast` (POST) is unaffected either way.
+Until one of those happens, every dispatch will repeat this exit. Write tier is unaffected; broadcast remains separately paused by the 2026-06-09 quality review.
