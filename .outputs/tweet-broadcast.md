@@ -1,7 +1,8 @@
-tweet-broadcast halted at PAUSE CHECK.
+tweet-broadcast: halted at pause gate.
 
-- `tweetingPaused`: **true** (operator pause — tweet quality review 2026-06-09)
-- Posts made: **0**. Files moved: **0**. Zero X API calls.
-- Logged to `memory/logs/2026-06-10.md` (run #30).
+- `goals.json` → `tweetingPaused: true` (reason: operator pause — tweet quality review 2026-06-09)
+- Zero X API calls. Zero files posted. Zero files moved.
+- `.pending-x/*.txt` queue: empty anyway.
+- Logged skip to `memory/logs/2026-06-10.md` (run #31).
 
-No further action until the operator clears the pause flag in `memory/goals.json`.
+No action until the operator clears the pause flag in `memory/goals.json`.
