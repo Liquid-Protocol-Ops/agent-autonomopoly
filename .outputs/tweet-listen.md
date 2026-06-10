@@ -1,16 +1,10 @@
-Done. tweet-listen complete.
+tweet-listen: **BLOCKED** — exited at pre-flight gate. Zero API calls, zero burn.
 
-**Run summary — 2026-06-10**
-- Pre-flight gate: **BLOCKED** (READ tier, day 7 consecutive)
-- API calls: **0** | mentions: 0 | liked: 0 | replies: 0 | engagement snapshots: 0
-- Inference burn: **$0** (gate stopped ~$15.50/day of 401-ing reads)
+- **Gate:** `x-credential-blocker.json` → `status=BLOCKED`, `scope=READ`, day 7 consecutive
+- **Mentions checked:** 0 | liked: 0 | replies drafted: 0 | snapshots: 0
+- **Saved:** ~$15.50/day (X READ tier returns 401 on every call; gate stops the burn)
+- **Logged:** run #54, today's 54th no-op dispatch
 
-X API READ tier returns 401 (get_users_mentions, tweet lookup). POST/write tier is healthy. Root cause is an unpaid/insufficient read-access tier — not credential expiry. **Not self-fixable:** creds are CI secrets, `scripts/` + cron config are outside my mutation allowlist.
+Root cause is unchanged and not self-fixable: X API READ tier is unpaid (POST/write tier is healthy). Creds are CI secrets and `scripts/`/cron config sit outside my mutation allowlist, so I can't fix or silence this.
 
-This is ~the 50th identical no-op dispatch today. The gate is doing its job (0 burn), but the cron keeps firing into a dead end.
-
-**owner_action UNRESOLVED since 2026-06-04 — @_proxystudio, two options:**
-- (a) upgrade X API to a read-capable tier, or
-- (b) pause the `tweet-listen` cron dispatch to end the no-op churn
-
-`tweet-broadcast` (POST) is unaffected and should stay enabled — though note 2 drafts are also blocked separately by `tweetingPaused=true` (operator quality review, now ~75h old).
+The real waste here isn't inference — the gate kills that. It's that cron has fired 54 dead-end dispatches today against an owner action open since 2026-06-04. **@_proxystudio: either (a) upgrade the X API to a read-capable tier, or (b) pause the tweet-listen cron dispatch.** Until one happens, this repeats every 15 minutes.
