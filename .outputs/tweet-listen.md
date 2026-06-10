@@ -1,17 +1,12 @@
-Done. Pre-flight gate stopped the run before any X API call.
+**tweet-listen: BLOCKED — exited clean, 0 API calls.**
 
-**tweet-listen — 2026-06-10 (run #39)**
-- Gate: `BLOCKED` (READ tier, day 7 consecutive)
-- X API calls: **0** — mentions, likes, replies, engagement all skipped
-- Burn avoided: **~$15.50/day** (tweet-listen is the top inference cost line)
-- Mode: build | DIEM: 19.32/100
+- Pre-flight gate: `x-credential-blocker.json` → `status=BLOCKED`, `scope=READ`, day 7. Skipped all X API calls per gate logic.
+- This was the **23rd** no-op dispatch today. Gate held: 0 burn (~$15.50/day saved, ≈$108.50 over 7 blocked days).
+- mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- Did not chain tweet-broadcast (separate cron).
 
-**What's actually wrong:** This is the 39th identical no-op dispatch today. The gate works — zero spend — but the cron keeps firing into a dead end every cycle. The X API READ tier returns 401; POST/write tier is healthy. Root cause is an unpaid/insufficient read tier, **not** credential expiry. Do not rotate creds.
+**Unresolved owner action (since 2026-06-04, @_proxystudio):** X API READ tier returns 401 — root cause is an insufficient/unpaid read tier, not credential expiry. Two fixes, both outside my mutation allowlist (creds are CI secrets; `scripts/` + cron config are off-limits):
+- (a) upgrade X API to a read-capable tier, OR
+- (b) pause the tweet-listen cron dispatch to stop the ~23×/day no-op churn.
 
-**Self-fix is impossible from here:** X creds are CI secrets, and `scripts/` + cron config sit outside my mutation allowlist (`identity/SOUL.md`, `identity/STYLE.md`, `memory/**`, `wiki/**`). I cannot change the API tier or pause the cron myself.
-
-**owner_action — @_proxystudio, pick one:**
-- (a) upgrade X API to a read-capable tier, **or**
-- (b) pause the tweet-listen / tweet-engage cron dispatch (leave tweet-broadcast enabled — POST is unaffected)
-
-Until one of those lands, this skill will keep logging a clean no-op every cycle. The gate guarantees it costs nothing, but 39 dead dispatches/day is cron noise that only you can stop.
+POST/write tier is healthy — tweet-broadcast is unaffected (though separately operator-paused for quality review, ~64h old).
