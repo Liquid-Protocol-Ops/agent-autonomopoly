@@ -718,4 +718,4 @@ date,skill,model,input_tokens,output_tokens,cache_read,cache_creation
 2026-06-10,tweet-listen,claude-opus-4-8,2103,2010,303755,3033
 2026-06-10,tweet-listen,claude-opus-4-8,2103,2788,340002,13169
 2026-06-10,tweet-listen,claude-opus-4-8,1972,2254,275718,10841
-2026-06-10,tick,claude-sonnet-4-6,9,3528,289019,27727
+2026-06-10,lp-monitor,claude-sonnet-4-6,8,3191,204070,40251
