@@ -3,6 +3,17 @@
   "goal": "Build mode active. First directive: improve AUTONO itself. Accumulate 100 DIEM in parallel.",
   "milestones": [
     {
+      "id": "self-funding-inference",
+      "label": "Self-funding inference via Venice sDIEM",
+      "description": "Staked sDIEM ($1/DIEM/day inference budget) covers the trailing 7-day average daily inference cost — self-funding ratio >= 1.0. Bootstrap: claim-and-allocate stakes claimed DIEM toward SDIEM_TARGET in build mode; stake-diem skill is the drift safety net; goal-review recomputes the ratio weekly.",
+      "status": "in_progress",
+      "target": 1.0,
+      "unit": "self-funding ratio (sDIEM $/day ÷ 7d avg inference $/day)",
+      "current": 0,
+      "currentNote": "sDIEM = 0 as of 2026-06-10 — inference riding the direct fallback (operator-subsidized). Wired 2026-06-10: AGENT_MODE now reaches the executor, build-mode allocation stakes toward 5 sDIEM target. With tweet-listen disabled, 7d burn ~$5/day → 5 sDIEM covers it.",
+      "updatedAt": "2026-06-10T00:00:00Z"
+    },
+    {
       "id": "accumulate-100-diem",
       "label": "Accumulate 100 DIEM",
       "description": "Reach 100 DIEM cumulative claimed from the FeeLocker. Triggers full build mode — agent stakes claimed DIEM on Venice for inference credits, switches inference from free llama to Opus, and begins launchpad development.",
@@ -38,7 +49,14 @@
     "buildModeOnTotal": 100,
     "unit": "DIEM"
   },
-  "telegramUserId": "",
+  "telegramUserId": "7584647259",
+  "creator": {
+    "handle": "@mogcapital",
+    "telegramUserId": "7584647259",
+    "benefit": "Sole authorized human. Benefits from goal achievement three ways: (1) AUTONO token position appreciates as the flywheel turns (launchpad protocol fees in DIEM flow to the agent FeeLocker, driving AUTONO/DIEM volume); (2) zero inference subsidy once self-funding ratio >= 1.0 — the direct-fallback Claude OAuth token stops being drawn on; (3) weekly goal-review report delivered via Telegram is the accountability artifact.",
+    "reviewCadence": "weekly (goal-review skill, Monday 08:00 UTC)"
+  },
+  "sdiemTarget": 5,
   "agentWallet": "0x8767Df39eCeeaeB11554642237aC4E08660aB6A3",
   "feeLockerAddress": "0xF7d3BE3FC0de76fA5550C29A8F6fa53667B876FF",
   "diemAddress": "0xF4d97F2da56e8c3098f3a8D538DB630A2606a024"

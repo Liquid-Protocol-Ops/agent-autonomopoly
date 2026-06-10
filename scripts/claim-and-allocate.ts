@@ -14,9 +14,10 @@
  *   - All claimed DIEM >= threshold → single-sided LP into ETH/DIEM v3 1% pool
  *   - WETH buffer: if wallet WETH < 0.005 ETH, skip this run (gas reserve)
  *
- * Allocation logic (build mode, AGENT_MODE=build):
- *   - Estimate Opus inference demand from memory/tool-routing.jsonl (last 7 days)
- *   - Stake minimum DIEM for confirmed Venice demand
+ * Allocation logic (build mode, AGENT_MODE=build or goals.json mode=build):
+ *   - Read current sDIEM (stakedInfos) — if below SDIEM_TARGET (default 5),
+ *     stake claimed DIEM toward the target first (1 sDIEM ≈ $1/day inference)
+ *   - Above target: stake only confirmed Venice demand from tool-routing.jsonl
  *   - LP the rest
  *
  * Logs to memory/diem-claims.jsonl on successful claim.
@@ -70,6 +71,16 @@ const ERC20_ABI = [
   },
 ] as const;
 
+// stakedInfos returns a struct; amountStaked is the first 32-byte word, which is
+// all we decode (viem reads declared outputs from the head of the return data).
+const STAKED_INFOS_ABI = [
+  {
+    type: 'function', name: 'stakedInfos', stateMutability: 'view',
+    inputs: [{ name: 'account', type: 'address' }],
+    outputs: [{ name: 'amountStaked', type: 'uint256' }],
+  },
+] as const;
+
 // ── Helpers ─────────────────────────────────────────────────────────
 
 type ClaimEntry = {
@@ -115,6 +126,30 @@ function estimateDailyRate(claimsPath: string, days = 7): number {
   return totalDiem / elapsedDays;
 }
 
+function readGoals(): { mode?: string; sdiemTarget?: number } {
+  try {
+    return JSON.parse(readFileSync('memory/goals.json', 'utf8')) as { mode?: string; sdiemTarget?: number };
+  } catch { return {}; }
+}
+
+/** AGENT_MODE env wins; falls back to memory/goals.json `mode`; defaults accumulate. */
+function resolveAgentMode(): 'accumulate' | 'build' {
+  const env = process.env['AGENT_MODE'];
+  if (env === 'accumulate' || env === 'build') return env;
+  const { mode } = readGoals();
+  if (mode === 'accumulate' || mode === 'build') return mode;
+  return 'accumulate';
+}
+
+/** sDIEM stake target: SDIEM_TARGET env wins; falls back to goals.json; defaults 5. */
+function resolveSdiemTarget(): number {
+  const env = Number(process.env['SDIEM_TARGET']);
+  if (Number.isFinite(env) && env >= 0 && process.env['SDIEM_TARGET']) return env;
+  const { sdiemTarget } = readGoals();
+  if (typeof sdiemTarget === 'number' && Number.isFinite(sdiemTarget) && sdiemTarget >= 0) return sdiemTarget;
+  return 5;
+}
+
 /** Estimate Venice Opus demand from tool-routing.jsonl */
 function estimateVeniceDemandDiem(toolRoutingPath: string): number {
   if (!existsSync(toolRoutingPath)) return 0;
@@ -145,7 +180,7 @@ async function main() {
   const agentAddress = process.env['AGENT_WALLET'] as Address | undefined;
   if (!agentAddress) throw new Error('AGENT_WALLET env var required');
 
-  const agentMode = (process.env['AGENT_MODE'] ?? 'accumulate') as 'accumulate' | 'build';
+  const agentMode = resolveAgentMode();
   const claimsPath = 'memory/diem-claims.jsonl';
   const toolRoutingPath = 'memory/tool-routing.jsonl';
 
@@ -224,14 +259,29 @@ async function main() {
       rationale = `${formatUnits(holdDiem, 18)} DIEM below ${formatUnits(LP_THRESHOLD_WEI, 18)} threshold — holding`;
     }
   } else {
-    // Build mode: stake minimum for Venice, LP the rest
-    // 1 DIEM staked ≈ $1/day inference budget. Opus 4.7 ≈ 0.027 DIEM/call.
-    // Stake only confirmed demand from tool-routing.jsonl.
-    const stakeNeededDiem = Math.min(veniaDemand, Number(formatUnits(totalDiemAfterClaim, 18)) * 0.3);
+    // Build mode: keep sDIEM topped up to SDIEM_TARGET, LP the rest.
+    // 1 DIEM staked ≈ $1/day inference budget. tool-routing demand reads ~0 while
+    // inference rides the direct fallback (no Venice entries get logged), so the
+    // target — not observed demand — does the self-funding bootstrap.
+    const sdiemTarget = resolveSdiemTarget();
+    let sdiemNow = 0;
+    try {
+      const staked = await client.readContract({
+        address: ADDRESSES.DIEM, abi: STAKED_INFOS_ABI,
+        functionName: 'stakedInfos', args: [agentAddress],
+      });
+      sdiemNow = Number(formatUnits(staked, 18));
+    } catch {
+      console.warn('  ⚠ stakedInfos read failed — assuming 0 sDIEM staked');
+    }
+    const gapToTarget = Math.max(0, sdiemTarget - sdiemNow);
+    const availableDiem = Number(formatUnits(totalDiemAfterClaim, 18));
+    let stakeNeededDiem = Math.min(Math.max(veniaDemand, gapToTarget), availableDiem);
+    if (stakeNeededDiem < 0.01) stakeNeededDiem = 0;  // skip dust stakes
     stakeVenice = BigInt(Math.floor(stakeNeededDiem * 1e18));
     lpDiem = totalDiemAfterClaim > stakeVenice ? totalDiemAfterClaim - stakeVenice : 0n;
     holdDiem = totalDiemAfterClaim > stakeVenice + lpDiem ? totalDiemAfterClaim - stakeVenice - lpDiem : 0n;
-    rationale = `Build mode: stake ${formatUnits(stakeVenice, 18)} DIEM for Venice Opus (${veniaDemand.toFixed(3)} DIEM demand last ${500} calls), LP ${formatUnits(lpDiem, 18)} DIEM`;
+    rationale = `Build mode: sDIEM ${sdiemNow.toFixed(2)}/${sdiemTarget} — stake ${formatUnits(stakeVenice, 18)} DIEM (gap ${gapToTarget.toFixed(2)}, observed demand ${veniaDemand.toFixed(3)}), LP ${formatUnits(lpDiem, 18)} DIEM`;
   }
 
   const allocation: AllocationDecision = {
