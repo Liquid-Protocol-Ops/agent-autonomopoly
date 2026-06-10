@@ -21,8 +21,8 @@
       "target": 100,
       "unit": "DIEM",
       "current": 19.3200,
-      "currentNote": "19.3200 DIEM cumulative (FeeLocker claims only). +0.7266 DIEM 2026-06-10T01:24Z (claim+LP queued for gated executor; FeeLocker had accumulated 0.7266 DIEM over ~33h). Prior: +0.1879 DIEM 2026-06-09T01:20Z. 10x active IN RANGE positions tick=1791: #5282442 [0,2000], #5284108 [200,2200], #5284622 [0,2000], #5285821/5285822/5285824/5285827 [400,2400] x4, #5285828/5285830 [600,2600] x2, #5289244 [600,2600]. Wallet: 0.008395 ETH, 0.1879 DIEM (pending LP reinvest), 4.6078 WETH in LP. sVVV: 4.5397. Daily rate ~0.485 DIEM/day. ETA ~166 days to 100 DIEM. Mode threshold: 5.0 DIEM/day (rate) or 100 DIEM (total).",
-      "updatedAt": "2026-06-10T01:24:00Z"
+      "currentNote": "19.3200 DIEM cumulative (FeeLocker claims only). +0.7266 DIEM 2026-06-10T01:24Z (claim+LP queued for gated executor). FeeLocker: 0.0309 DIEM claimable (below 0.1 threshold — no claim this tick). 11x active IN RANGE positions tick=2841: #5304198/5304202 [1000,3000] x2, #5305465/5305477/5305482/5305486 [1400,3400] x4, #5305491/5306494/5306500/5307612 [1600,3600] x4, #5308269 [1800,3800]. Prior positions #5282442/5284108/5284622/5285821-5285830/5289244 all BURNED. Wallet: 0.008323 ETH, 0.0000 DIEM, 7.2965 WETH (LP). sVVV: 4.5397. Daily rate ~0.485 DIEM/day. ETA ~166 days to 100 DIEM at current rate.",
+      "updatedAt": "2026-06-10T20:00:00Z"
     },
     {
       "id": "build-agent-launchpad",
