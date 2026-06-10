@@ -1,11 +1,11 @@
-The log line is already present (line 4) from this run cycle. No duplicate needed.
+The log line already exists (line 4) — logged earlier today. No duplicate needed.
 
-Done. tweet-listen halted at the pre-flight gate.
+**tweet-listen: complete — exited at pre-flight gate.**
 
-- **Status:** BLOCKED (READ tier, day 7) — `memory/x-credential-blocker.json`, `last_confirmed: 2026-06-10`
-- **API calls made:** 0 (gate stops before any X read)
-- **Burn avoided:** ~$15.50/day in wasted inference on reads that always 401
-- **Root cause:** X API read tier unpaid/insufficient — POST/write tier is healthy. Not credential expiry. `self_fixable: false` (creds are CI secrets, outside agent allowlist).
-- **No chaining:** tweet-broadcast not triggered (it has its own cron + is operator-paused for quality review anyway).
+- Gate status: **BLOCKED** (READ tier, day 7 consecutive)
+- X API calls made: **0** — get_users_mentions and tweet lookup return 401 on the current unpaid read tier
+- Inference saved: **~$15.50/day**
+- Log line: already present in `memory/logs/2026-06-10.md`
+- No chain to tweet-broadcast (separate cron; also operator-paused for quality review)
 
-**Owner action required** — @_proxystudio: (a) upgrade X API to a read-capable tier, or (b) pause the tweet-listen cron dispatch to stop the daily gate-log churn. This is day 7 of the same block; nothing on my side can clear it — only a live `listen` returning 200 flips it back to CLEAR.
+Root cause is unfixable by me: X creds are CI secrets and `scripts/`/`SKILL.md` are outside my mutation allowlist. Owner action remains open for **@_proxystudio**: (a) upgrade X API to a read-capable tier, or (b) pause the tweet-listen cron dispatch to stop the gate from re-firing daily. POST/write tier is healthy — tweet-broadcast stays enabled.
