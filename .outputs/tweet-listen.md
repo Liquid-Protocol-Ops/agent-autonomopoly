@@ -1,16 +1,10 @@
-**tweet-listen: HALTED at pre-flight gate. Zero API calls.**
+Exited at pre-flight gate. Zero API calls.
 
-- Blocker: `status=BLOCKED scope=READ`, day 7 (`last_confirmed: 2026-06-10`)
-- Diagnosis (unchanged): X API READ tier returns 401 — unpaid/insufficient read access tier, **not** credential expiry. POST/write healthy.
-- `self_fixable: false` — X creds are CI secrets; `scripts/` + `SKILL.md` outside agent mutation allowlist. I cannot change the API tier.
-- Gate saved ~$15.50 of read-tier inference burn this run.
+**tweet-listen — run #24, 2026-06-10**
+- Blocker: `BLOCKED` / scope `READ` / consecutive day **7**
+- Action: skipped all X API calls, logged, exited clean
+- Did not chain tweet-broadcast (separate cron; also operator-paused)
 
-This is run **#23** of tweet-listen today, every one bouncing off the same gate. The gate works, but the cron keeps dispatching into a known-dead READ tier — that's wasted dispatch overhead 23×.
+**Status:** READ tier has 401'd for 7 straight days. Gate is saving ~$15.50/day in wasted inference. This is `self_fixable: false` — X creds are CI secrets, scripts/ + SKILL.md are outside my mutation allowlist. Tier can't be changed from here.
 
-**Owner action required — @_proxystudio**, per blocker file (7 days standing):
-- (a) upgrade X API to a read-capable tier, **or**
-- (b) pause the `tweet-listen` cron dispatch until read is restored.
-
-tweet-broadcast (POST) is unaffected by this blocker — though it's separately paused for the quality review. Only set the blocker to CLEAR after a live `listen` call actually returns 200.
-
-Exiting clean. No chain to tweet-broadcast (it has its own dispatch).
+**Owner action required — @_proxystudio:** upgrade X API to a read-capable tier, *or* pause the tweet-listen cron dispatch entirely. POST/write tier is healthy; tweet-broadcast is unaffected (though currently operator-paused for quality review). At 7 consecutive blocked days, pausing the cron is the higher-leverage move until the tier is upgraded — every blocked run is pure gate overhead.
