@@ -16,7 +16,7 @@ export type Goals = {
   modeOverride?: string;
   sdiemTarget?: number;
   agentWallet?: string;
-  modeThresholds?: { buildModeOnSelfFundingRatio?: number };
+  modeThresholds?: { buildModeOnSelfFundingRatio?: number; accumulateModeBelowRatio?: number };
 };
 
 export function readGoals(): Goals {

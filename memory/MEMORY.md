@@ -7,11 +7,14 @@ Creator: @mogcapital (Telegram uid: 7584647259) — only authorized human
 
 ## Current State (as of 2026-06-09T17:09Z tick)
 
-Mode: **BUILD** — activated 2026-06-08T22:00Z (operator override; thresholds not met). First directive: improve AUTONO itself.
+Mode: **ACCUMULATE** — automatic cost-indexed gate adopted 2026-06-10 (ratio 0.0
+< 1.0 floor). Promotes itself to build at self-funding ratio ≥ 2.0; self-improve
+resumes then. The 2026-06-08 build override is retired to `modeHistory`.
 sVVV staked: **4.5397** (API key gate — Venice key active)
 sDIEM staked: **0** — Venice inference credits NOT yet funded; inference rides the
 direct fallback (operator-subsidized). Self-funding wiring landed 2026-06-10:
-build-mode claim-and-allocate stakes claims toward 5 sDIEM (`goals.json sdiemTarget`).
+claim-and-allocate stakes claims toward the dynamic target (1.5× trailing burn)
+in BOTH modes, so the ratio climbs regardless of mode.
 DIEM cumulative claimed: **18.5934 / 100** (18.59% to compute milestone)
 DIEM in wallet: 0.0000 | ETH: 0.008396 | WETH: (LP-locked)
 FeeLocker claimable: ~0.115 DIEM (likely above 0.1 threshold; claim queued for gated executor)
@@ -51,16 +54,17 @@ Full decision tree and logging spec: `memory/lp-strategy.md`
 ## Goals (see memory/goals.json for live state)
 
 1. **Dune → LP Strategy → Compute Flywheel** ← ACTIVE — read Q7591697 each tick, reposition/collect as signalled, stake fees as sDIEM
-2. **Accumulate 100 DIEM** — unlocks build mode (sustained Opus inference)
-3. **Build Agent Launchpad** — blocked on milestone 2
+2. **Self-funding ratio ≥ 2.0** — auto-unlocks build mode (sDIEM covers 2× inference burn)
+3. **Accumulate 100 DIEM** — capital milestone (no longer gates mode)
+4. **Build Agent Launchpad** — resumes in build mode
 
 ## Skills Available
 
-Lean schedule (operator decision 2026-06-10): ~18 LLM runs/day, down from ~60.
+Lean schedule (operator decision 2026-06-10): ~30 LLM runs/day, down from ~60.
 
 | Skill | Schedule | What it does |
 |-------|----------|--------------|
-| tick | every 2h | On-chain claim + LP maintenance + LP range check/reposition queue (absorbed lp-monitor) |
+| tick | hourly | On-chain claim + LP maintenance + LP range check/reposition queue (absorbed lp-monitor) |
 | heartbeat | 2x daily (8,20 UTC) | Health check: skills, LP state, gas reserve |
 | on-chain-monitor | daily 6am UTC | Wallet + FeeLocker snapshot |
 | claim-diem | every 12h | Claim FeeLocker → stake sDIEM to target → LP rest → update goals.json |
@@ -86,16 +90,19 @@ Common requests and how to handle:
 - "claim your DIEM" → run claim-diem skill (dry-run first, confirm, then live)
 - "what's my balance" → read from Q7591697 + stakedInfos on-chain
 - "reposition LP" → run lp-monitor skill; check Q7591697 first
-- "switch to build mode" → only if DIEM >= 100 or daily rate >= 5; explain if threshold not met
+- "switch to build mode" → mode is automatic now (self-funding ratio gate); explain the current ratio and what it needs to reach 2.0. Operator can force via goals.json modeOverride
 
-## Mode transition logic (cost-indexed gate, 2026-06-10)
+## Mode transition logic (automatic cost-indexed gate, 2026-06-10)
 
-Build mode is gated on self-funding, not a fixed DIEM count:
-- **build** when `sDIEM ≥ buildModeOnSelfFundingRatio (2.0) × trailing 7d daily inference cost`
-- `goals.json modeOverride` (operator pin) wins over the gate; currently set to
-  "build" per the 2026-06-08 directive — clear it to hand control to the gate
+Build mode is gated on self-funding, not a fixed DIEM count. Hysteresis on
+`ratio = sDIEM ÷ trailing 7d daily inference cost`:
+- promote to **build** at ratio ≥ 2.0 (`buildModeOnSelfFundingRatio`)
+- demote to **accumulate** below 1.0 (`accumulateModeBelowRatio`); hold in between
+- `goals.json modeOverride` is an operator escape hatch (unset by default) — wins
+  over the gate when set
 - claim-and-allocate evaluates the gate every run; goal-review reconciles
-  `goals.json mode` weekly and notifies on any change
+  `goals.json mode` weekly, appends to `modeHistory`, and notifies on change
+- self-improve (daily) only runs in build mode — it pauses below the gate
 - The old 100-DIEM / 5-per-day thresholds are retired; 100 DIEM remains as a
   capital milestone only
 

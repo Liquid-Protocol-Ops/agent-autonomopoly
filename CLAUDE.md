@@ -132,8 +132,11 @@ The three load-bearing conclusions — read `ARCHITECTURE_v2.md` for the full ra
 
 ## Live AUTONO runtime (as of 2026-06-08)
 
-**MODE: BUILD** — activated 2026-06-08. First directive: improve autono itself.
-LP income continues compounding in parallel. `self-improve` runs daily at 10:00 UTC.
+**MODE: automatic (cost-indexed gate, 2026-06-10)** — build at self-funding ratio
+≥ 2.0, accumulate below 1.0, hold between (`goals.json modeThresholds`;
+`modeOverride` is the operator escape hatch). Currently **accumulate** (ratio 0.0
+— sDIEM bootstrapping). `self-improve` (daily 10:00 UTC) runs only in build mode.
+LP income compounds in parallel; claims stake toward the sDIEM target in both modes.
 
 AUTONO (@AUTONOMOPOLY) is live on X and posting from Base mainnet. Key facts:
 
@@ -183,7 +186,7 @@ they want goes through the intent queue + gated executor like everything else.
 - Note: `weth` in `memory/on-chain-state.json` → `diem-claims` section is **liquid WETH only**, not LP-locked WETH
 
 ### Skills in production
-Lean schedule (~18 LLM runs/day as of 2026-06-10): `tick` (2h, includes LP range
+Lean schedule (~30 LLM runs/day as of 2026-06-10): `tick` (hourly, includes LP range
 check), `heartbeat` (2×/day), `claim-diem` (12h), `on-chain-monitor` (daily),
 `goal-review` (weekly), `cost-report` (weekly), `self-improve` (build mode —
 daily), plus script-only `stake-diem` + `track-earnings`. All `tweet-*` skills

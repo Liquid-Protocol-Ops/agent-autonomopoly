@@ -127,11 +127,12 @@ function estimateDailyRate(claimsPath: string, days = 7): number {
 }
 
 /**
- * Mode resolution (operator decision 2026-06-10):
- *   1. goals.json modeOverride — explicit operator pin, wins over everything
- *   2. cost-indexed gate — build iff sDIEM ≥ buildModeOnSelfFundingRatio ×
- *      trailing 7d daily inference cost (goal-review reconciles goals.json
- *      `mode` with this gate weekly)
+ * Mode resolution (operator decision 2026-06-10 — automatic, cost-indexed):
+ *   1. goals.json modeOverride — operator escape hatch, wins when set
+ *   2. cost-indexed gate with hysteresis on ratio = sDIEM / 7d daily cost:
+ *      promote to build at ≥ buildModeOnSelfFundingRatio (2.0), demote to
+ *      accumulate below accumulateModeBelowRatio (1.0), hold in between.
+ *      goal-review reconciles goals.json `mode` with this weekly.
  *   3. AGENT_MODE env (executor export) → goals.json mode → accumulate
  */
 function resolveMode(sdiemNow: number): 'accumulate' | 'build' {
@@ -140,9 +141,13 @@ function resolveMode(sdiemNow: number): 'accumulate' | 'build' {
     return goals.modeOverride;
   }
   const dailyCost = readDailyInferenceCostUsd();
-  if (dailyCost !== null) {
-    const ratioGate = goals.modeThresholds?.buildModeOnSelfFundingRatio ?? 2.0;
-    return sdiemNow >= ratioGate * dailyCost ? 'build' : 'accumulate';
+  if (dailyCost !== null && dailyCost > 0) {
+    const promote = goals.modeThresholds?.buildModeOnSelfFundingRatio ?? 2.0;
+    const demote = goals.modeThresholds?.accumulateModeBelowRatio ?? 1.0;
+    const ratio = sdiemNow / dailyCost;
+    if (ratio >= promote) return 'build';
+    if (ratio < demote) return 'accumulate';
+    return goals.mode === 'build' ? 'build' : 'accumulate';  // hold inside the band
   }
   const env = process.env['AGENT_MODE'];
   if (env === 'accumulate' || env === 'build') return env;

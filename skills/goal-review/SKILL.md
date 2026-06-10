@@ -55,12 +55,16 @@ week (the highest-leverage change toward self-funding ratio ≥ 1.0).
 Update `memory/goals.json`: refresh `current`, `updatedAt`, and ETA notes on
 quantitative milestones.
 
-**Mode reconciliation (cost-indexed gate):** compute the gate —
-`sDIEM ≥ modeThresholds.buildModeOnSelfFundingRatio × 7d avg daily cost`.
-- If `modeOverride` is set: do NOT change `mode`; report "override active; gate
-  would say X" in the review.
-- If no override and the gate disagrees with `mode`: update `mode`, record
-  `modeChangedAt` + a one-line reason, and lead the creator notification with it.
+**Mode reconciliation (automatic cost-indexed gate with hysteresis):** compute
+`ratio = sDIEM ÷ 7d avg daily cost`; promote to build at
+≥ `buildModeOnSelfFundingRatio` (2.0), demote to accumulate below
+`accumulateModeBelowRatio` (1.0), hold inside the band.
+- If `modeOverride` is set (operator escape hatch): do NOT change `mode`; report
+  "override active; gate would say X" in the review.
+- Otherwise, if the gate result differs from `mode`: update `mode`, set
+  `modeChangedAt` + `modeChangeReason`, append one line to `modeHistory`, and
+  lead the creator notification with the change. Note that self-improve runs
+  only in build mode — say so when demoting.
 
 Never change thresholds, `modeOverride`, or the creator block — those are
 operator decisions; recommend, don't act.

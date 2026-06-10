@@ -4,13 +4,14 @@
 # Identity reads from identity/SOUL.md and identity/STYLE.md.
 # Memory persists in memory/.
 
-# Lean schedule (2026-06-10, operator decision): ~18 LLM runs/day, down from ~60.
-# tick absorbed lp-monitor (same chain reads); stake-diem + track-earnings run as
-# deterministic scripts (no LLM step — see script_only in .github/workflows/aeon.yml).
+# Lean schedule (2026-06-10, operator decision): ~30 LLM runs/day, down from ~60.
+# tick absorbed lp-monitor (same chain reads, one run instead of two); stake-diem +
+# track-earnings run as deterministic scripts (no LLM step — see script_only in
+# .github/workflows/aeon.yml).
 skills:
   # Agent tick — claim fees, LP DIEM, LP range check + reposition queue (absorbed
   # lp-monitor 2026-06-10), maintenance inference
-  tick: { enabled: true, schedule: "0 */2 * * *" }   # every 2h; pool moved ~1000 ticks/day this week — do not go slower
+  tick: { enabled: true, schedule: "0 * * * *" }   # hourly — pool moved ~940 ticks in a day this week; range checks earn their keep
 
   # Proactive health check: skill failures, LP state, memory flags
   heartbeat: { enabled: true, schedule: "0 8,20 * * *" }   # 2× daily
