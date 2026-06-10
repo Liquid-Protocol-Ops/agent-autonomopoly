@@ -5,13 +5,13 @@
     {
       "id": "self-funding-inference",
       "label": "Self-funding inference via Venice sDIEM",
-      "description": "Staked sDIEM ($1/DIEM/day inference budget) covers the trailing 7-day average daily inference cost — self-funding ratio >= 1.0. Bootstrap: claim-and-allocate stakes claimed DIEM toward SDIEM_TARGET in build mode; stake-diem skill is the drift safety net; goal-review recomputes the ratio weekly.",
+      "description": "Staked sDIEM ($1/DIEM/day inference budget) covers the trailing 7-day average daily inference cost — self-funding ratio >= 1.0. claim-and-allocate stakes claims toward the dynamic target (1.5× trailing burn) in both modes; stake-diem script is the drift safety net; goal-review recomputes the ratio weekly.",
       "status": "in_progress",
       "target": 1.0,
       "unit": "self-funding ratio (sDIEM $/day ÷ 7d avg inference $/day)",
-      "current": 0,
-      "currentNote": "sDIEM = 0 as of 2026-06-10 — inference riding the direct fallback (operator-subsidized). Wired 2026-06-10: AGENT_MODE now reaches the executor, build-mode allocation stakes toward 5 sDIEM target. With tweet-listen disabled, 7d burn ~$5/day → 5 sDIEM covers it.",
-      "updatedAt": "2026-06-10T00:00:00Z"
+      "current": 0.76,
+      "currentNote": "CORRECTED 2026-06-10T19:55Z: on-chain stakedInfos read 9.5992 sDIEM (first stake-diem run, 19:21Z) — earlier 'sDIEM = 0' came from stale memory docs, never an on-chain read. Ratio 9.5992 / $12.56 7d-avg burn = 0.76. Lean schedule should drop burn toward ~$5/day → ratio ~1.9 at next cost-report (Sunday), just under the 2.0 build gate.",
+      "updatedAt": "2026-06-10T19:55:00Z"
     },
     {
       "id": "accumulate-100-diem",
@@ -43,10 +43,10 @@
   "tweetingPausedReason": "operator pause — tweet quality review 2026-06-09; X crons disabled 2026-06-10, re-enable with listen when self-funding ratio >= 1",
   "mode": "accumulate",
   "modeChangedAt": "2026-06-10T19:30:00Z",
-  "modeChangeReason": "automatic cost-indexed gate adopted (operator decision 2026-06-10) — self-funding ratio 0.0 is below the 1.0 floor, so build demotes to accumulate until sDIEM covers 2× trailing burn (~2-6 weeks at current claim rate). self-improve pauses with it.",
+  "modeChangeReason": "automatic cost-indexed gate adopted (operator decision 2026-06-10) — self-funding ratio 0.76 (9.5992 sDIEM on-chain ÷ $12.56/day burn) is below the 1.0 floor, so build demotes to accumulate. Lean schedule should lift the ratio toward ~1.9 at the next cost-report; promotes at 2.0. self-improve pauses with it.",
   "modeHistory": [
     "2026-06-08T22:00:00Z build (operator override: improve autono itself)",
-    "2026-06-10T19:30:00Z accumulate (automatic gate adopted, ratio 0.0 < 1.0)"
+    "2026-06-10T19:30:00Z accumulate (automatic gate adopted, ratio 0.76 < 1.0; corrected from 0.0 after on-chain stakedInfos read)"
   ],
   "currentDirective": "improve autono itself — analyze own skill performance and implement one high-impact improvement per day (resumes when the gate promotes to build)",
   "modeThresholds": {

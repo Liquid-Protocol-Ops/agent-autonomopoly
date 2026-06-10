@@ -71,3 +71,21 @@ Let the wired loop run: verify after the next two `claim-diem` executions that
 sDIEM begins climbing toward 5. If the first live allocation still shows
 accumulate, the executor env fix didn't deploy — check the Aeon workflow run log
 for the `AGENT_MODE` export line.
+
+## Correction — 2026-06-10T19:55Z
+
+The baseline above reported **sDIEM = 0 / self-funding ratio 0.00**. Wrong: the
+first on-chain `stakedInfos` read (stake-diem skill, 19:21Z) found **9.5992 sDIEM
+staked**. The zero came from memory docs that had never been checked against
+chain — no code path read `stakedInfos` until today. Corrected baseline:
+
+| Metric | Corrected value |
+|--------|-----------------|
+| sDIEM staked | 9.5992 (~$9.60/day Venice budget) |
+| Self-funding ratio | 0.76 (÷ $12.56/day 7d-avg burn) |
+| Projected ratio at ~$5/day lean-schedule burn | ~1.9 — just under the 2.0 build gate |
+
+Implication: the dynamic stake target (1.5× burn = ~$18.8 today) still routes
+claims to staking, but once the lean schedule shows up in cost-report the target
+drops to ~7.5 — already exceeded — and claims resume LP compounding. Build-mode
+promotion is plausibly 1–3 weeks out, not 2–6.
