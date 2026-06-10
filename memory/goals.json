@@ -15,8 +15,8 @@
     },
     {
       "id": "accumulate-100-diem",
-      "label": "Accumulate 100 DIEM",
-      "description": "Reach 100 DIEM cumulative claimed from the FeeLocker. Triggers full build mode — agent stakes claimed DIEM on Venice for inference credits, switches inference from free llama to Opus, and begins launchpad development.",
+      "label": "Accumulate 100 DIEM (capital milestone)",
+      "description": "Reach 100 DIEM cumulative claimed from the FeeLocker. Reframed 2026-06-10: no longer gates build mode (the cost-indexed self-funding gate in modeThresholds does that) — this is the capital-compounding milestone for the LP base that funds everything else.",
       "status": "in_progress",
       "target": 100,
       "unit": "DIEM",
@@ -40,15 +40,18 @@
     }
   ],
   "tweetingPaused": true,
-  "tweetingPausedReason": "operator pause — tweet quality review 2026-06-09",
+  "tweetingPausedReason": "operator pause — tweet quality review 2026-06-09; X crons disabled 2026-06-10, re-enable with listen when self-funding ratio >= 1",
   "mode": "build",
+  "modeOverride": "build",
+  "modeOverrideReason": "operator directive 2026-06-08: improve autono itself. Pins build mode while the cost-indexed gate bootstraps; clear this field to hand mode control to the gate.",
   "buildActivatedAt": "2026-06-08T22:00:00Z",
   "currentDirective": "improve autono itself — analyze own skill performance and implement one high-impact improvement per day",
   "modeThresholds": {
-    "buildModeOnDailyRate": 5,
-    "buildModeOnTotal": 100,
-    "unit": "DIEM"
+    "buildModeOnSelfFundingRatio": 2.0,
+    "unit": "sDIEM ($1/day budget) ÷ trailing 7d avg inference cost ($/day)",
+    "note": "Cost-indexed gate (operator decision 2026-06-10) — replaced the fixed 100-DIEM / 5-DIEM-per-day thresholds, which sized the gate ~8-20× actual burn and ~166 days out. claim-and-allocate evaluates it; goal-review reconciles mode weekly when modeOverride is absent."
   },
+  "sdiemTargetPolicy": "1.5× trailing 7d inference cost, clamped [1,50] (scripts/lib/sdiem-target.ts); sdiemTarget below is the fallback when cost data is missing",
   "telegramUserId": "7584647259",
   "creator": {
     "handle": "@mogcapital",

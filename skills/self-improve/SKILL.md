@@ -17,7 +17,7 @@ Read each of the following and extract the key signal:
 2. **`memory/thoughts.jsonl`** (last 30 entries) — what have you been noticing? Any repeated frustration or observation?
 3. **`memory/x-performance.jsonl`** (all entries) — which content types get the most engagement? What's the ratio of high-engagement to low-engagement tweets?
 4. **`memory/x-strategy.md`** — are the current weights aligned with the engagement data?
-5. **`memory/cron-state.json`** — success rates and run counts per skill.
+5. **`memory/cron-state/*.json` (per-skill; legacy `memory/cron-state.json` frozen 2026-06-10)** — success rates and run counts per skill.
 6. **`memory/improvement-log.jsonl`** — what have you already improved? Don't repeat.
 
 ## Step 2 — Pick exactly one improvement

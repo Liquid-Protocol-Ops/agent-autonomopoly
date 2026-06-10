@@ -10,15 +10,15 @@
  *   node --env-file=.env --import tsx scripts/claim-and-allocate.ts           # dry-run
  *   node --env-file=.env --import tsx scripts/claim-and-allocate.ts --live    # execute
  *
- * Allocation logic (accumulate mode):
- *   - All claimed DIEM >= threshold → single-sided LP into ETH/DIEM v3 1% pool
- *   - WETH buffer: if wallet WETH < 0.005 ETH, skip this run (gas reserve)
- *
- * Allocation logic (build mode, AGENT_MODE=build or goals.json mode=build):
- *   - Read current sDIEM (stakedInfos) — if below SDIEM_TARGET (default 5),
- *     stake claimed DIEM toward the target first (1 sDIEM ≈ $1/day inference)
+ * Allocation logic (mode-independent — operator decision 2026-06-10):
+ *   - Self-funding first: top up sDIEM toward the dynamic target
+ *     (1.5× trailing 7d inference cost; scripts/lib/sdiem-target.ts)
  *   - Above target: stake only confirmed Venice demand from tool-routing.jsonl
- *   - LP the rest
+ *   - LP the rest (single-sided into ETH/DIEM v3 1% pool, ≥ 0.1 DIEM)
+ *
+ * Mode (accumulate vs build) no longer changes the allocation — it governs what
+ * inference does. Resolution: goals.json modeOverride → cost-indexed gate
+ * (build iff sDIEM ≥ buildModeOnSelfFundingRatio × daily cost) → env/goals.
  *
  * Logs to memory/diem-claims.jsonl on successful claim.
  */
@@ -34,6 +34,7 @@ import { base } from 'viem/chains';
 import { appendFileSync, readFileSync, mkdirSync, existsSync } from 'node:fs';
 import { ADDRESSES } from '../platform/constants.js';
 import { reinvestToLP } from '../harness/providers/liquidity.js';
+import { readGoals, readDailyInferenceCostUsd, resolveSdiemTarget } from './lib/sdiem-target.js';
 import {
   loadPrivyConfig,
   loadSignerFromPrivy,
@@ -47,7 +48,6 @@ import {
 
 const LP_THRESHOLD_WEI  = 100_000_000_000_000_000n;  // 0.1 DIEM minimum to LP
 const WETH_GAS_RESERVE  = 3_000_000_000_000_000n;     // 0.003 ETH minimum gas reserve
-const BUILD_DAILY_THRESHOLD = 0.5;  // DIEM/day needed to promote to build mode
 
 // ── ABIs ───────────────────────────────────────────────────────────
 
@@ -126,28 +126,28 @@ function estimateDailyRate(claimsPath: string, days = 7): number {
   return totalDiem / elapsedDays;
 }
 
-function readGoals(): { mode?: string; sdiemTarget?: number } {
-  try {
-    return JSON.parse(readFileSync('memory/goals.json', 'utf8')) as { mode?: string; sdiemTarget?: number };
-  } catch { return {}; }
-}
-
-/** AGENT_MODE env wins; falls back to memory/goals.json `mode`; defaults accumulate. */
-function resolveAgentMode(): 'accumulate' | 'build' {
+/**
+ * Mode resolution (operator decision 2026-06-10):
+ *   1. goals.json modeOverride — explicit operator pin, wins over everything
+ *   2. cost-indexed gate — build iff sDIEM ≥ buildModeOnSelfFundingRatio ×
+ *      trailing 7d daily inference cost (goal-review reconciles goals.json
+ *      `mode` with this gate weekly)
+ *   3. AGENT_MODE env (executor export) → goals.json mode → accumulate
+ */
+function resolveMode(sdiemNow: number): 'accumulate' | 'build' {
+  const goals = readGoals();
+  if (goals.modeOverride === 'build' || goals.modeOverride === 'accumulate') {
+    return goals.modeOverride;
+  }
+  const dailyCost = readDailyInferenceCostUsd();
+  if (dailyCost !== null) {
+    const ratioGate = goals.modeThresholds?.buildModeOnSelfFundingRatio ?? 2.0;
+    return sdiemNow >= ratioGate * dailyCost ? 'build' : 'accumulate';
+  }
   const env = process.env['AGENT_MODE'];
   if (env === 'accumulate' || env === 'build') return env;
-  const { mode } = readGoals();
-  if (mode === 'accumulate' || mode === 'build') return mode;
+  if (goals.mode === 'accumulate' || goals.mode === 'build') return goals.mode;
   return 'accumulate';
-}
-
-/** sDIEM stake target: SDIEM_TARGET env wins; falls back to goals.json; defaults 5. */
-function resolveSdiemTarget(): number {
-  const env = Number(process.env['SDIEM_TARGET']);
-  if (Number.isFinite(env) && env >= 0 && process.env['SDIEM_TARGET']) return env;
-  const { sdiemTarget } = readGoals();
-  if (typeof sdiemTarget === 'number' && Number.isFinite(sdiemTarget) && sdiemTarget >= 0) return sdiemTarget;
-  return 5;
 }
 
 /** Estimate Venice Opus demand from tool-routing.jsonl */
@@ -180,7 +180,6 @@ async function main() {
   const agentAddress = process.env['AGENT_WALLET'] as Address | undefined;
   if (!agentAddress) throw new Error('AGENT_WALLET env var required');
 
-  const agentMode = resolveAgentMode();
   const claimsPath = 'memory/diem-claims.jsonl';
   const toolRoutingPath = 'memory/tool-routing.jsonl';
 
@@ -188,7 +187,7 @@ async function main() {
   mkdirSync('memory', { recursive: true });
 
   console.log(`\n[claim-and-allocate] ${new Date().toISOString()}`);
-  console.log(`mode=${agentMode}  dry-run=${dryRun}`);
+  console.log(`dry-run=${dryRun}`);
   if (dryRun) console.log('  (pass --live to execute transactions)\n');
 
   // ── 1. Read current state ──────────────────────────────────────────
@@ -228,61 +227,50 @@ async function main() {
     return;
   }
 
-  // ── 2. Accumulate vs build analysis ───────────────────────────────
+  // ── 2. Self-funding allocation analysis ────────────────────────────
 
   const dailyRate = estimateDailyRate(claimsPath);
   const veniaDemand = estimateVeniceDemandDiem(toolRoutingPath);
+  if (dailyRate > 0) console.log(`\nDaily DIEM rate: ${dailyRate.toFixed(4)} DIEM/day`);
 
-  // Determine effective mode (env var can be overridden by daily rate)
-  let effectiveMode: 'accumulate' | 'build' = agentMode;
-  if (dailyRate >= BUILD_DAILY_THRESHOLD && agentMode === 'accumulate') {
-    effectiveMode = 'build';
-    console.log(`\n⇧ Daily rate ${dailyRate.toFixed(4)} DIEM/day ≥ threshold ${BUILD_DAILY_THRESHOLD} → auto-promoting to build mode`);
-  } else if (dailyRate > 0) {
-    console.log(`\nDaily DIEM rate: ${dailyRate.toFixed(4)} DIEM/day (threshold: ${BUILD_DAILY_THRESHOLD})`);
+  // Staked sDIEM (Venice inference credits) — both the stake top-up and the
+  // build-mode gate depend on it.
+  let sdiemNow = 0;
+  try {
+    const staked = await client.readContract({
+      address: ADDRESSES.DIEM, abi: STAKED_INFOS_ABI,
+      functionName: 'stakedInfos', args: [agentAddress],
+    });
+    sdiemNow = Number(formatUnits(staked, 18));
+  } catch {
+    console.warn('  ⚠ stakedInfos read failed — assuming 0 sDIEM staked');
   }
+
+  const effectiveMode = resolveMode(sdiemNow);
+  console.log(`Effective mode: ${effectiveMode}`);
 
   const totalDiemAfterClaim = claimable + diemWallet;
 
-  let stakeVenice = 0n;
+  // Self-funding first, in BOTH modes — a build-only stake would deadlock the
+  // bootstrap (ratio 0 → accumulate → never stakes → ratio stays 0). Note
+  // tool-routing demand reads ~0 while inference rides the direct fallback, so
+  // the target — not observed demand — drives the top-up.
+  const sdiemTarget = resolveSdiemTarget();
+  const gapToTarget = Math.max(0, sdiemTarget - sdiemNow);
+  const availableDiem = Number(formatUnits(totalDiemAfterClaim, 18));
+  let stakeNeededDiem = Math.min(Math.max(veniaDemand, gapToTarget), availableDiem);
+  if (stakeNeededDiem < 0.01) stakeNeededDiem = 0;  // skip dust stakes
+
+  const stakeVenice = BigInt(Math.floor(stakeNeededDiem * 1e18));
+  const remainder = totalDiemAfterClaim > stakeVenice ? totalDiemAfterClaim - stakeVenice : 0n;
   let lpDiem = 0n;
   let holdDiem = 0n;
-  let rationale = '';
-
-  if (effectiveMode === 'accumulate') {
-    // Accumulate: LP everything above threshold
-    if (totalDiemAfterClaim >= LP_THRESHOLD_WEI) {
-      lpDiem = totalDiemAfterClaim;
-      rationale = `Accumulate mode: all ${formatUnits(lpDiem, 18)} DIEM → ETH/DIEM v3 1% LP (highest yield)`;
-    } else {
-      holdDiem = totalDiemAfterClaim;
-      rationale = `${formatUnits(holdDiem, 18)} DIEM below ${formatUnits(LP_THRESHOLD_WEI, 18)} threshold — holding`;
-    }
+  if (remainder >= LP_THRESHOLD_WEI) {
+    lpDiem = remainder;
   } else {
-    // Build mode: keep sDIEM topped up to SDIEM_TARGET, LP the rest.
-    // 1 DIEM staked ≈ $1/day inference budget. tool-routing demand reads ~0 while
-    // inference rides the direct fallback (no Venice entries get logged), so the
-    // target — not observed demand — does the self-funding bootstrap.
-    const sdiemTarget = resolveSdiemTarget();
-    let sdiemNow = 0;
-    try {
-      const staked = await client.readContract({
-        address: ADDRESSES.DIEM, abi: STAKED_INFOS_ABI,
-        functionName: 'stakedInfos', args: [agentAddress],
-      });
-      sdiemNow = Number(formatUnits(staked, 18));
-    } catch {
-      console.warn('  ⚠ stakedInfos read failed — assuming 0 sDIEM staked');
-    }
-    const gapToTarget = Math.max(0, sdiemTarget - sdiemNow);
-    const availableDiem = Number(formatUnits(totalDiemAfterClaim, 18));
-    let stakeNeededDiem = Math.min(Math.max(veniaDemand, gapToTarget), availableDiem);
-    if (stakeNeededDiem < 0.01) stakeNeededDiem = 0;  // skip dust stakes
-    stakeVenice = BigInt(Math.floor(stakeNeededDiem * 1e18));
-    lpDiem = totalDiemAfterClaim > stakeVenice ? totalDiemAfterClaim - stakeVenice : 0n;
-    holdDiem = totalDiemAfterClaim > stakeVenice + lpDiem ? totalDiemAfterClaim - stakeVenice - lpDiem : 0n;
-    rationale = `Build mode: sDIEM ${sdiemNow.toFixed(2)}/${sdiemTarget} — stake ${formatUnits(stakeVenice, 18)} DIEM (gap ${gapToTarget.toFixed(2)}, observed demand ${veniaDemand.toFixed(3)}), LP ${formatUnits(lpDiem, 18)} DIEM`;
+    holdDiem = remainder;
   }
+  const rationale = `sDIEM ${sdiemNow.toFixed(2)}/${sdiemTarget.toFixed(2)} target — stake ${formatUnits(stakeVenice, 18)} DIEM (gap ${gapToTarget.toFixed(2)}, demand ${veniaDemand.toFixed(3)}), LP ${formatUnits(lpDiem, 18)}, hold ${formatUnits(holdDiem, 18)} (${effectiveMode} mode)`;
 
   const allocation: AllocationDecision = {
     mode:         effectiveMode,

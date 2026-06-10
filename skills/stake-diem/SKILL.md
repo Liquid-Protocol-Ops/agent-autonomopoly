@@ -7,6 +7,11 @@ tags: [agent, on-chain, venice]
 
 # Stake DIEM (autonomous safety net)
 
+> **Script-only since 2026-06-10**: the workflow runs
+> `scripts/stake-diem-check.ts` directly (no LLM step) — see `script_only` in
+> `.github/workflows/aeon.yml`. This file documents the behavior and serves
+> manual/interactive runs; the script is authoritative.
+
 Keep Venice inference credits funded: check sDIEM on-chain and, when it falls
 below `stake_min_diem` (aeon.yml), queue a `stake-diem` intent. The gated
 executor (non-LLM step holding the Privy credential) runs

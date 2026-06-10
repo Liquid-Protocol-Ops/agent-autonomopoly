@@ -32,6 +32,30 @@ export default async function handler(req: Request): Promise<Response> {
   const ghToken = process.env.GH_DISPATCH_TOKEN ?? '';
   if (!ghToken) return new Response('GH_DISPATCH_TOKEN not set', { status: 500 });
 
+  // Operator kill switch: when goals.json tweetingPaused is true, skip dispatching
+  // entirely. Before this check the skills no-oped *inside* a GHA run on every
+  // cron fire (40+ wasted workflow runs/day while paused). Fail open on fetch
+  // errors — a broken check must not silently kill the X loop once unpaused.
+  try {
+    const r = await fetch(
+      `https://api.github.com/repos/${GH_REPO}/contents/memory/goals.json?ref=main`,
+      {
+        headers: {
+          Authorization: `Bearer ${ghToken}`,
+          Accept: 'application/vnd.github.raw+json',
+          'User-Agent': 'AUTONO-cron/1.0',
+        },
+      },
+    );
+    if (r.ok) {
+      const goals = (await r.json()) as { tweetingPaused?: boolean };
+      if (goals?.tweetingPaused === true) {
+        console.log('[cron/listen] tweetingPaused=true — skipping dispatches');
+        return new Response('paused (goals.json tweetingPaused)', { status: 200 });
+      }
+    }
+  } catch { /* fail open */ }
+
   async function dispatch(skill: string): Promise<number> {
     const r = await fetch(
       `https://api.github.com/repos/${GH_REPO}/actions/workflows/${GH_WORKFLOW}/dispatches`,

@@ -4,15 +4,20 @@
 # Identity reads from identity/SOUL.md and identity/STYLE.md.
 # Memory persists in memory/.
 
+# Lean schedule (2026-06-10, operator decision): ~18 LLM runs/day, down from ~60.
+# tick absorbed lp-monitor (same chain reads); stake-diem + track-earnings run as
+# deterministic scripts (no LLM step — see script_only in .github/workflows/aeon.yml).
 skills:
-  # Run one agent tick — claim fees, LP DIEM, run maintenance inference
-  tick: { enabled: true, schedule: "0 * * * *" }   # re-enabled 2026-05-27 post-audit
+  # Agent tick — claim fees, LP DIEM, LP range check + reposition queue (absorbed
+  # lp-monitor 2026-06-10), maintenance inference
+  tick: { enabled: true, schedule: "0 */2 * * *" }   # every 2h; pool moved ~1000 ticks/day this week — do not go slower
 
   # Proactive health check: skill failures, LP state, memory flags
-  heartbeat: { enabled: true, schedule: "0 8,14,20 * * *" }   # 3× daily
+  heartbeat: { enabled: true, schedule: "0 8,20 * * *" }   # 2× daily
 
-  # Monitor LP position and FeeLocker balance — hourly to catch out-of-range positions quickly
-  lp-monitor: { enabled: true, schedule: "0 * * * *" }   # hourly UTC
+  # Disabled 2026-06-10: duties absorbed into tick (one job per 2h covers both).
+  # Keep for manual dispatch (gh workflow run aeon.yml -f skill=lp-monitor).
+  lp-monitor: { enabled: false, schedule: "0 * * * *" }
 
   # On-chain monitoring of agent wallet and FeeLocker
   on-chain-monitor: { enabled: true, schedule: "0 6 * * *", model: "claude-sonnet-4-6" }
@@ -21,30 +26,34 @@ skills:
   claim-diem: { enabled: true, schedule: "0 */12 * * *", model: "claude-sonnet-4-6" }  # every 12h UTC
 
   # Track LP earnings per position per day — writes to memory/earnings.jsonl
+  # script_only: runs scripts/track-earnings.ts directly, no LLM
   track-earnings: { enabled: true, schedule: "55 23 * * *", model: "claude-sonnet-4-6" }  # end of day UTC
 
   # Weekly goal audit — recompute milestone ETAs, self-funding ratio, mode
   # consistency; report to creator. The follow-up loop for memory/goals.json.
   goal-review: { enabled: true, schedule: "0 8 * * 1", model: "claude-sonnet-4-6" }  # Monday 08:00 UTC
 
-  # Safety net for Venice inference credits: if sDIEM < stake_min_diem, queue a
-  # stake-diem intent for the gated executor (stakes liquid wallet DIEM only).
-  stake-diem: { enabled: true, schedule: "30 */6 * * *", model: "claude-sonnet-4-6" }
-  # Config for stake-diem + claim-and-allocate build-mode staking:
-  stake_min_diem: 5        # keep sDIEM at or above this (≈ $5/day inference budget)
+  # Safety net for Venice inference credits: if sDIEM < target, queue a stake-diem
+  # intent for the gated executor (stakes liquid wallet DIEM only).
+  # script_only: runs scripts/stake-diem-check.ts directly, no LLM
+  stake-diem: { enabled: true, schedule: "30 */12 * * *", model: "claude-sonnet-4-6" }
+  # Floor for the sDIEM safety net; claim-and-allocate targets 1.5× trailing
+  # 7d inference cost (memory/inference-cost.md), falling back to this:
+  stake_min_diem: 5
 
   # Aggregate token-usage.csv → memory/inference-cost.md for self-optimization
-  cost-report: { enabled: true, schedule: "0 20 * * 0", model: "claude-sonnet-4-6" }  # Sunday 20:00 UTC (after tweet-reflect)
+  cost-report: { enabled: true, schedule: "0 20 * * 0", model: "claude-sonnet-4-6" }  # Sunday 20:00 UTC
 
-  # Twitter/X content lifecycle — browser-use + Venice (paid from DIEM staking)
-  tweet-engage:    { enabled: true, schedule: "0 6 * * *",     model: "claude-opus-4-8" }  # daily 06:00 UTC — generate drafts
-  tweet-broadcast: { enabled: true, schedule: "0 14 * * *",    model: "claude-opus-4-8" }  # daily 14:00 UTC — post queued content
-  # Disabled 2026-06-10: X READ tier has blocked all GET endpoints for 7+ days —
-  # every 5-min dispatch was a no-op (44/day). This is owner_action (b) the skill
-  # kept requesting. Re-enable when the X API read tier is restored.
-  tweet-listen:    { enabled: false, schedule: "*/5 * * * *",   model: "claude-opus-4-8" }  # every 5min fallback (Vercel cron + X webhook dispatch at api/cron/listen + api/webhook/x)
-  tweet-reflect:   { enabled: true, schedule: "0 20 * * 0",    model: "claude-opus-4-8" }  # Sunday 20:00 UTC — strategy update
-  tweet-promote:   { enabled: true, schedule: "0 10 * * 2,5", model: "claude-opus-4-8" }  # Tue/Fri 10:00 UTC — video promo generation
+  # Twitter/X content lifecycle — ALL PAUSED 2026-06-10 (operator decision):
+  # posting paused for quality review (goals.json tweetingPaused) and reads are
+  # blocked (X READ access). Re-enable together when the self-funding ratio ≥ 1
+  # and X credits are funded — X moved to pay-per-use (owned reads $0.001), so a
+  # low-cadence listen (e.g. "0 */6 * * *") costs cents/month when it returns.
+  tweet-engage:    { enabled: false, schedule: "0 6 * * *",    model: "claude-opus-4-8" }
+  tweet-broadcast: { enabled: false, schedule: "0 14 * * *",   model: "claude-opus-4-8" }
+  tweet-listen:    { enabled: false, schedule: "*/5 * * * *",  model: "claude-opus-4-8" }
+  tweet-reflect:   { enabled: false, schedule: "0 20 * * 0",   model: "claude-opus-4-8" }
+  tweet-promote:   { enabled: false, schedule: "0 10 * * 2,5", model: "claude-opus-4-8" }
 
   # self-improve runs daily 10:00 UTC via the cron in .github/workflows/aeon.yml
   # (gated on goals.json mode == "build" there). NOT listed as an entry here on

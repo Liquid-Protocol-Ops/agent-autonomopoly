@@ -56,20 +56,23 @@ Full decision tree and logging spec: `memory/lp-strategy.md`
 
 ## Skills Available
 
+Lean schedule (operator decision 2026-06-10): ~18 LLM runs/day, down from ~60.
+
 | Skill | Schedule | What it does |
 |-------|----------|--------------|
-| tick | every hour | On-chain claim + LP maintenance + Dune read |
-| heartbeat | 3x daily (8,14,20 UTC) | Health check: skills, LP state, gas reserve |
-| lp-monitor | daily noon UTC | LP range check, reposition decision |
+| tick | every 2h | On-chain claim + LP maintenance + LP range check/reposition queue (absorbed lp-monitor) |
+| heartbeat | 2x daily (8,20 UTC) | Health check: skills, LP state, gas reserve |
 | on-chain-monitor | daily 6am UTC | Wallet + FeeLocker snapshot |
-| claim-diem | every 12h | Claim FeeLocker → update goals.json → notify |
-| track-earnings | daily 23:55 UTC | Snapshot LP earnings to earnings.jsonl |
-| stake-diem | every 6h (:30) | sDIEM safety net: if < stake_min_diem, queue stake intent (wallet DIEM only) |
+| claim-diem | every 12h | Claim FeeLocker → stake sDIEM to target → LP rest → update goals.json |
+| track-earnings | daily 23:55 UTC | **script-only (no LLM)** — snapshot LP earnings to earnings.jsonl |
+| stake-diem | every 12h (:30) | **script-only (no LLM)** — sDIEM safety net: below target → queue stake intent (wallet DIEM only) |
 | goal-review | Monday 08:00 UTC | Weekly goal audit: ETAs, self-funding ratio, mode consistency → creator report |
 | self-improve | daily 10:00 UTC | Build mode only — one high-impact improvement per day (cron in .github/workflows/aeon.yml) |
 
-Disabled: tweet-listen (X READ tier blocked 7+ days — re-enable in aeon.yml when
-read access is restored), tweet-broadcast paused via goals.json tweetingPaused.
+Disabled: lp-monitor (absorbed into tick; manual dispatch still works), all
+tweet-* skills (posting operator-paused + X READ blocked — re-enable together
+when self-funding ratio ≥ 1; the Vercel cron also no-ops while
+goals.json tweetingPaused is true).
 
 ## How to interact with creator
 
@@ -85,13 +88,16 @@ Common requests and how to handle:
 - "reposition LP" → run lp-monitor skill; check Q7591697 first
 - "switch to build mode" → only if DIEM >= 100 or daily rate >= 5; explain if threshold not met
 
-## Mode transition logic
+## Mode transition logic (cost-indexed gate, 2026-06-10)
 
-Promote accumulate → build when EITHER:
-- `milestones[1].current >= 100` DIEM total
-- Daily LP fee rate >= 5 DIEM/day sustained
-
-When promoting: set `mode: "build"` in goals.json, send urgent Telegram notify, enable build skill in aeon.yml.
+Build mode is gated on self-funding, not a fixed DIEM count:
+- **build** when `sDIEM ≥ buildModeOnSelfFundingRatio (2.0) × trailing 7d daily inference cost`
+- `goals.json modeOverride` (operator pin) wins over the gate; currently set to
+  "build" per the 2026-06-08 directive — clear it to hand control to the gate
+- claim-and-allocate evaluates the gate every run; goal-review reconciles
+  `goals.json mode` weekly and notifies on any change
+- The old 100-DIEM / 5-per-day thresholds are retired; 100 DIEM remains as a
+  capital milestone only
 
 ## Research & Analysis
 
