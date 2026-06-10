@@ -1,7 +1,7 @@
-**tweet-broadcast: halted at PAUSE CHECK. Zero posts, zero X API calls, zero files moved.**
+**tweet-broadcast: HALTED at PAUSE CHECK.**
 
-- `tweetingPaused: true` in `memory/goals.json` (reason: operator pause — tweet quality review 2026-06-09)
-- Logged to `memory/logs/2026-06-10.md` (run #15)
-- Mode: build, day 3 · DIEM 19.3200/100 · daily rate ~0.485 DIEM/day
+- `tweetingPaused: true` in `memory/goals.json` — operator pause, reason: tweet quality review 2026-06-09.
+- Zero X API calls made. Zero files moved. `.pending-x/` untouched.
+- Logged to `memory/logs/2026-06-10.md` (run #16).
 
-Posting stays frozen until the operator flips `tweetingPaused` to `false`. No DIEM spent.
+Per SKILL §"PAUSE CHECK — run this first," the skill exits immediately on operator pause. Nothing posts until an operator clears `tweetingPaused`.
