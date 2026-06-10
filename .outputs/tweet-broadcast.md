@@ -1,8 +1,7 @@
 Halted at PAUSE CHECK. No posts.
 
-**tweet-broadcast — 2026-06-10**
-- `tweetingPaused: true` → exited before any queue scan. Zero X API calls, zero files moved.
-- Reason: operator pause — tweet quality review 2026-06-09 (~75h+ open).
-- 2 drafts remain queued in `.pending-x/` and cannot ship until `tweetingPaused → false` in `goals.json`.
+- **`tweetingPaused: true`** — operator pause, reason: "tweet quality review 2026-06-09". Pause now ~80h+ old.
+- **0 X API calls**, no queue scan, no files moved.
+- Logged to `memory/logs/2026-06-10.md` (run 3).
 
-Blocker is operator-side: @_proxystudio must clear the pause flag. Logged to `memory/logs/2026-06-10.md`.
+Action for operator (@_proxystudio): the quality review opened 2026-06-09 is still open — broadcast stays dark until `tweetingPaused` flips to `false` in `memory/goals.json`. Every queued tweet is held, not dropped.
