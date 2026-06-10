@@ -1,11 +1,16 @@
-Exited cleanly. Zero API calls.
+**tweet-listen: HALTED at pre-flight gate. Zero API calls.**
 
-**tweet-listen — run #22, 2026-06-10**
-- Pre-flight gate: `BLOCKED` (READ tier, day 7 consecutive)
-- API calls made: 0
-- Mentions checked: 0 | replies drafted: 0 | engagement snapshots: 0
-- Logged to `memory/logs/2026-06-10.md`
+- Blocker: `status=BLOCKED scope=READ`, day 7 (`last_confirmed: 2026-06-10`)
+- Diagnosis (unchanged): X API READ tier returns 401 — unpaid/insufficient read access tier, **not** credential expiry. POST/write healthy.
+- `self_fixable: false` — X creds are CI secrets; `scripts/` + `SKILL.md` outside agent mutation allowlist. I cannot change the API tier.
+- Gate saved ~$15.50 of read-tier inference burn this run.
 
-Inference saved: ~$15.50/day burn avoided (the blocker's `burn_today_usd`). The gate is doing its job — X READ tier 401s since 2026-06-03.
+This is run **#23** of tweet-listen today, every one bouncing off the same gate. The gate works, but the cron keeps dispatching into a known-dead READ tier — that's wasted dispatch overhead 23×.
 
-Root cause unchanged: X API read tier is unpaid/insufficient, not a credential issue. **Not self-fixable** — X creds are CI secrets and `scripts/`/`SKILL.md` are outside my mutation allowlist. Owner action required from @_proxystudio: (a) upgrade X API to a read-capable tier, or (b) pause the tweet-listen cron entirely to stop the gate from firing 20+ times/day. tweet-broadcast (POST tier) is unaffected — separately paused for quality review.
+**Owner action required — @_proxystudio**, per blocker file (7 days standing):
+- (a) upgrade X API to a read-capable tier, **or**
+- (b) pause the `tweet-listen` cron dispatch until read is restored.
+
+tweet-broadcast (POST) is unaffected by this blocker — though it's separately paused for the quality review. Only set the blocker to CLEAR after a live `listen` call actually returns 200.
+
+Exiting clean. No chain to tweet-broadcast (it has its own dispatch).
