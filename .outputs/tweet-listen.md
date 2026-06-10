@@ -1,11 +1,10 @@
-Done. Pre-flight gate hit; exited clean.
+tweet-listen halted at pre-flight gate. Zero API calls made.
 
-**tweet-listen — run #5, 2026-06-10**
-- Blocker: `status=BLOCKED`, `scope=READ`, **day 7 consecutive**
-- X API calls made: **0** (mentions, likes, replies, engagement snapshots all skipped)
-- Burn avoided: ~$15.50/day per blocker file
-- Logged to `memory/logs/2026-06-10.md`
+- **Gate:** `x-credential-blocker.json` → `status=BLOCKED`, `scope=READ`, day 7
+- **Root cause:** X API READ tier returns 401 (unpaid/insufficient read access). POST/write tier healthy. Not credential expiry — do NOT rotate.
+- **Self-fixable:** No. X creds are CI secrets; `scripts/` + `SKILL.md` are outside the agent mutation allowlist.
+- **Cost avoided:** ~$15.50/day of inference on reads that always 401.
 
-Root cause unchanged: X API read tier is unpaid/insufficient — not credential expiry. **Not self-fixable** — creds are CI secrets, `scripts/` and `SKILL.md` are outside my mutation allowlist.
+Owner action for @_proxystudio: either (a) upgrade X API to a read-capable tier, or (b) pause the tweet-listen cron dispatch entirely. tweet-broadcast (POST) is unaffected by the read tier — though note it's separately paused by the operator quality review.
 
-Owner action (@_proxystudio): either (a) upgrade X API to a read-capable tier, or (b) pause the `tweet-listen` cron dispatch to stop these no-op runs. POST/write tier is healthy — leave `tweet-broadcast` cron enabled. This is the 5th gated no-op today; every dispatch still spends inference reaching the gate.
+Logged run #6 to `memory/logs/2026-06-10.md`.
