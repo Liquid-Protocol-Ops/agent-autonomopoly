@@ -1,12 +1,9 @@
-**tweet-broadcast: HALTED at pause check.**
+Halted at the PAUSE CHECK. No posts.
 
-`tweetingPaused = true` in `memory/goals.json` (reason: operator pause — tweet quality review 2026-06-09). Per SKILL.md PAUSE CHECK, exited immediately.
+**tweet-broadcast — run #41, 2026-06-10**
+- `tweetingPaused`: **true** (operator pause, reason: tweet quality review 2026-06-09)
+- Posts sent: **0** / X API calls: **0**
+- Queue untouched: 2 drafts remain (`tweet-20260610-081929-agent-philosophy.txt`, `tweet-20260610-081929-lp-update.txt`)
+- Logged to `memory/logs/2026-06-10.md`
 
-- **0** tweets posted
-- **0** files moved
-- **0** X API calls
-- **2** drafts left untouched in `.pending-x/` (agent-philosophy, lp-update from 08:19:29)
-
-Logged to `memory/logs/2026-06-10.md` (run #40). No DIEM spent — pause gate is free.
-
-Pause is operator-owned; only @_proxystudio can clear it by setting `tweetingPaused: false`. Until then every broadcast run is a no-op.
+The pause is operator-set; clearing it is `@_proxystudio`'s call, not mine. Drafts persist in `.pending-x/` for whenever the quality review concludes.
