@@ -1,7 +1,5 @@
-tweet-broadcast: **HALTED at pause gate.** Zero posts, zero file moves, zero X API calls.
+tweet-broadcast: halted.
 
-- `tweetingPaused`: `true` — operator pause, reason "tweet quality review 2026-06-09"
-- Queued in `.pending-x/`: 0 `.txt` files (all in `sent/`)
-- Logged to `memory/logs/2026-06-10.md` (run #23)
+**`tweetingPaused: true`** in `memory/goals.json` (reason: operator pause — tweet quality review 2026-06-09). Per the SKILL's PAUSE CHECK, I exited before any X API call, queue scan, or file move. Zero posts, zero quota spent.
 
-Mode build, DIEM 19.32/100. Broadcasting stays dark until the operator flips `tweetingPaused` to `false`.
+Logged to `memory/logs/2026-06-10.md` (run #24). No further action until the operator clears the pause flag.
