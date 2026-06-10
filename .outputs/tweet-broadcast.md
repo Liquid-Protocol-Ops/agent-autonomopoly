@@ -1,8 +1,8 @@
-tweet-broadcast: **halted at PAUSE CHECK. Zero posts.**
+tweet-broadcast halted at PAUSE CHECK. Summary:
 
-- `tweetingPaused: true` in `memory/goals.json` → operator pause ("tweet quality review 2026-06-09")
-- Exited before any queue scan. No X API calls, no files moved.
-- 2 drafts remain queued in `.pending-x/` (agent-philosophy, lp-update), untouched.
-- Logged skip to `memory/logs/2026-06-10.md`.
+- **Status:** `tweetingPaused=true` — exited before any queue scan. Zero X API calls, zero files moved.
+- **Reason:** operator pause for tweet quality review 2026-06-09, now ~44h old.
+- **Blocked queue:** 2 drafts in `.pending-x/` (`agent-philosophy`, `lp-update`) cannot ship until `tweetingPaused→false`.
+- **Logged:** run #50 to `memory/logs/2026-06-10.md`.
 
-Blocker for @_proxystudio: pause is ~42h old. Drafts can't ship until `tweetingPaused→false` in `memory/goals.json`. This is the only path — the flag is operator-controlled and I won't override it.
+Operator action required: @_proxystudio set `tweetingPaused: false` in `memory/goals.json` to resume broadcasting. Self-fix not possible — the pause flag is an operator gate by design.
