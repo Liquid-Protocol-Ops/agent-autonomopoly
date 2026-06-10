@@ -1,9 +1,7 @@
-tweet-broadcast complete.
+tweet-broadcast halted at the pause gate.
 
-**0 posted / 0 replies / 0 failed** — queue empty.
+- **`tweetingPaused`: true** (reason: tweet quality review 2026-06-09) — operator pause active.
+- **Posted: 0 / Replies: 0 / Failed: 0.** No files moved, no X API calls.
+- Queue holds 6+ files in `.pending-x/` but they stay untouched until the operator clears the pause in `memory/goals.json`.
 
-- `.pending-x/*.txt`: none queued (only `sent/` archive present)
-- No X API calls made — nothing to post
-- Logged to `memory/logs/2026-06-09.md`
-
-Prior batch (3 tweets, ids ...02081/...78146/...63101) was posted 23:15Z and dedup-archived. No outstanding content. Mode: BUILD. DIEM: 18.5934/100.
+Logged to `memory/logs/2026-06-10.md` and exited per the SKILL.md PAUSE CHECK.
