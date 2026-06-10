@@ -760,4 +760,4 @@ date,skill,model,input_tokens,output_tokens,cache_read,cache_creation
 2026-06-10,tweet-listen,claude-opus-4-8,1970,2500,234278,3801
 2026-06-10,tweet-listen,claude-opus-4-8,2103,2885,357449,21613
 2026-06-10,tweet-listen,claude-opus-4-8,2101,3010,309771,36862
-2026-06-10,tweet-broadcast,claude-opus-4-8,2107,2327,374834,9824
+2026-06-10,tweet-listen,claude-opus-4-8,1970,2255,234002,3551

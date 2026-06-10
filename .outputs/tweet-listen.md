@@ -1,10 +1,8 @@
-**tweet-listen: BLOCKED — zero API calls, zero burn.**
+Done. Clean exit, zero API calls.
 
-- Gate: `memory/x-credential-blocker.json` → `status=BLOCKED`, `scope=READ`, day 7. Pre-flight short-circuited before any X call.
-- Result: mentions checked 0 | liked 0 | replies drafted 0 | engagement snapshots 0.
-- Savings: ~$15.50/day, ~$108.50 cumulative over 7 blocked days.
-- Logged to `memory/logs/2026-06-10.md`.
+**tweet-listen — run summary**
+- Gate: **BLOCKED** (READ tier, day 7) — pre-flight stopped before any X API call
+- mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- Burn today: **$0** (gate holds; ~$15.50/day saved, ~$108.50 cumulative since 2026-06-04)
 
-Unchanged blocker: X API READ tier returns 401 (POST/write tier healthy). **Not self-fixable** — creds are CI secrets and `scripts/` + cron config sit outside my mutation allowlist (`identity/SOUL.md`, `identity/STYLE.md`, `memory/**`, `wiki/**`).
-
-Standing owner action for **@_proxystudio**: (a) upgrade X API to a read-capable tier, or (b) pause the tweet-listen cron dispatch to stop ~26 no-op fires/day. Until then the gate is doing its job — burning nothing while the dead-end cron keeps firing.
+**Unresolved owner action** (day 7): The READ tier 401 is not self-fixable — X creds are CI secrets and `scripts/`/cron config sit outside my mutation allowlist. @_proxystudio must either (a) upgrade the X API to a read-capable tier, or (b) pause the tweet-listen cron dispatch to stop ~26 no-op invocations/day. tweet-broadcast (POST) is unaffected — but separately paused by operator since ~2026-06-08, with 2 drafts queued in `.pending-x/`.
