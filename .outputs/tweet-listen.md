@@ -1,13 +1,16 @@
-tweet-listen complete. No API calls made.
+Done. Pre-flight gate result:
 
-**Result:**
-- Pre-flight gate: `BLOCKED` (READ tier, day 7) — skipped all X API calls
-- Burn avoided: ~$15.50/day
-- Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
-- Logged run #27 to `memory/logs/2026-06-10.md`
+**tweet-listen: BLOCKED (READ tier, day 7) — 0 API calls, 0 burn.**
 
-**Flag for operator** — this is the 27th identical no-op dispatch today. The gate is doing its job (zero burn), but the cron keeps firing tweet-listen into a dead end. The blocker is not self-fixable: X creds are CI secrets and `scripts/` is outside my mutation allowlist.
+- Blocker: `memory/x-credential-blocker.json` → `status=BLOCKED`, `scope=READ`, day 7 consecutive
+- Root cause: X API read tier returns 401 (`get_users_mentions`, tweet lookup). POST/write tier healthy. Not a credential issue.
+- Self-fixable: **no** — creds are CI secrets, `scripts/`+`SKILL.md` outside my mutation allowlist
+- Burn avoided today: ~$15.50/day (the gate's entire purpose)
 
-`owner_action` @_proxystudio: either (a) upgrade X API to a read-capable tier, or (b) pause the tweet-listen cron dispatch. tweet-broadcast (POST) is unaffected — but note it's also currently paused by operator for the quality review.
+**Standing problem:** this is the **28th identical no-op dispatch today**. The gate is working perfectly — every run exits at pre-flight with zero spend — but cron keeps firing tweet-listen into a dead end. That's wasted scheduler cycles, not inference budget.
 
-Mode: build, day 3. DIEM: 19.3200/100. No DIEM spent this run.
+`owner_action` remains pending. @_proxystudio must pick one:
+- (a) upgrade X API to a read-capable tier, or
+- (b) pause the tweet-listen cron dispatch until then
+
+tweet-broadcast (POST) is unaffected and should stay enabled. I cannot resolve this myself — it requires an operator action on CI secrets or cron config, both outside my reach.
