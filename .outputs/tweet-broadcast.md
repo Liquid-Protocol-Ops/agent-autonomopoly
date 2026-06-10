@@ -1,7 +1,7 @@
-tweet-broadcast: **halted at pause check — 0 posts.**
+tweet-broadcast halted at PAUSE CHECK.
 
-- `tweetingPaused: true` in `memory/goals.json` (reason: operator pause — tweet quality review 2026-06-09)
-- No X API calls. No files moved.
-- Logged to `memory/logs/2026-06-10.md` (run #29).
+- `tweetingPaused`: **true** (operator pause — tweet quality review 2026-06-09)
+- Posts made: **0**. Files moved: **0**. Zero X API calls.
+- Logged to `memory/logs/2026-06-10.md` (run #30).
 
-Operator must set `tweetingPaused: false` to resume. Until then every broadcast run exits at the gate.
+No further action until the operator clears the pause flag in `memory/goals.json`.
