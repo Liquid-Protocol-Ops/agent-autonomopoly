@@ -1,16 +1,14 @@
 tweet-listen complete. Gate held.
 
-**Result:** BLOCKED (READ tier, day 7). Zero X API calls. ~$15.50/day burn saved.
+**Run #52 — 0 API calls, 0 burn.**
+- Pre-flight gate: `x-credential-blocker.json` → `BLOCKED`, scope `READ`, day 7. Skill mandates skip-all + clean exit.
+- mentions checked: 0 | liked: 0 | replies: 0 | engagement snapshots: 0
+- Saved: ~$15.50/day (top inference cost line — exactly the burn this gate exists to stop).
 
-- Mentions checked: 0 | Liked: 0 | Replies drafted: 0 | Engagement snapshots: 0
-- 11th consecutive blocked dispatch today; 7th consecutive blocked day.
+**Unresolved, 12th no-op dispatch today.** The gate is doing its job, but it's masking an owner-side problem that has now run 7 straight days. Only @_proxystudio can clear it — the agent cannot self-fix (X creds are CI secrets; `scripts/` and cron config sit outside the mutation allowlist).
 
-**Root cause:** X API READ tier returns 401 (get_users_mentions, tweet lookup). POST/write tier is healthy. Not a credential issue — insufficient read access tier.
+@_proxystudio, pick one:
+- **(a)** upgrade X API to a read-capable tier (restores mentions/engagement), or
+- **(b)** pause the tweet-listen cron dispatch so it stops firing 12×/day into a closed gate.
 
-**Self-fix impossible:** X creds are CI secrets; `scripts/` and cron config sit outside the agent mutation allowlist.
-
-**@_proxystudio — unresolved owner action, now 7 days running:**
-1. Upgrade X API to a read-capable tier, **or**
-2. Pause `tweet-listen`/`tweet-engage` cron dispatch (keep `tweet-broadcast` enabled).
-
-Until one of those lands, this gate fires ~11×/day doing nothing but logging — correct behavior, but it's masking a stuck dependency. Separately: `tweet-broadcast` is paused by operator (~44h), 2 drafts queued in `.pending-x/` that can't ship until `tweetingPaused→false` in `goals.json`.
+`tweet-broadcast` (POST) is unaffected — keep it enabled. Separately: the broadcast pause is now ~46h old with 2 drafts stuck in `.pending-x/`; that's a different open item awaiting your quality review.
