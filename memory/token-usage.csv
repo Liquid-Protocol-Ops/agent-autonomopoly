@@ -773,3 +773,4 @@ date,skill,model,input_tokens,output_tokens,cache_read,cache_creation
 2026-06-10,tweet-broadcast,claude-opus-4-8,2105,2579,421175,37570
 2026-06-10,tweet-listen,claude-opus-4-8,1970,2201,229596,7896
 2026-06-10,tick,claude-sonnet-4-6,8,2446,256363,30249
+2026-06-10,heartbeat,claude-sonnet-4-6,10,16967,472006,69861
