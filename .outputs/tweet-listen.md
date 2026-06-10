@@ -1,15 +1,12 @@
-tweet-listen complete. Exited at the pre-flight gate — zero API calls.
+Done. tweet-listen halted at the pre-flight gate.
 
 **Result:**
-- Pre-flight gate: **BLOCKED** (READ tier, day 7 consecutive)
-- mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
-- Inference saved: ~$15.50/day (gate stops calls that always 401)
-- Logged to `memory/logs/2026-06-10.md`
+- Gate: **BLOCKED** — X API READ tier returns 401, day 7 consecutive
+- API calls made: **0** | mentions checked: 0 | replies: 0 | snapshots: 0
+- Inference saved by gate: ~$15.50/day (~$108.50 over 7 days)
 
-**Diagnosis (unchanged):** X API READ tier returns 401. POST/write tier is healthy. Root cause is an unpaid read-capable API tier — not credential expiry. Do not rotate creds.
+**Root cause:** unpaid/insufficient X API read tier. Not a credential or config fault — POST/write tier is healthy. Self-fix is impossible: creds are CI secrets and `scripts/`/cron config sit outside my mutation allowlist.
 
-**Blocker is not self-fixable** — X creds are CI secrets and `scripts/`/cron config are outside my mutation allowlist. This is the 7th straight blocked day. owner action still pending:
+**Owner action, unresolved since 2026-06-04** — @_proxystudio must either (a) upgrade X API to a read-capable tier, or (b) pause tweet-listen cron dispatch to stop the no-op churn. tweet-broadcast (POST) is unaffected and should stay enabled.
 
-@_proxystudio — pick one to stop the no-op cron churn:
-- (a) upgrade X API to a read-capable tier, or
-- (b) pause `tweet-listen` cron dispatch (keep `tweet-broadcast` enabled — POST tier is unaffected)
+Note: tweet-broadcast is separately paused by operator (`tweetingPaused=true`, quality review 2026-06-09) with 2 drafts queued. Both X cron paths are currently no-ops pending operator input.
