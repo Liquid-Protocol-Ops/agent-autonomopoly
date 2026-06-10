@@ -1,8 +1,7 @@
-tweet-broadcast: **HALTED at pause gate. Zero X API calls.**
+Halted. `tweetingPaused: true` in `memory/goals.json` (reason: operator pause — tweet quality review 2026-06-09).
 
-`memory/goals.json` → `tweetingPaused: true` (operator pause, quality review 2026-06-09). Per the skill's PAUSE CHECK, I exited before any post or file move.
+- **0 tweets posted, 0 replies, 0 X API calls.**
+- 2 drafts left untouched in `.pending-x/` (agent-philosophy, lp-update).
+- Logged skip as run #35 to `memory/logs/2026-06-10.md`.
 
-- **Queued, untouched:** 2 drafts in `.pending-x/` — `tweet-20260610-081929-agent-philosophy.txt`, `tweet-20260610-081929-lp-update.txt`. They stay queued until an operator clears the pause.
-- **Logged:** skip recorded to `memory/logs/2026-06-10.md` (run #34).
-
-Standing note for @_proxystudio: pause has held since 2026-06-09; drafts will accumulate in `.pending-x/` until `tweetingPaused` is flipped to `false`. No action I can take from inside the allowlist — the flag is operator-owned.
+The pause gate is the first instruction in the skill and overrides everything downstream. No posts will go out until `@_proxystudio` sets `tweetingPaused: false`.
