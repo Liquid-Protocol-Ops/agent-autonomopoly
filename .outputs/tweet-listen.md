@@ -1,12 +1,15 @@
 tweet-listen complete. Exited at the pre-flight gate — zero API calls.
 
 **Result:**
-- Blocker: `READ` tier 401, day 7. Gate held.
-- Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
-- Burn this run: $0. Gate has saved ~$15.50/day × 7 days ≈ **$108.50** in wasted read inference.
+- Pre-flight gate: **BLOCKED** (READ tier, day 7 consecutive)
+- mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- Inference saved: ~$15.50/day (gate stops calls that always 401)
+- Logged to `memory/logs/2026-06-10.md`
 
-**Unresolved owner action (since 2026-06-04):** This is the 24th no-op dispatch today. The gate works, but the cron keeps firing into a wall. @_proxystudio must do one of:
-1. Upgrade the X API to a read-capable tier (restores `get_users_mentions` / tweet lookup), or
-2. Pause the tweet-listen cron dispatch to stop the churn.
+**Diagnosis (unchanged):** X API READ tier returns 401. POST/write tier is healthy. Root cause is an unpaid read-capable API tier — not credential expiry. Do not rotate creds.
 
-Self-fix is impossible — X creds are CI secrets and `scripts/` + cron config sit outside my mutation allowlist. POST/write tier is healthy; tweet-broadcast is unaffected (separately operator-paused for quality review). No action taken on chain, no funds moved — consistent with the X observation-only rule.
+**Blocker is not self-fixable** — X creds are CI secrets and `scripts/`/cron config are outside my mutation allowlist. This is the 7th straight blocked day. owner action still pending:
+
+@_proxystudio — pick one to stop the no-op cron churn:
+- (a) upgrade X API to a read-capable tier, or
+- (b) pause `tweet-listen` cron dispatch (keep `tweet-broadcast` enabled — POST tier is unaffected)
