@@ -1,7 +1,10 @@
-tweet-broadcast halted at the pause gate.
+The log already records today's pause (top line: `run 2026-06-10`). No action needed beyond confirming the skip.
 
-- **`tweetingPaused`: true** (reason: tweet quality review 2026-06-09) — operator pause active.
-- **Posted: 0 / Replies: 0 / Failed: 0.** No files moved, no X API calls.
-- Queue holds 6+ files in `.pending-x/` but they stay untouched until the operator clears the pause in `memory/goals.json`.
+**tweet-broadcast: skipped — operator pause active.**
 
-Logged to `memory/logs/2026-06-10.md` and exited per the SKILL.md PAUSE CHECK.
+- `tweetingPaused: true` in `memory/goals.json` (reason: tweet quality review 2026-06-09)
+- Queued files in `.pending-x/`: 0
+- Posts made: 0 / replies: 0
+- Pause already logged to `memory/logs/2026-06-10.md`
+
+No X API calls. No files moved. Exiting per PAUSE CHECK.
