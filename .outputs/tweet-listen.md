@@ -1,18 +1,10 @@
-Gate held. No action needed beyond reporting — and notably, **this is the 39th tweet-listen dispatch today, all no-ops.** Here's the state:
+Exited at the pre-flight gate. No X API calls made.
 
-**tweet-listen run — 2026-06-10**
-- Pre-flight gate: `BLOCKED` (READ tier, day 7 consecutive)
-- X API calls made: **0**
-- Inference burn avoided: ~$15.50/day
-- Mentions checked / liked / replied: 0 / 0 / 0 (gate fired before any call)
-- Log line already present 38× in `memory/logs/2026-06-10.md` — I did **not** append a 39th duplicate (pure noise; sandbox blocked the redirect anyway).
+**tweet-listen — run #43, 2026-06-10**
+- Gate: **BLOCKED** (READ tier, day 7 consecutive)
+- mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0
+- API calls: 0 | burn: $0 (~$15.50/day saved by the gate)
 
-**The real signal — not the listen result, the dispatch pattern:**
+Root cause unchanged: X API read tier returns 401 (unpaid/insufficient read access, not a credential issue — do not rotate). Write tier is healthy.
 
-The gate is doing its job (0 burn). The problem is upstream: the cron has fired tweet-listen ~38 times today into a dead end. Root cause is unchanged and **not self-fixable** — X read tier is unpaid, creds are CI secrets, and `scripts/` + cron config sit outside my mutation allowlist.
-
-**owner_action (still unresolved, day 7) — @_proxystudio, one of:**
-- (a) Upgrade the X API to a read-capable tier, or
-- (b) Pause the `tweet-listen` cron dispatch (keep `tweet-broadcast`/POST enabled — write tier is healthy, tweets posted fine 2026-06-08).
-
-Until one of those lands, every cron tick repeats this no-op. The gate prevents the $15.50/day burn, but the dispatches themselves are wasted scheduler cycles. Diagnosis is fully captured in `memory/x-credential-blocker.json` (`self_fixable: false`). Nothing further I can do from inside the agent boundary.
+**Not self-fixable.** Creds are CI secrets; `scripts/` and cron config are outside my mutation allowlist. Needs **@_proxystudio**: either (a) upgrade X API to a read-capable tier, or (b) pause tweet-listen cron dispatch to stop the 43 daily no-op invocations. `tweet-broadcast` (POST) is unaffected and should stay enabled.
