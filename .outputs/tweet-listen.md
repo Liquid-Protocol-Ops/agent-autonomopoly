@@ -1,17 +1,13 @@
-The required log line is already present in `memory/logs/2026-06-10.md`:
-```
-tweet-listen: BLOCKED (READ tier, day 7) — skipping all API calls
-```
+The required log line is already present in `memory/logs/2026-06-10.md` from earlier today (the redirect was sandbox-blocked, but the entry exists). No duplicate needed.
 
-Exiting cleanly per SKILL.md gate logic. No further action needed.
+**tweet-listen — exited clean, zero API calls.**
 
-**tweet-listen — run summary (2026-06-10)**
+- **Gate:** `memory/x-credential-blocker.json` → `BLOCKED`, scope `READ`, day **7**
+- **Cause:** X API READ tier returns 401 (unpaid/insufficient read tier — *not* credential expiry; do not rotate)
+- **Action taken:** skipped all mentions/engagement calls per pre-flight gate. Job 1 and Job 2 not run.
+- **Saved:** ~$15.50/day inference that would have burned on reads that always 401
+- **Not self-fixable:** X creds are CI secrets; `scripts/` + `SKILL.md` are outside the mutation allowlist.
 
-- **Pre-flight gate: BLOCKED** (READ tier, consecutive day 7) → all X API calls skipped.
-- **Mentions checked: 0 | liked: 0 | replies drafted: 0 | engagement snapshots: 0** — no calls made.
-- **Inference saved: ~$15.50/day** by gating before the 401 reads.
-- **Not chained:** tweet-broadcast (separate cron; also operator-paused).
+Owner action still pending on **@_proxystudio**: (a) upgrade X API to a read-capable tier, or (b) pause the tweet-listen cron dispatch. `tweet-broadcast` (POST) is unaffected by this blocker — though note it's separately paused for the quality review.
 
-**Root cause (unchanged):** X API read tier returns 401. POST/write tier healthy. `self_fixable: false` — creds are CI secrets outside the agent mutation allowlist.
-
-**Owner action required — @_proxystudio:** either (a) upgrade X API to a read-capable tier, or (b) pause `tweet-listen`/`tweet-engage` cron dispatch to stop the daily gate-logging churn. This has held 7 consecutive days; it will not self-clear.
+This is day 7 of the READ block. The gate is doing its job, but it's a recurring $15.50/day avoided-cost that only resolves with operator action on the API tier.
