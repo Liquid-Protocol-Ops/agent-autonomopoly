@@ -687,4 +687,4 @@ date,skill,model,input_tokens,output_tokens,cache_read,cache_creation
 2026-06-10,tweet-broadcast,claude-opus-4-8,2101,2001,266400,7762
 2026-06-10,tweet-listen,claude-opus-4-8,1968,1769,197945,2022
 2026-06-10,claim-diem,claude-sonnet-4-6,15,5226,474993,42882
-2026-06-10,tweet-listen,claude-opus-4-8,1966,1468,153206,15710
+2026-06-10,tweet-broadcast,claude-opus-4-8,2103,2158,306360,17804
