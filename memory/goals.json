@@ -9,9 +9,9 @@
       "status": "in_progress",
       "target": 1.0,
       "unit": "self-funding ratio (sDIEM $/day ÷ 7d avg inference $/day)",
-      "current": 0.76,
-      "currentNote": "CORRECTED 2026-06-10T19:55Z: on-chain stakedInfos read 9.5992 sDIEM (first stake-diem run, 19:21Z) — earlier 'sDIEM = 0' came from stale memory docs, never an on-chain read. Ratio 9.5992 / $12.56 7d-avg burn = 0.76. Lean schedule should drop burn toward ~$5/day → ratio ~1.9 at next cost-report (Sunday), just under the 2.0 build gate.",
-      "updatedAt": "2026-06-10T19:55:00Z"
+      "current": 0.81,
+      "currentNote": "2026-06-11T13:07Z: claim-and-allocate queued 0.5217 DIEM stake (0.3860 from FeeLocker + 0.1357 wallet). sDIEM ~9.5992 + 0.5217 = ~10.12 sDIEM → ratio 10.12/$12.56 = 0.81. Still below 1.0 floor — accumulate continues. Next cost-report (Sunday) re-evaluates burn rate; lean schedule may push ratio toward ~1.9.",
+      "updatedAt": "2026-06-11T13:07:00Z"
     },
     {
       "id": "accumulate-100-diem",
@@ -20,9 +20,9 @@
       "status": "in_progress",
       "target": 100,
       "unit": "DIEM",
-      "current": 19.4557,
-      "currentNote": "19.4557 DIEM cumulative (FeeLocker claims only). +0.1357 DIEM 2026-06-11T01:20Z (claim queued for gated executor — 100% staked, accumulate mode, sDIEM gap 9.24). 11x active IN RANGE positions tick=2948: #5304198/5304202 [1000,3000] x2, #5305465/5305477/5305482/5305486 [1400,3400] x4, #5305491/5306494/5306500/5307612 [1600,3600] x4, #5308269 [1800,3800]. Wallet: 0.008323 ETH, 0.0000 DIEM, 7.2965 WETH (LP). sVVV: 4.5397. Daily rate ~0.485 DIEM/day. ETA ~166 days to 100 DIEM at current rate.",
-      "updatedAt": "2026-06-11T01:20:00Z"
+      "current": 19.8417,
+      "currentNote": "19.8417 DIEM cumulative (FeeLocker claims only). +0.3860 DIEM 2026-06-11T13:07Z (claim queued for gated executor — 100% staked, accumulate mode, sDIEM gap ~9.24). 11x active IN RANGE positions tick=1994: #5304198/5304202 [1000,3000] x2, #5305465/5305477/5305482/5305486 [1400,3400] x4, #5305491/5306494/5306500/5307612 [1600,3600] x4, #5308269 [1800,3800]. Wallet: 0.008323 ETH, 0.1357 DIEM, 7.2965 WETH (LP). sVVV: 4.5397. Daily rate ~0.485 DIEM/day. ETA ~165 days to 100 DIEM at current rate.",
+      "updatedAt": "2026-06-11T13:07:00Z"
     },
     {
       "id": "build-agent-launchpad",
