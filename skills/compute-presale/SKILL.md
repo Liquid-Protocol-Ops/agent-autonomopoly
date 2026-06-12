@@ -1,6 +1,6 @@
 ---
 name: Compute Presale
-description: Launch a Liquid Protocol token with a LiquidPresaleVault presale. Contribute mode (VVV, irrevocable) bootstraps the agent's Venice compute; stake mode (DIEM, time-locked) is a token-distribution mechanism only. One vault per launch, 10% of supply.
+description: Launch a Liquid Protocol token with a LiquidPresaleVault presale. STAKE MODE ONLY (policy 2026-06-12) — depositors lock DIEM and always get it back; allocation is lock-to-earn. One vault per launch, 10% of supply, 60d default lock.
 var: ""
 tags: [defi, on-chain, launch, venice]
 ---
@@ -13,12 +13,15 @@ Launch a token with a presale vault attached as a Liquid factory extension.
 
 | Parameter | Value |
 |---|---|
-| Vaults per launch | **ONE** (dual-tranche 10%+10% is a planned fast-follow) |
+| Mode | **STAKE ONLY** — contribute (VVV) mode is disabled for the launch product; stakers ALWAYS get their DIEM back |
+| Vaults per launch | **ONE** (dual-tranche is a possible future, not current) |
 | Allocation | **10% of supply** (`extensionBps = 1000`); 90% → permanent LP |
 | Default deposit window | **1 hour** (configurable per launch) |
+| Default starting marketcap | **50 DIEM** |
+| Lock tiers | 30d/1x, **60d/2x (default)**, 90d/3x |
 | Token supply / pairing | 100B, DIEM-paired, dynamic-fee hook (3% base / 5% max) |
 
-## The two modes — economics differ, get this right
+## The two modes — STAKE is the product; contribute is documented for reference only
 
 | | Contribute (VVV) | Stake (DIEM) |
 |---|---|---|
@@ -31,13 +34,12 @@ Launch a token with a presale vault attached as a Liquid factory extension.
 ## When to run
 
 - A `memory/launch-queue.jsonl` entry has `"presale": true`
-- An unfunded agent needs Venice compute bootstrapped from VVV backers → **contribute mode**
-- A launch wants a fair lock-to-earn distribution → **stake mode** (know that it does not fund the agent)
+- A launch wants a fair lock-to-earn distribution → **stake mode** (the only offered mode). NOTE: stake-mode presales do NOT fund the agent's compute — the agent's Venice key/budget must come from elsewhere (its own earnings, operator staking).
 
 ## Execution (curated launch, current path)
 
 ### Step 1 — Deploy the vault
-Constructor: `(factory, depositToken, agentWallet, mode, depositWindow, perAddressCap, lockDurations[], lockMultipliers[])` where mode 0=Contribute (depositToken=VVV `0xacfE6019…`), 1=Stake (depositToken=DIEM `0xF4d97F2d…`); factory = `0x04F1a284168743759BE6554f607a10CEBdB77760`. Deploy via the website `/launch/confirm` flow or `forge create` from `liquid-website/contracts/presale/`. Default `depositWindow = 3600` (1h). Note the vault address.
+Constructor: `(factory, depositToken, agentWallet, mode, depositWindow, perAddressCap, lockDurations[], lockMultipliers[])` with **mode 1=Stake, depositToken=DIEM `0xF4d97F2d…`** (mode 0=Contribute is disabled by policy); factory = `0x04F1a284168743759BE6554f607a10CEBdB77760`. Deploy via the website `/launch/confirm` flow or `forge create` from `liquid-website/contracts/presale/`. Default `depositWindow = 3600` (1h). Note the vault address.
 
 ### Step 2 — Enable the vault on the factory (REQUIRED or deployToken reverts `ExtensionNotEnabled`)
 ```bash
