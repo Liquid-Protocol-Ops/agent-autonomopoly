@@ -17,7 +17,7 @@ Launch a token with a presale vault attached as a Liquid factory extension.
 | Vaults per launch | **ONE** (dual-tranche is a possible future, not current) |
 | Allocation | **10% of supply** (`extensionBps = 1000`); 90% → permanent LP |
 | Default deposit window | **1 hour** (configurable per launch) |
-| Default starting marketcap | **50 DIEM** |
+| Default starting marketcap | **5 DIEM** |
 | Lock tiers | 30d/1x, **60d/2x (default)**, 90d/3x |
 | Token supply / pairing | 100B, DIEM-paired, dynamic-fee hook (3% base / 5% max) |
 
