@@ -1,5 +1,11 @@
 # Presale policy + reconcile pass — 2026-06-12
 
+## POLICY v2 (later same day — supersedes decision 4's framing)
+
+5. **STAKE MODE ONLY at launch.** Contribute (VVV) mode is disabled for the launch product — stakers ALWAYS get their DIEM back. Consequence (accepted): presales do not fund agent compute.
+6. **Defaults locked:** deposit window 1h · starting marketcap 50 DIEM · lock tiers 30d/1x, **60d/2x (default selection)**, 90d/3x.
+7. Website track addition: remove/disable the contribute-mode radio in the wizard; default tier 60d.
+
 Decisions made by Gordon this session (recorded in Linear MOG-497):
 
 1. **Canonical presale contract: `LiquidPresaleVault`** — source `liquid-website/contracts/presale/src/LiquidPresaleVault.sol`, bytecode embedded in `liquid-website/src/lib/presale.ts`. `ComputePresaleVault`, `ComputePresaleFactory`, `MintDiemPresaleVault` (liquid-protocol-v0) and `StakesaleVault` are **superseded** — kept for tests/reference, never to be deployed.

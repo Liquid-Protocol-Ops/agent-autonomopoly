@@ -2,6 +2,12 @@
 
 End-to-end guide for **creators** launching a token with a presale and **depositors** backing one. Canonical as of 2026-06-12 (policy: Linear MOG-497). Contract: `LiquidPresaleVault` (source `liquid-website/contracts/presale/src/LiquidPresaleVault.sol`).
 
+> **POLICY (2026-06-12): the launch product offers STAKE MODE ONLY.** Stakers always get their
+> DIEM back. Contribute (VVV) mode is fully documented below but is NOT offered at launch —
+> consequence: presales do not fund agent compute; they are a lock-to-earn distribution mechanism.
+> Defaults: deposit window 1 hour · starting marketcap 50 DIEM · lock tiers 30d/1x, **60d/2x
+> (default)**, 90d/3x · 10% of supply, one vault per launch.
+
 ## What a presale launch is
 
 A Liquid Protocol token launch (100B supply, paired with DIEM on a Uniswap V4 dynamic-fee pool) with **10% of supply diverted into a presale vault** instead of LP. Backers deposit during a short window (default **1 hour**); after it closes they claim their pro-rata share of the 10%. The other 90% becomes permanent locked liquidity. LP trading fees stream 95% to the creator, 5% to AUTONO.
@@ -25,10 +31,10 @@ There are two presale modes, and **they have fundamentally different economics**
 | Name / symbol | — | symbol ≤10 chars |
 | Image | none | optional, ≤5MB, pinned to IPFS |
 | Starting marketcap | 50 DIEM | sets the pool's initial price tick |
-| Mode | contribute | contribute (VVV) or stake (DIEM) — one vault, one mode |
+| Mode | **stake (only offered mode)** | contribute (VVV) is policy-disabled at launch |
 | Deposit window | **1 hour** | configurable |
 | Per-address cap | 0 (unlimited) | cumulative across deposits per wallet; sybil-able — treat as a fairness signal, not a hard guarantee |
-| Lock tiers (stake only) | 30d/1×, 60d/2×, 90d/3× | 1–4 tiers; durations strictly increasing; multipliers 1–1000 non-decreasing |
+| Lock tiers | 30d/1×, **60d/2× (default)**, 90d/3× | 1–4 tiers; durations strictly increasing; multipliers 1–1000 non-decreasing |
 | Your wallet | — | becomes `agentWallet` (receives contribute-mode VVV), tokenAdmin, and 95% LP-fee recipient. You must hold sVVV (the wizard checks) |
 
 ### Launch sequence (curated — current process)
