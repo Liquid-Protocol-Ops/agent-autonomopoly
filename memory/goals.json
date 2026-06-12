@@ -9,9 +9,9 @@
       "status": "in_progress",
       "target": 1.0,
       "unit": "self-funding ratio (sDIEM $/day ÷ 7d avg inference $/day)",
-      "current": 0.81,
-      "currentNote": "2026-06-11T13:07Z: claim-and-allocate queued 0.5217 DIEM stake (0.3860 from FeeLocker + 0.1357 wallet). sDIEM ~9.5992 + 0.5217 = ~10.12 sDIEM → ratio 10.12/$12.56 = 0.81. Still below 1.0 floor — accumulate continues. Next cost-report (Sunday) re-evaluates burn rate; lean schedule may push ratio toward ~1.9.",
-      "updatedAt": "2026-06-11T13:07:00Z"
+      "current": 0.97,
+      "currentNote": "2026-06-12T13:53Z: claim-and-allocate queued 0.3183 DIEM stake (0.2124 from FeeLocker + 0.1059 wallet). sDIEM ~11.84 + 0.3183 = ~12.16 sDIEM → ratio 12.16/$12.56 = 0.97. Still below 1.0 floor — accumulate continues. Next cost-report re-evaluates burn rate.",
+      "updatedAt": "2026-06-12T13:53:00Z"
     },
     {
       "id": "accumulate-100-diem",
@@ -20,9 +20,9 @@
       "status": "in_progress",
       "target": 100,
       "unit": "DIEM",
-      "current": 19.8417,
-      "currentNote": "19.8417 DIEM cumulative (FeeLocker claims only). +0.1204 DIEM claimable 2026-06-12 (tick queued for gated executor). 11x active IN RANGE positions tick=1190 (price moved down from 1994): #5316265 [600,2600], #5317200/5317201 [400,2400] x2, #5317203/5317206/5317502/5317503 [200,2200] x4, #5317505/5317510 [0,2000] x2, #5318880/5318883 [-200,1800] x2. 89 burned positions (historical). Wallet: 0.008262 ETH, 0.1059 DIEM. sVVV: 4.5397. Daily rate ~0.485 DIEM/day. ETA ~165 days to 100 DIEM at current rate.",
-      "updatedAt": "2026-06-12T00:00:00Z"
+      "current": 20.0541,
+      "currentNote": "2026-06-12T13:53Z: +0.2124 DIEM claimed from FeeLocker (claim-and-allocate queued for gated executor). Total: 20.0541 DIEM cumulative. 11x active IN RANGE positions tick=1278: #5316265 [600,2600], #5317200/5317201 [400,2400] x2, #5317203/5317206/5317502/5317503 [200,2200] x4, #5317505/5317510 [0,2000] x2, #5318880/5318883 [-200,1800] x2. 89 burned positions (historical). Wallet: 0.008262 ETH, 0.1059 DIEM. sVVV: 4.5397. Daily rate ~0.485 DIEM/day. ETA ~165 days to 100 DIEM at current rate.",
+      "updatedAt": "2026-06-12T13:53:00Z"
     },
     {
       "id": "build-agent-launchpad",
