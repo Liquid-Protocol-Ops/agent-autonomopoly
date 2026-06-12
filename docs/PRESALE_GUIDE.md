@@ -5,7 +5,7 @@ End-to-end guide for **creators** launching a token with a presale and **deposit
 > **POLICY (2026-06-12): the launch product offers STAKE MODE ONLY.** Stakers always get their
 > DIEM back. Contribute (VVV) mode is fully documented below but is NOT offered at launch —
 > consequence: presales do not fund agent compute; they are a lock-to-earn distribution mechanism.
-> Defaults: deposit window 1 hour · starting marketcap 50 DIEM · lock tiers 30d/1x, **60d/2x
+> Defaults: deposit window 1 hour · starting marketcap 5 DIEM · lock tiers 30d/1x, **60d/2x
 > (default)**, 90d/3x · 10% of supply, one vault per launch.
 
 ## What a presale launch is
@@ -30,7 +30,7 @@ There are two presale modes, and **they have fundamentally different economics**
 |---|---|---|
 | Name / symbol | — | symbol ≤10 chars |
 | Image | none | optional, ≤5MB, pinned to IPFS |
-| Starting marketcap | 50 DIEM | sets the pool's initial price tick |
+| Starting marketcap | 5 DIEM | sets the pool's initial price tick |
 | Mode | **stake (only offered mode)** | contribute (VVV) is policy-disabled at launch |
 | Deposit window | **1 hour** | configurable |
 | Per-address cap | 0 (unlimited) | cumulative across deposits per wallet; sybil-able — treat as a fairness signal, not a hard guarantee |
