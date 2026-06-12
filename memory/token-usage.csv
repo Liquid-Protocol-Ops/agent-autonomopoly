@@ -789,3 +789,4 @@ date,skill,model,input_tokens,output_tokens,cache_read,cache_creation
 2026-06-12,tick,claude-sonnet-4-6,9,4036,269870,48747
 2026-06-12,claim-diem,claude-sonnet-4-6,10,4814,352032,53880
 2026-06-12,tick,claude-sonnet-4-6,9,3401,326229,35560
+2026-06-12,tick,claude-sonnet-4-6,13,3679,362810,48975
