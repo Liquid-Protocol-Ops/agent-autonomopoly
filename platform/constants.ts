@@ -48,16 +48,15 @@ export const ADDRESSES = {
   POSITION_MANAGER_V4: '0x7C5f5A4bBd8fD63184577525326123B519429bDc' as Address,
   POOL_MANAGER_V4:     '0x498581fF718922c3f8e6A244956aF099B2652b2b' as Address,
 
-  // ── Liquid Protocol v0 — wstDIEM Inference Vault (v5) ────────────────
-  // Source: liquid-protocol-v0 broadcast/DeployAll.s.sol/8453/run-latest.json
-  // (deployed 2026-06-04 06:27 UTC; addresses pending docs PR #11 merge).
-  // Previous values pointed at deprecated v2 contracts — see commit message.
-  // Liquid Protocol redeploys periodically; cross-check on a new rev before reliance.
-  INFERENCE_VAULT:    '0xb9f23c33FfD2213f31C0cFb6c9e2fDf525a9Dd2D' as Address,
-  FEE_ROUTER:         '0x3b8d968DCca09E319fac7Df741804Af5644E3a60' as Address,
-  VAULT_ROUTER:       '0x6fF481F4B3B0E2ADa548D454F7011D1ed51532B6' as Address,
-  CURVE_DIEM_WSTDIEM: '0xB9c7F62e4EeC145bFa1C6bBc5fFdFf246181FdA2' as Address,
-  AGENT_TGE_REGISTRY: '0x09a4227935FF15b261533238F79935CCcA0e7941' as Address,
+  // ── Liquid Protocol v0 — wstDIEM Inference Vault (v6 — LIVE 2026-06-10) ──
+  // Source: liquid-protocol-v0 docs/vault/mainnet-addresses.md (v6 core stack).
+  // v5 (2026-06-04) and the earlier v2 deploy are superseded.
+  // Liquid Protocol redeploys periodically; cross-check mainnet-addresses.md before reliance.
+  INFERENCE_VAULT:    '0xe49FA849cB37b0e7A42B2335e333fb99474167ba' as Address,
+  FEE_ROUTER:         '0xa13a6e75d696bAceB38236389eeFD6eCa5FD4ED3' as Address,
+  VAULT_ROUTER:       '0x74ad4532133Ba538945a5371D249560E66CC7c71' as Address,
+  CURVE_DIEM_WSTDIEM: '0x21c33a1Bb5f6Eb43563e1fB9e7AA1D4E90C1A0CD' as Address,
+  AGENT_TGE_REGISTRY: '0xb13830e7f72Eef167A7F188285feBa5f7C1198Ef' as Address,
 } as const;
 
 // Uniswap v3 pool parameters for ETH/DIEM 1% pool.
