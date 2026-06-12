@@ -1,135 +1,104 @@
 ---
 name: Compute Presale
-description: Deploy a MintDiemPresaleVault alongside a new Liquid Protocol token to bootstrap Venice compute for an unfunded agent. VVV depositors get token allocation; vault converts VVV → DIEM → agent wallet.
+description: Launch a Liquid Protocol token with a LiquidPresaleVault presale. Contribute mode (VVV, irrevocable) bootstraps the agent's Venice compute; stake mode (DIEM, time-locked) is a token-distribution mechanism only. One vault per launch, 10% of supply.
 var: ""
 tags: [defi, on-chain, launch, venice]
 ---
 
-Bootstrap Venice compute for an unfunded agent by deploying a `MintDiemPresaleVault` alongside a new token launch.
+Launch a token with a presale vault attached as a Liquid factory extension.
 
-**Two deposit paths:**
+**Canonical contract (policy decision 2026-06-12, Linear MOG-497): `LiquidPresaleVault`** — source `liquid-website/contracts/presale/src/LiquidPresaleVault.sol`, deployable bytecode embedded in `liquid-website/src/lib/presale.ts` (`buildVaultInitCode`). The older `MintDiemPresaleVault`, `ComputePresaleVault`, and `StakesaleVault` are **superseded — do not deploy them**. `scripts/deploy-compute-presale.ts` still targets the old bytecode; do not use it until retargeted (blocked on MOG-569 bytecode provenance).
 
-| Path | Function | Who uses it | Flow |
-|------|----------|-------------|------|
-| VVV | `deposit(vvvAmount, minDiemOut)` | VVV holders | Vault stakes VVV → sVVV (internal) → `mintDiem` → DIEM to agent |
-| DIEM | `depositDIEM(diemAmount)` | DIEM holders | DIEM passes through directly to agent |
+## Policy (fixed — do not vary per launch)
 
-Depositors never see sVVV — it is the vault's internal staked balance created during VVV conversion.
+| Parameter | Value |
+|---|---|
+| Vaults per launch | **ONE** (dual-tranche 10%+10% is a planned fast-follow) |
+| Allocation | **10% of supply** (`extensionBps = 1000`); 90% → permanent LP |
+| Default deposit window | **1 hour** (configurable per launch) |
+| Token supply / pairing | 100B, DIEM-paired, dynamic-fee hook (3% base / 5% max) |
 
-**Rate (Base mainnet, 2026-05):** ~0.00141 DIEM/VVV — need ~70,884 VVV for 100 DIEM (~$10,600)  
-**Deposit window:** default 24h; configurable at deploy time (minimum 2h, maximum 30 days)  
-**Protocol fee (autonomopoly):** set at deploy time (e.g. 200 bps = 2%)
+## The two modes — economics differ, get this right
 
-Both paths add to `totalDiemMinted`. Allocation scales linearly with DIEM routed vs `diemTarget`:
-```
-effectiveAllocation = min(totalDiemMinted, diemTarget) * extensionSupply / diemTarget
-depositorShare      = diemContributed[depositor] * effectiveAllocation / totalDiemMinted
-```
-`diemContributed` is the DIEM-equivalent per depositor (VVV converted value or direct DIEM amount).  
-If only 50% of `diemTarget` is reached, only 50% of `extensionSupply` is distributable; the rest is burned.
+| | Contribute (VVV) | Stake (DIEM) |
+|---|---|---|
+| Depositor's principal | **Permanently transferred** — no refund ever | **Returned in full** at lock expiry |
+| Agent receives | All VVV via `finalizeVVV()` → stake → sVVV → Venice key | **Nothing** (dust sweeps only) |
+| Depositor receives | Pro-rata share of the 10% by amount | Pro-rata share of the 10% by amount × lock-tier multiplier |
+| Funds agent compute? | **YES — this is the compute bootstrap** | **NO — distribution mechanism only** |
+| Lock tiers | n/a | 1–4 tiers, e.g. 30d/1×, 60d/2×, 90d/3×; first deposit locks your tier |
 
 ## When to run
 
-- When a `memory/launch-queue.jsonl` entry has `"presale": true`
-- When agent has no Venice API key and needs compute bootstrapped from VVV holders
-- When a token launch is requested and the creator wants Venice ecosystem backers
+- A `memory/launch-queue.jsonl` entry has `"presale": true`
+- An unfunded agent needs Venice compute bootstrapped from VVV backers → **contribute mode**
+- A launch wants a fair lock-to-earn distribution → **stake mode** (know that it does not fund the agent)
 
-## Required parameters
+## Execution (curated launch, current path)
 
-Check `memory/launch-queue.jsonl` for a pending entry:
-```json
-{
-  "name": "Token Name", "symbol": "SYM", "creator": "0x...",
-  "marketcapDiem": 50, "image": "https://...",
-  "presale": true,
-  "depositWindowDays": 7,
-  "diemTarget": 100,
-  "protocolFeeBps": 200
-}
-```
+### Step 1 — Deploy the vault
+Constructor: `(factory, depositToken, agentWallet, mode, depositWindow, perAddressCap, lockDurations[], lockMultipliers[])` where mode 0=Contribute (depositToken=VVV `0xacfE6019…`), 1=Stake (depositToken=DIEM `0xF4d97F2d…`); factory = `0x04F1a284168743759BE6554f607a10CEBdB77760`. Deploy via the website `/launch/confirm` flow or `forge create` from `liquid-website/contracts/presale/`. Default `depositWindow = 3600` (1h). Note the vault address.
 
-Defaults if no queue entry: `depositWindowDays=7`, `diemTarget=100`, `protocolFeeBps=0`.
-
-## Execution
-
-### Step 1 — Deploy the presale vault
+### Step 2 — Enable the vault on the factory (REQUIRED or deployToken reverts `ExtensionNotEnabled`)
 ```bash
-node --import tsx scripts/queue-intent.ts deploy-compute-presale \
-  --deposit-window-hours 24 \
-  --diem-target 100 \
-  --protocol-fee-bps 200 \
-  --dry-run
-# Remove --dry-run to execute
-# Min window: 2h. Max window: 30 days (720h).
+cd ~/Documents/Mog-Capital/Liquid/protocol/liquid-protocol-v0
+PRESALE_VAULT=<vault> SAFE_SK1=… SAFE_SK2=… EXECUTOR_PK=… \
+~/.foundry/bin/forge script script/vault/SafeEnablePresaleVault.s.sol --rpc-url $BASE_RPC_URL   # simulate, then add --broadcast
 ```
-Note the `vaultAddress` from output.
+Safe-signed (2-of-3); signer keys in 1Password (`liq-safe-signer-1` mog.capital, `liq-safe-signer-2` Personal). Operator-only step.
 
-### Step 2 — Launch token with vault as extension
+### Step 3 — Launch the token with the vault as extension
 ```bash
-node --import tsx scripts/queue-intent.ts launch-diem-token \
-  --name "<name>" \
-  --symbol "<symbol>" \
-  --creator "<creator>" \
-  --marketcap-diem <marketcapDiem> \
-  --presale-vault <vaultAddress>
+node --import tsx scripts/launch-diem-token.ts \
+  --name "<name>" --symbol "<SYM>" --creator <creatorWallet> \
+  --marketcap-diem <mcap> --presale-vault <vault> --extension-bps 1000
 ```
-The factory calls `vault.receiveTokens()` → sets `depositDeadline = block.timestamp + depositWindow`.
+The factory calls `vault.receiveTokens()` → sets `depositDeadline = now + depositWindow`.
 
-### Step 3 — Monitor the deposit window
-
-Read vault state:
+### Step 4 — Monitor the window
 ```bash
-VAULT=<vaultAddress>
-RPC=https://mainnet.base.org
-cast call $VAULT "depositDeadline()(uint256)"   --rpc-url $RPC
-cast call $VAULT "totalDiemMinted()(uint256)"   --rpc-url $RPC
-cast call $VAULT "remainingCapacity()(uint256)" --rpc-url $RPC
-cast call $VAULT "totalVvvDeposited()(uint256)" --rpc-url $RPC  # VVV path only
-
-# Per-depositor breakdown
-DEPOSITOR=<address>
-cast call $VAULT "diemContributed(address)(uint256)" $DEPOSITOR --rpc-url $RPC
-cast call $VAULT "vvvDeposited(address)(uint256)"    $DEPOSITOR --rpc-url $RPC
-cast call $VAULT "diemDeposited(address)(uint256)"   $DEPOSITOR --rpc-url $RPC
-cast call $VAULT "getShare(address)(uint256)"        $DEPOSITOR --rpc-url $RPC
+V=<vault>; R=https://mainnet.base.org
+~/.foundry/bin/cast call $V "depositDeadline()(uint256)" --rpc-url $R
+~/.foundry/bin/cast call $V "totalDeposited()(uint256)"  --rpc-url $R
+~/.foundry/bin/cast call $V "totalWeight()(uint256)"     --rpc-url $R   # stake mode
+~/.foundry/bin/cast call $V "getShare(address)(uint256)" <depositor> --rpc-url $R
+~/.foundry/bin/cast call $V "lockExpiryOf(address)(uint256)" <depositor> --rpc-url $R  # stake mode, per-user
 ```
 
-After `depositDeadline` passes, depositors call `claimTokens()` and anyone can call `burnUnclaimed()` to burn unallocated supply.
-
-### Step 4 — Stake DIEM for Venice inference
-
-Once DIEM lands in agent wallet:
-```bash
-node --import tsx scripts/queue-intent.ts stake-diem
-```
-(Delegates to `stake-diem` skill — calls `DIEM.stake(amount)` directly, no ERC-20 approve needed)
+### Step 5 — After the deadline
+- Depositors call `claimTokens()` (once each).
+- **Contribute:** anyone calls `finalizeVVV()` → all VVV to `agentWallet`. Then bootstrap compute: agent stakes VVV (`VVV_STAKING.stake(agent, amount)` at `0x321b7ff7…`) → sVVV gates the Venice API key mint (observed threshold ≈4.5 sVVV, not the 1 sVVV the UI implies); inference budget = staked DIEM at $1/DIEM/day. To stake DIEM the agent holds: `node --import tsx scripts/queue-intent.ts stake-diem` (no ERC-20 approve needed).
+- **Stake:** each depositor calls `withdrawDepositToken()` after their own `lockExpiryOf()` passes.
+- Zero participants → `sweepUnallocated()` sends the 10% to the agent. Unclaimed remainder → `sweepDust()` after deadline + max lock + 14 days.
 
 ## After launch
 
-1. Check `memory/launches.jsonl` for `tokenAddress`.
-2. Check `memory/presales.jsonl` for vault address.
-3. Write log to `memory/logs/${today}.md`:
+1. Check `memory/launches.jsonl` for `tokenAddress`; `memory/presales.jsonl` for the vault (record `"contract": "LiquidPresaleVault"`).
+2. Write log to `memory/logs/${today}.md`:
    ```
    ### compute-presale
    - token: <tokenAddress>
    - name: <name> / <symbol>
-   - vault: <vaultAddress>
-   - diemTarget: <N> DIEM
+   - vault: <vaultAddress> (LiquidPresaleVault, <contribute|stake>)
    - depositDeadline: <timestamp>
    ```
-4. Notify via `./notify`:
+3. Notify via `./notify`:
    ```
-   AUTONOMOPOLY: Launched ${symbol} with VVV presale vault.
-   Vault: ${vaultAddress}
-   DIEM target: ${diemTarget} | Window closes: ${depositDeadline}
+   AUTONOMOPOLY: Launched ${symbol} with ${mode} presale vault.
+   Vault: ${vaultAddress} | Window closes: ${depositDeadline}
    ```
-5. If a launch-queue entry was consumed, mark `"processed": true`.
+4. If a launch-queue entry was consumed, mark `"processed": true`.
 
 ## Error handling
 
 If any transaction reverts:
 - Check agent has ETH for gas: `cast balance $AGENT --rpc-url https://mainnet.base.org`
-- Verify PRIVY_* env vars are present
-- If `WouldExceedCap()`: depositor tried to mint more than remaining capacity — check `remainingCapacity()`
-- If `NotFactory()`: only Liquid Protocol factory may call `receiveTokens` — vault was passed wrong factory address
+- `ExtensionNotEnabled` on deployToken: Step 2 was skipped or targeted a different vault address — verify with the operator before redeploying anything (a redeployed vault needs a fresh enable).
+- `CapExceeded`: depositor exceeded `perAddressCap` (cumulative across deposits).
+- `TierMismatch`: stake-mode depositor used a different tier than their first deposit.
+- `OnlyFactory`: vault constructed with the wrong factory address — redeploy.
 - Log error to `memory/logs/${today}.md` and notify via `./notify`
+
+## Full reference
+
+End-to-end creator/depositor guide with FAQ: `docs/PRESALE_GUIDE.md` (this repo). Policy + reconcile record: `docs/superpowers/plans/2026-06-12-presale-policy-reconcile.md`, Linear MOG-497.
