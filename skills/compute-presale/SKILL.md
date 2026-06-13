@@ -20,6 +20,8 @@ Launch a token with a presale vault attached as a Liquid factory extension.
 | Default starting marketcap | **5 DIEM** |
 | Lock tiers | 30d/1x, **60d/2x (default)**, 90d/3x |
 | Token supply / pairing | 100B, DIEM-paired, dynamic-fee hook (3% base / 5% max) |
+| LP layout | **7-position ladder** off the start tick (1–5× 8%, 5–200× 30%, 20–200× 15%, 200–2000× 20%, 500–2000× 10%, 2000–20000× 12%, 10000×–max 5%) |
+| LP fees | 95% creator / 5% AUTONO, **auto-converted to DIEM** (`FeeIn.Paired` both slots); per-slot reward admins `[creator, AUTONO]` — creator cannot reassign AUTONO's slot |
 
 ## The two modes — STAKE is the product; contribute is documented for reference only
 

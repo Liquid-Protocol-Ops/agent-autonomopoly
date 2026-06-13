@@ -6,6 +6,13 @@
 6. **Defaults locked:** deposit window 1h · starting marketcap 5 DIEM · lock tiers 30d/1x, **60d/2x (default selection)**, 90d/3x.
 7. Website track addition: remove/disable the contribute-mode radio in the wizard; default tier 60d.
 
+## POLICY v3 (later again — pool setup + fees)
+
+8. **LP fees DIEM-only by default:** `feePreference [Paired, Paired]` — both reward slots auto-convert to DIEM.
+9. **AUTONO rug-proofing:** per-slot reward admins `[creator, AUTONO_WALLET]` — locker slot-gates `updateRewardRecipient`/`updateFeePreference`, so the creator cannot touch AUTONO's 5%. ⚠ This also fixed a latent revert: the locker REQUIRES `rewardAdmins.length == rewardBps.length`; the website's `presale.ts` still passes 1 admin + 2 recipients and would revert at `deployToken` — added to MOG-568.
+10. **7-position liquidity ladder** (locker max) replaces the single position — marketcap-multiple ranges: 1–5× 8%, 5–200× 30%, 20–200× 15% (overlap), 200–2000× 20%, 500–2000× 10% (overlap), 2000–20000× 12%, 10000×–max 5%. Implemented + dry-run-verified in `deploy-autonomous/scripts/launch-diem-token.ts` (PR #69). Website confirm page must adopt the same `lockerConfig` (MOG-568).
+11. Starting marketcap default **5 DIEM** (PRs #50/#67).
+
 Decisions made by Gordon this session (recorded in Linear MOG-497):
 
 1. **Canonical presale contract: `LiquidPresaleVault`** — source `liquid-website/contracts/presale/src/LiquidPresaleVault.sol`, bytecode embedded in `liquid-website/src/lib/presale.ts`. `ComputePresaleVault`, `ComputePresaleFactory`, `MintDiemPresaleVault` (liquid-protocol-v0) and `StakesaleVault` are **superseded** — kept for tests/reference, never to be deployed.
