@@ -21,8 +21,8 @@
       "target": 100,
       "unit": "DIEM",
       "current": 20.3746,
-      "currentNote": "2026-06-13T13:41Z: FeeLocker=0.0469 DIEM (below 0.1 threshold, no claim). Wallet: 0.008212 ETH, 0.0000 DIEM, 0.0000 WETH. sVVV: 4.5397. 11x active IN RANGE positions tick=146 (tick moved 1384→146 since last claim, ~13% price shift, LP repositioned): #5318880/5318883 [-200,1800] x2, #5324368 [-800,1200], #5324369/5324372/5324374/5324375/5324377 [-1000,1000] x5, #5324816 [-1200,800], #5324817 [-1400,600], #5325340 [-200,200]. 98 burned positions. Daily rate ~0.50 DIEM/day. ETA ~159 days to 100 DIEM.",
-      "updatedAt": "2026-06-13T13:41:00Z"
+      "currentNote": "2026-06-13T14:00Z: FeeLocker=0.0941 DIEM (below 0.1 threshold, no claim). Wallet: 0.008207 ETH, 0.0000 DIEM, 0.4017 WETH. sVVV: 4.5397. 11x active IN RANGE positions tick=473: #5318880/5318883 [-200,1800] x2, #5324368 [-800,1200], #5324369/5324372/5324374/5324375/5324377 [-1000,1000] x5, #5324816 [-1200,800], #5324817 [-1400,600], #5326335 [-600,1400]. 99 burned positions. Daily rate ~0.50 DIEM/day. ETA ~159 days to 100 DIEM.",
+      "updatedAt": "2026-06-13T14:00:00Z"
     },
     {
       "id": "build-agent-launchpad",
