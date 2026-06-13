@@ -15,13 +15,13 @@ A Liquid Protocol token launch (100B supply, paired with DIEM on a Uniswap V4 dy
 
 | # | Range (× start mcap) | At 5 DIEM start | Share | Purpose |
 |---|---|---|---|---|
-| 1 | 1× → 5× | 5 → 25 DIEM | 8% | thin starter — fast early price discovery |
-| 2 | 5× → 200× | 25 → 1,000 | 30% | core body |
-| 3 | 20× → 200× | 100 → 1,000 | 15% | overlap — depth once established |
-| 4 | 200× → 2,000× | 1,000 → 10,000 | 20% | growth band |
-| 5 | 500× → 2,000× | 2,500 → 10,000 | 10% | overlap depth |
-| 6 | 2,000× → 20,000× | 10,000 → 100,000 | 12% | scale band |
-| 7 | 10,000× → max | 50,000 → ∞ | 5% | moonshot tail |
+| 1 | 1× → 5× | 5 → 25 DIEM | 4% | ultra-thin starter — fast early price discovery |
+| 2 | 5× → 20× | 25 → 100 | 6% | thin runway — only 10% of supply sits below 100 DIEM |
+| 3 | 20× → 200× | 100 → 1,000 | 30% | core body — depth begins at 100 DIEM |
+| 4 | 50× → 200× | 250 → 1,000 | 13% | overlap — depth once established |
+| 5 | 200× → 2,000× | 1,000 → 10,000 | 22% | growth band |
+| 6 | 2,000× → 20,000× | 10,000 → 100,000 | 17% | scale band |
+| 7 | 10,000× → max | 50,000 → ∞ | 8% | moonshot tail |
 
 LP trading fees stream **95% to the creator, 5% to AUTONO — converted to DIEM** (`FeeIn.Paired` on both slots; each slot's admin can change their own preference). **AUTONO's slot is rug-proof:** reward admins are per-slot (`[creator, AUTONO]`), and the locker only lets a slot's own admin reassign its recipient or fee preference — the creator cannot touch AUTONO's 5%.
 
