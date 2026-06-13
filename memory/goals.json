@@ -21,8 +21,8 @@
       "target": 100,
       "unit": "DIEM",
       "current": 20.3746,
-      "currentNote": "2026-06-13T01:39Z: +0.3205 DIEM claimed from FeeLocker (claim-and-allocate queued for gated executor). Total: 20.3746 DIEM cumulative. Full claim allocated to stake (sDIEM gap 7.00 vs 18.84 target). 11x active IN RANGE positions tick=1384: #5316265 [600,2600], #5317200/5317201 [400,2400] x2, #5317203/5317206/5317502/5317503 [200,2200] x4, #5317505/5317510 [0,2000] x2, #5318880/5318883 [-200,1800] x2. 89 burned positions (historical). Wallet: 0.008262 ETH, 0.3183 DIEM pre-claim. sVVV: 4.5397. Daily rate ~0.50 DIEM/day. ETA ~160 days to 100 DIEM at current rate.",
-      "updatedAt": "2026-06-13T01:39:46Z"
+      "currentNote": "2026-06-13T~tick: FeeLocker=0.0431 DIEM (below 0.1 threshold, no claim). Wallet: 0.008212 ETH, 0.0000 DIEM. sVVV: 4.5397. 11x active IN RANGE positions tick=-40 (pool moved significantly from 1384): #5318880/5318883 [-200,1800] x2, #5324368 [-800,1200], #5324369/5324372/5324374/5324375/5324377 [-1000,1000] x5, #5324816 [-1200,800], #5324817 [-1400,600], #5325340 [-200,200]. 98 burned positions (historical). Daily rate ~0.50 DIEM/day. ETA ~160 days to 100 DIEM at current rate.",
+      "updatedAt": "2026-06-13T00:00:00Z"
     },
     {
       "id": "build-agent-launchpad",
