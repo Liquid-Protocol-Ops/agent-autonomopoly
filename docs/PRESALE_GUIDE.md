@@ -6,11 +6,24 @@ End-to-end guide for **creators** launching a token with a presale and **deposit
 > DIEM back. Contribute (VVV) mode is fully documented below but is NOT offered at launch —
 > consequence: presales do not fund agent compute; they are a lock-to-earn distribution mechanism.
 > Defaults: deposit window 1 hour · starting marketcap 5 DIEM · lock tiers 30d/1x, **60d/2x
-> (default)**, 90d/3x · 10% of supply, one vault per launch.
+> (default)**, 90d/3x · 10% of supply, one vault per launch · LP fees auto-convert to **DIEM only**
+> (`FeeIn.Paired` both slots) · 7-position liquidity ladder (see below).
 
 ## What a presale launch is
 
-A Liquid Protocol token launch (100B supply, paired with DIEM on a Uniswap V4 dynamic-fee pool) with **10% of supply diverted into a presale vault** instead of LP. Backers deposit during a short window (default **1 hour**); after it closes they claim their pro-rata share of the 10%. The other 90% becomes permanent locked liquidity. LP trading fees stream 95% to the creator, 5% to AUTONO.
+A Liquid Protocol token launch (100B supply, paired with DIEM on a Uniswap V4 dynamic-fee pool) with **10% of supply diverted into a presale vault** instead of LP. Backers deposit during a short window (default **1 hour**); after it closes they claim their pro-rata share of the 10%. The other 90% becomes permanent locked liquidity, deployed as a **7-position ladder** (the locker's max) that balances early volatility with depth at maturity — ranges are multiples of the starting marketcap:
+
+| # | Range (× start mcap) | At 5 DIEM start | Share | Purpose |
+|---|---|---|---|---|
+| 1 | 1× → 5× | 5 → 25 DIEM | 8% | thin starter — fast early price discovery |
+| 2 | 5× → 200× | 25 → 1,000 | 30% | core body |
+| 3 | 20× → 200× | 100 → 1,000 | 15% | overlap — depth once established |
+| 4 | 200× → 2,000× | 1,000 → 10,000 | 20% | growth band |
+| 5 | 500× → 2,000× | 2,500 → 10,000 | 10% | overlap depth |
+| 6 | 2,000× → 20,000× | 10,000 → 100,000 | 12% | scale band |
+| 7 | 10,000× → max | 50,000 → ∞ | 5% | moonshot tail |
+
+LP trading fees stream **95% to the creator, 5% to AUTONO — converted to DIEM** (`FeeIn.Paired` on both slots; each slot's admin can change their own preference). **AUTONO's slot is rug-proof:** reward admins are per-slot (`[creator, AUTONO]`), and the locker only lets a slot's own admin reassign its recipient or fee preference — the creator cannot touch AUTONO's 5%.
 
 There are two presale modes, and **they have fundamentally different economics**:
 
