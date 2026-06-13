@@ -1,8 +1,14 @@
 {
   "AUTONOMOPOLY agent wallet": {
-    "last_block": 47189088,
-    "last_run": "2026-06-11T06:00:00Z",
+    "last_block": 47272701,
+    "last_run": "2026-06-13T06:00:00Z",
     "alerted_tx": [
+      "0x5e0e612d29abfe369b4c27e94cde85c377f0c8c8591418fcefa5b118b3b3a094",
+      "0x1fec8c06460aba299c8bbea54043586bbe55c08a5f022b47938e542f098fa79c",
+      "0x7e298c486637fc8957035bd02aaa1c4fa450df330d42f605e777a1a68f3deb08",
+      "0xb492788a95566c32fd5cac01d8013dc68632cd06df1de5cdaeedace5306c2bd6",
+      "0xe55241b5bf6aa480e78836f8b11e09f6a8bfe268536b23c6ef636021deb9393c",
+      "0x1608bf4799bc9805a9807f6b7e305fe5a8f0d358a0bf31382d8d750cf73fd7bb",
       "0xa1e33056030e1091aa9556ff5c729f973634ddd4f604f8c90abbc259dd7a2a2c",
       "0xcdaecdf00756dc456715d03c356f68e07034ef2970b8dae64d4c6a320201523e",
       "0x34e5bcff80f9f0bb68aaf68fd18193628757093c9b6104fd25a013cbb40f74da",
@@ -181,14 +187,13 @@
       "0x34a9cefb60cd1474e47de5564f362d095b978dc71021f1147cf7f072be42f895",
       "0x3bff15346c04c8fbd9fbd9fd5b09c67efbeba05b99144bec60b7e7c12b0a2756",
       "0xe1a301f40fcf32ae404a43baefa6fee95e63945584cf0d66496893e57953431b",
-      "0xd7263c1a10cec3ff415658aecef63e925351aee2fc76106d8d7d0a580baa3839",
-      "0x8c15e38df2cee318034f4e8f1b5c00073af24930d8699c3558f0b481f911bf62"
+      "0xd7263c1a10cec3ff415658aecef63e925351aee2fc76106d8d7d0a580baa3839"
     ],
     "median_usd_30d": 506
   },
   "ETH/DIEM Uniswap v3 1% pool": {
-    "last_block": 47145148,
-    "last_run": "2026-06-10T12:00:00Z",
+    "last_block": 47272701,
+    "last_run": "2026-06-13T06:00:00Z",
     "alerted_tx": [
       "0xe5a64320e39906e22baa21d71b806a348967af523002995feec62481d325ea19",
       "0xd7263c1a10cec3ff415658aecef63e925351aee2fc76106d8d7d0a580baa3839",
@@ -197,15 +202,16 @@
     "median_usd_30d": 138
   },
   "AUTONO token contract": {
-    "last_block": 47145148,
-    "last_run": "2026-06-10T12:00:00Z",
+    "last_block": 47272701,
+    "last_run": "2026-06-13T06:00:00Z",
     "alerted_tx": [],
     "median_usd_30d": null
   },
   "AUTONO FeeLocker DIEM claimable": {
-    "last_block": 47145148,
-    "last_run": "2026-06-10T12:00:00Z",
-    "last_value": "17494886649934645",
-    "last_alerted_value": "0"
+    "last_block": 47272701,
+    "last_run": "2026-06-13T06:00:00Z",
+    "last_value": "0",
+    "last_alerted_value": "0",
+    "_note": "Claimed 23705729855191991 wei (0.02371 DIEM) at block 47272685 tx 0xe55241b5. eth_call unavailable (no POST path); post-claim balance set to 0. Threshold 5 DIEM not crossed."
   }
 }
