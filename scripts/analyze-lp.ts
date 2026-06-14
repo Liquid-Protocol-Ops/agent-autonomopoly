@@ -1,9 +1,11 @@
 /**
  * scripts/analyze-lp.ts
  *
- * Fetches LP position data from Dune Q7591697 (master portfolio v3, incremental),
- * sends findings to Venice AI for strategy recommendations, writes a dated analysis to
- * memory/lp-analysis-YYYY-MM-DD.md, and updates the Dune strategy log (Q7582817).
+ * Fetches LP position data from Dune Q7591697 (master portfolio v3, incremental)
+ * plus decomposed realized PnL from Q7591850 (fee income vs principal PnL — never
+ * lumped into one cash flow), sends findings to Venice AI for strategy
+ * recommendations, writes a dated analysis to memory/lp-analysis-YYYY-MM-DD.md,
+ * and updates the Dune strategy log (Q7582817).
  *
  * Usage:
  *   node --env-file=.env --import tsx scripts/analyze-lp.ts
@@ -26,6 +28,7 @@ import { withVeniceKey } from '../platform/venice-auth.js';
 // ── Config ──────────────────────────────────────────────────────────────────
 
 const DUNE_QUERY_ID      = 7591697;  // Master Portfolio v3 (incremental) — single source of truth
+const REALIZED_PNL_QUERY = 7591850;  // Realized PnL v4 — fee income / principal PnL decomposed
 const STRATEGY_LOG_QUERY = 7582817;  // LP Strategy Log (agent updates each tick)
 const DUNE_API           = 'https://api.dune.com/api/v1';
 
@@ -59,9 +62,43 @@ type DuneRow = {
   status:             string | null;    // 'Active' | 'Closed'
 };
 
+// Realized PnL rows from Q7591850 v4 — fee income and principal PnL are SEPARATE.
+type RealizedRow = {
+  tokenId:                    string;
+  status:                     string;        // 'open' | 'partial' | 'closed'
+  closed_pct:                 number;
+  usd_deployed:               number;
+  usd_principal_returned:     number;
+  realized_fee_income_usd:    number;        // fee portion of Collects, at receipt prices
+  realized_principal_pnl_usd: number | null; // principal returned − pro-rata cost basis (null if nothing withdrawn)
+  realized_pnl_usd:           number;        // fee income + principal pnl
+};
+
+type RealizedSummary = {
+  feeIncome:    number;
+  principalPnl: number;
+  total:        number;
+  exitedCount:  number;
+  worst:        RealizedRow[];
+  best:         RealizedRow[];
+};
+
+function summarizeRealized(rows: RealizedRow[]): RealizedSummary {
+  const exited = rows.filter(r => r.status !== 'open');
+  const byPnl  = [...exited].sort((a, b) => a.realized_pnl_usd - b.realized_pnl_usd);
+  return {
+    feeIncome:    rows.reduce((s, r) => s + (r.realized_fee_income_usd ?? 0), 0),
+    principalPnl: rows.reduce((s, r) => s + (r.realized_principal_pnl_usd ?? 0), 0),
+    total:        rows.reduce((s, r) => s + (r.realized_pnl_usd ?? 0), 0),
+    exitedCount:  exited.length,
+    worst:        byPnl.slice(0, 3),
+    best:         byPnl.slice(-3).reverse(),
+  };
+}
+
 // ── Dune API ──────────────────────────────────────────────────────────────────
 
-async function fetchDuneResults(queryId: number, apiKey: string): Promise<DuneRow[]> {
+async function fetchDuneResults<T>(queryId: number, apiKey: string): Promise<T[]> {
   const execResp = await fetch(`${DUNE_API}/query/${queryId}/execute`, {
     method: 'POST',
     headers: { 'X-Dune-API-Key': apiKey, 'Content-Type': 'application/json' },
@@ -79,7 +116,7 @@ async function fetchDuneResults(queryId: number, apiKey: string): Promise<DuneRo
     if (!statusResp.ok) continue;
     const body = await statusResp.json() as {
       state: string;
-      result?: { rows: DuneRow[] };
+      result?: { rows: T[] };
     };
     if (body.state === 'QUERY_STATE_COMPLETED' && body.result) return body.result.rows;
     if (body.state === 'QUERY_STATE_FAILED') throw new Error(`Dune query failed: ${JSON.stringify(body)}`);
@@ -139,7 +176,7 @@ ORDER BY review_date DESC`;
 
 // ── Venice AI analysis ────────────────────────────────────────────────────────
 
-async function analyzeWithVenice(rows: DuneRow[], signer: Signer): Promise<string> {
+async function analyzeWithVenice(rows: DuneRow[], realized: RealizedSummary, signer: Signer): Promise<string> {
   return withVeniceKey(signer, async (apiKey) => {
     const client = new OpenAI({ apiKey, baseURL: 'https://api.venice.ai/api/v1' });
 
@@ -167,6 +204,7 @@ ANALYSIS GOALS:
 3. Should any active position be repositioned? Give specific tick boundaries (multiples of 200).
 4. What should the NEXT LP deployment target? Specific ticks, capital in WETH and DIEM.
 5. Any timing patterns in when fees peak the agent should exploit?
+6. Do REALIZED cash outcomes confirm the current-price view? If realized principal PnL is deeply negative, fee APR is not covering withdrawal-time price decay — adjust range width and hold duration accordingly.
 
 Output ONLY these sections: FINDINGS | CURRENT POSITIONS | NEXT DEPLOYMENT | RULES TO ADOPT`;
 
@@ -183,6 +221,18 @@ Output ONLY these sections: FINDINGS | CURRENT POSITIONS | NEXT DEPLOYMENT | RUL
 - Total fees earned: $${totalFees.toFixed(0)} (${totalDeployed > 0 ? ((totalFees / totalDeployed) * 100).toFixed(1) : 0}% of deployed)
 - Active IL today: $${totalIL.toFixed(2)}
 - Active positions: ${active.length} | Closed: ${closed.length}
+
+REALIZED PNL — DECOMPOSED (from Dune Q7591850; fee income and principal return are SEPARATE numbers):
+- Realized fee income (at receipt prices): $${realized.feeIncome.toFixed(0)}
+- Realized principal PnL (price move + IL on withdrawn liquidity only): $${realized.principalPnl.toFixed(0)}
+- TOTAL REALIZED PNL: $${realized.total.toFixed(0)} across ${realized.exitedCount} closed/partial positions
+IMPORTANT: the portfolio summary above marks everything at CURRENT prices; these realized figures are actual cash outcomes. Steer strategy by realized outcomes, not just current-price marks.
+
+WORST REALIZED (cash terms):
+${realized.worst.map(r => `- #${r.tokenId} ${r.status} | fees=$${r.realized_fee_income_usd.toFixed(0)} | principal_pnl=$${(r.realized_principal_pnl_usd ?? 0).toFixed(0)} | total=$${r.realized_pnl_usd.toFixed(0)}`).join('\n') || '(none)'}
+
+BEST REALIZED (cash terms):
+${realized.best.map(r => `- #${r.tokenId} ${r.status} | fees=$${r.realized_fee_income_usd.toFixed(0)} | principal_pnl=$${(r.realized_principal_pnl_usd ?? 0).toFixed(0)} | total=$${r.realized_pnl_usd.toFixed(0)}`).join('\n') || '(none)'}
 
 ACTIVE POSITIONS:
 ${activeLines.join('\n') || '(none)'}
@@ -225,7 +275,7 @@ async function main() {
   console.log(`Dune source: Q${DUNE_QUERY_ID} (master portfolio v3 incremental)\n`);
 
   console.log(`Executing Dune Q${DUNE_QUERY_ID} and waiting for results...`);
-  const rows   = await fetchDuneResults(DUNE_QUERY_ID, duneApiKey);
+  const rows   = await fetchDuneResults<DuneRow>(DUNE_QUERY_ID, duneApiKey);
   const active = rows.filter(r => r.is_active);
   const closed = rows.filter(r => !r.is_active);
 
@@ -240,6 +290,15 @@ async function main() {
   console.log(`Total fees earned: $${totalFees.toFixed(0)} (${totalDeployed > 0 ? ((totalFees / totalDeployed) * 100).toFixed(1) : 0}%)`);
   console.log(`Active IL today:   $${totalIL.toFixed(2)}`);
   console.log(`Net active PnL:    $${active.reduce((s, r) => s + r.net_pnl_usd, 0).toFixed(2)} (fees − IL)`);
+
+  console.log(`\nExecuting Dune Q${REALIZED_PNL_QUERY} (realized PnL, fee/principal decomposed)...`);
+  const realizedRows = await fetchDuneResults<RealizedRow>(REALIZED_PNL_QUERY, duneApiKey);
+  const realized     = summarizeRealized(realizedRows);
+
+  console.log('\n--- Realized PnL (decomposed — fees ≠ principal) ---');
+  console.log(`Realized fee income:    $${realized.feeIncome.toFixed(2)} (at receipt prices)`);
+  console.log(`Realized principal PnL: $${realized.principalPnl.toFixed(2)} (price move + IL on withdrawn liquidity)`);
+  console.log(`TOTAL REALIZED PNL:     $${realized.total.toFixed(2)} across ${realized.exitedCount} closed/partial positions`);
 
   console.log(`\n${'ID'.padEnd(10)} ${'range'.padEnd(14)} ${'status'.padEnd(12)} ${'fee APY'.padEnd(9)} ${'IL%'.padEnd(7)} signal`);
   console.log('-'.repeat(72));
@@ -267,7 +326,7 @@ async function main() {
   }
 
   console.log('\nQuerying Venice AI...');
-  const analysis = await analyzeWithVenice(rows, signer);
+  const analysis = await analyzeWithVenice(rows, realized, signer);
   console.log('\n' + '='.repeat(70));
   console.log('VENICE AI ANALYSIS');
   console.log('='.repeat(70));
@@ -287,6 +346,11 @@ async function main() {
     `- Total fees: $${totalFees.toFixed(0)} (${totalDeployed > 0 ? ((totalFees / totalDeployed) * 100).toFixed(1) : 0}%)`,
     `- Active IL: $${totalIL.toFixed(2)}`,
     `- Net active PnL (fees − IL): $${active.reduce((s, r) => s + r.net_pnl_usd, 0).toFixed(2)}`,
+    ``,
+    `## Realized PnL — decomposed (Q${REALIZED_PNL_QUERY})`,
+    `- Realized fee income (at receipt prices): $${realized.feeIncome.toFixed(2)}`,
+    `- Realized principal PnL (withdrawn liquidity only): $${realized.principalPnl.toFixed(2)}`,
+    `- Total realized PnL: $${realized.total.toFixed(2)} across ${realized.exitedCount} closed/partial positions`,
     ``,
     `## Per-Position Metrics`,
     `| Token ID | Range | Status | Fee APY | IL% | Net PnL | Signal |`,

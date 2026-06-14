@@ -9,9 +9,9 @@
       "status": "in_progress",
       "target": 1.0,
       "unit": "self-funding ratio (sDIEM $/day ÷ 7d avg inference $/day)",
-      "current": 0.99,
-      "currentNote": "2026-06-13T01:39Z: claim-and-allocate queued 0.6387 DIEM stake (0.3205 from FeeLocker + 0.3183 wallet). sDIEM ~11.84 + 0.6387 = ~12.48 sDIEM → ratio 12.48/$12.56 = 0.99. Still below 1.0 floor — accumulate continues. Next cost-report re-evaluates burn rate.",
-      "updatedAt": "2026-06-13T01:39:46Z"
+      "current": 0.97,
+      "currentNote": "2026-06-12T13:53Z: claim-and-allocate queued 0.3183 DIEM stake (0.2124 from FeeLocker + 0.1059 wallet). sDIEM ~11.84 + 0.3183 = ~12.16 sDIEM → ratio 12.16/$12.56 = 0.97. Still below 1.0 floor — accumulate continues. Next cost-report re-evaluates burn rate.",
+      "updatedAt": "2026-06-12T13:53:00Z"
     },
     {
       "id": "accumulate-100-diem",
@@ -20,9 +20,9 @@
       "status": "in_progress",
       "target": 100,
       "unit": "DIEM",
-      "current": 20.3746,
-      "currentNote": "2026-06-13T14:00Z: FeeLocker=0.0941 DIEM (below 0.1 threshold, no claim). Wallet: 0.008207 ETH, 0.0000 DIEM, 0.4017 WETH. sVVV: 4.5397. 11x active IN RANGE positions tick=473: #5318880/5318883 [-200,1800] x2, #5324368 [-800,1200], #5324369/5324372/5324374/5324375/5324377 [-1000,1000] x5, #5324816 [-1200,800], #5324817 [-1400,600], #5326335 [-600,1400]. 99 burned positions. Daily rate ~0.50 DIEM/day. ETA ~159 days to 100 DIEM.",
-      "updatedAt": "2026-06-13T14:00:00Z"
+      "current": 56.7984,
+      "currentNote": "2026-06-13 RECONCILED against on-chain truth (Dune Q7716811, transfer-based, feelocker_distributions bucket): cumulative DIEM claimed from FeeLocker = 56.7984 over 78 transfers, all inbound — ZERO operator seed, 100% protocol-distributed. Progress is 56.8/100 (56.8%), NOT the 20.1% the prior hand-tally reported. The hand-tally under-counted by ~36.7 DIEM because claims made inside reposition.ts (45 repositions, each optionally claims the FeeLocker) and during early dry-run/RPC-lag/CI-no-key cycles were never added to this counter. DEFINITION FIX: this milestone = 'cumulative claimed' (monotonic), but claim-diem/SKILL.md line 43 was setting it to 'wallet + staked' (a point-in-time balance) — two different quantities; aligned here to cumulative-claimed. THE GAP THAT MATTERS: of 56.7984 DIEM claimed, only ~13.9 survives as wallet+staked (~1.86 wallet + ~12 sDIEM); ~44.91 DIEM (net) was consumed by the ETH/DIEM v3 1% LP and converted to impermanent loss — see the 2026-06-13 LP strategy pivot. FOLLOW-UP (not yet done, needs a reviewed skill change): re-derive this counter from on-chain FeeLocker inflow each run instead of the drift-prone hand-tally, and fix the claim-diem definition.",
+      "updatedAt": "2026-06-13T16:30:00Z"
     },
     {
       "id": "build-agent-launchpad",
