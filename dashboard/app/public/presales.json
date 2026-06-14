@@ -1,1 +1,11 @@
-[]
+[
+  {
+    "vaultAddress": "0xdEb34B05D10927ED95418993A713851D815f9859",
+    "deployedAt": "2026-06-14T16:48:53Z",
+    "agentWallet": "0x988CE72d127b8A06821BBb3708897dBdc0D66f2f",
+    "contract": "LiquidPresaleVault",
+    "mode": "stake",
+    "token": "0xa279C1c756D7a57E92Ca94Ff2EF709A3F754874A",
+    "depositTokenSymbol": "DIEM"
+  }
+]

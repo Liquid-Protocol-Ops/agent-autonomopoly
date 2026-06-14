@@ -16,6 +16,13 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
+function tiersLabel(state: VaultState): string {
+  if (state.lockTiers.length === 0) return '—';
+  return state.lockTiers
+    .map(t => `${Number(t.duration) / 86400}d (${Number(t.multiplier)}×)`)
+    .join(', ');
+}
+
 export default function VaultDetail() {
   const { address } = useParams<{ address: string }>();
   const { wallets } = useWallets();
@@ -66,7 +73,10 @@ export default function VaultDetail() {
     );
   }
 
-  const mode = state.lockDuration === 0n ? 'VVV irrevocable' : `DIEM time-lock (${Number(state.lockDuration) / 86400}d)`;
+  const isStake = state.mode === 'stake';
+  const mode = isStake
+    ? `STAKE — ${state.depositTokenSymbol} returned at lock expiry`
+    : `CONTRIBUTE — ${state.depositTokenSymbol} swept to agent`;
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-6 font-mono">
@@ -80,6 +90,12 @@ export default function VaultDetail() {
           <Row label="Mode" value={mode} />
           <Row label="Deposit token" value={state.depositTokenSymbol} />
           <Row label="Total deposited" value={`${formatUnits(state.totalDeposited, 18)} ${state.depositTokenSymbol}`} />
+          {isStake && (
+            <Row label="Total weight" value={formatUnits(state.totalWeight, 18)} />
+          )}
+          {isStake && (
+            <Row label="Lock tiers" value={tiersLabel(state)} />
+          )}
           <Row label="Token supply" value={`${formatUnits(state.totalTokenSupply, 18)} tokens`} />
           <Row label="Agent wallet" value={state.agentWallet} />
           {state.initialized && state.depositDeadline > 0n && (
@@ -88,10 +104,10 @@ export default function VaultDetail() {
               <Countdown targetUnix={state.depositDeadline} label="closes" />
             </div>
           )}
-          {state.lockDuration > 0n && state.lockExpiry > 0n && (
+          {isStake && state.myLockExpiry !== undefined && state.myLockExpiry > 0n && (
             <div className="flex justify-between border-b border-gray-800 py-2 text-sm">
-              <span className="text-gray-400">Lock expiry</span>
-              <Countdown targetUnix={state.lockExpiry} label="unlocks" />
+              <span className="text-gray-400">Your lock expiry</span>
+              <Countdown targetUnix={state.myLockExpiry} label="unlocks" />
             </div>
           )}
         </div>
@@ -100,9 +116,15 @@ export default function VaultDetail() {
           <div className="border border-gray-700 rounded p-4 mb-6 space-y-0">
             <h2 className="text-sm text-gray-300 mb-2">Your position</h2>
             <Row label="Deposited" value={`${formatUnits(state.myDeposited, 18)} ${state.depositTokenSymbol}`} />
+            {isStake && state.myWeight !== undefined && (
+              <Row label="Weight" value={formatUnits(state.myWeight, 18)} />
+            )}
+            {isStake && state.myChosenLock !== undefined && state.myChosenLock > 0n && (
+              <Row label="Locked tier" value={`${Number(state.myChosenLock) / 86400}d`} />
+            )}
             <Row label="Tokens claimable" value={state.myShare !== undefined ? formatUnits(state.myShare, 18) : '—'} />
             <Row label="Tokens claimed" value={state.myClaimed ? 'Yes' : 'No'} />
-            {state.lockDuration > 0n && (
+            {isStake && (
               <Row label="Deposit withdrawn" value={state.myWithdrawn ? 'Yes' : 'No'} />
             )}
           </div>

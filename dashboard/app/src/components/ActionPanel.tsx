@@ -18,17 +18,27 @@ export default function ActionPanel({ vault, wallet, onDone }: ActionPanelProps)
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const isStake = vault.mode === 'stake';
+
+  // First-deposit tier selection (STAKE only). Once a user has deposited, the
+  // tier is locked in on-chain (chosenLock) and reused automatically.
+  const lockedTier = vault.myChosenLock !== undefined && vault.myChosenLock > 0n
+    ? vault.myChosenLock
+    : undefined;
+  const defaultTier = vault.lockTiers[0]?.duration;
+  const [tier, setTier] = useState<bigint | undefined>(lockedTier ?? defaultTier);
+  const effectiveTier = lockedTier ?? tier;
+
   const now = BigInt(Math.floor(Date.now() / 1000));
   const windowOpen = vault.initialized && now < vault.depositDeadline;
   const windowClosed = vault.initialized && now >= vault.depositDeadline;
-  const lockExpired = vault.lockDuration > 0n && now >= vault.lockExpiry;
-
-  const isVvvMode = vault.lockDuration === 0n;
+  const lockExpired =
+    isStake && vault.myLockExpiry !== undefined && vault.myLockExpiry > 0n && now >= vault.myLockExpiry;
 
   const canDeposit = windowOpen;
   const canClaim = windowClosed && vault.myDeposited !== undefined && vault.myDeposited > 0n && !vault.myClaimed;
-  const canFinalize = isVvvMode && windowClosed;
-  const canWithdraw = !isVvvMode && lockExpired && vault.myDeposited !== undefined && vault.myDeposited > 0n && !vault.myWithdrawn;
+  const canFinalize = !isStake && windowClosed;
+  const canWithdraw = isStake && lockExpired && vault.myDeposited !== undefined && vault.myDeposited > 0n && !vault.myWithdrawn;
 
   async function run(buildData: () => `0x${string}`, to: Address, label: string) {
     if (!wallet) return;
@@ -58,11 +68,24 @@ export default function ActionPanel({ vault, wallet, onDone }: ActionPanelProps)
   async function handleDeposit() {
     const amountWei = parseUnits(amount || '0', 18);
     if (amountWei === 0n) return;
-    await run(
-      () => encodeFunctionData({ abi: VAULT_WRITE_ABI, functionName: 'deposit', args: [amountWei] }),
-      vault.address,
-      'Deposit',
-    );
+    if (isStake) {
+      if (effectiveTier === undefined) {
+        setError('Select a lock tier first');
+        return;
+      }
+      const lockTier = effectiveTier;
+      await run(
+        () => encodeFunctionData({ abi: VAULT_WRITE_ABI, functionName: 'deposit', args: [amountWei, lockTier] }),
+        vault.address,
+        'Deposit',
+      );
+    } else {
+      await run(
+        () => encodeFunctionData({ abi: VAULT_WRITE_ABI, functionName: 'deposit', args: [amountWei] }),
+        vault.address,
+        'Deposit',
+      );
+    }
   }
 
   async function handleClaim() {
@@ -77,7 +100,7 @@ export default function ActionPanel({ vault, wallet, onDone }: ActionPanelProps)
     await run(
       () => encodeFunctionData({ abi: VAULT_WRITE_ABI, functionName: 'finalizeVVV', args: [] }),
       vault.address,
-      'Finalize VVV',
+      'Finalize',
     );
   }
 
@@ -107,6 +130,27 @@ export default function ActionPanel({ vault, wallet, onDone }: ActionPanelProps)
     <div className="space-y-3">
       {canDeposit && (
         <div className="space-y-2">
+          {isStake && lockedTier === undefined && vault.lockTiers.length > 0 && (
+            <div className="space-y-1">
+              <label className="text-xs text-gray-400">Lock tier</label>
+              <select
+                value={effectiveTier !== undefined ? effectiveTier.toString() : ''}
+                onChange={e => setTier(BigInt(e.target.value))}
+                className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-sm font-mono text-white focus:outline-none focus:border-gray-400"
+              >
+                {vault.lockTiers.map(t => (
+                  <option key={t.duration.toString()} value={t.duration.toString()}>
+                    {Number(t.duration) / 86400}d — {Number(t.multiplier)}× weight
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          {isStake && lockedTier !== undefined && (
+            <p className="text-xs text-gray-500">
+              Locked tier: {Number(lockedTier) / 86400}d (reused for additional deposits)
+            </p>
+          )}
           <label className="text-xs text-gray-400">
             Deposit amount ({vault.depositTokenSymbol})
             {vault.myBalance !== undefined && (
@@ -135,7 +179,7 @@ export default function ActionPanel({ vault, wallet, onDone }: ActionPanelProps)
             )}
             <button
               onClick={handleDeposit}
-              disabled={needsApproval || amountWei === 0n}
+              disabled={needsApproval || amountWei === 0n || (isStake && effectiveTier === undefined)}
               className="flex-1 bg-blue-700 hover:bg-blue-600 disabled:bg-gray-800 disabled:text-gray-600 text-white text-sm py-2 px-4 rounded font-mono"
             >
               [ DEPOSIT ]
@@ -163,7 +207,7 @@ export default function ActionPanel({ vault, wallet, onDone }: ActionPanelProps)
           onClick={handleFinalize}
           className="w-full bg-yellow-700 hover:bg-yellow-600 text-white text-sm py-2 px-4 rounded font-mono"
         >
-          [ FINALIZE VVV → AGENT ]
+          [ FINALIZE → AGENT ]
         </button>
       )}
 

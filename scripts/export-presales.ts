@@ -9,11 +9,23 @@ const REPO_ROOT  = join(__dirname, '..');
 const jsonlPath = join(REPO_ROOT, 'memory', 'presales.jsonl');
 const outPath   = join(REPO_ROOT, 'dashboard', 'app', 'public', 'presales.json');
 
+// Canonical contract is `LiquidPresaleVault` (MOG-497). The superseded
+// `MintDiemPresaleVault` is still accepted for backward compatibility with any
+// pre-migration jsonl rows, but new launches emit `LiquidPresaleVault`.
+type PresaleMode = 'contribute' | 'stake';
+
 interface PresaleEntry {
   vaultAddress: string;
   deployedAt: string;
   agentWallet?: string;
   contract?: string;
+  /** Vault mode hint. The dashboard reads `mode()` on-chain as the source of
+   *  truth; this is only a display fallback while the chain read is in flight. */
+  mode?: PresaleMode;
+  /** Launched token address, if known at export time. */
+  token?: string;
+  /** Deposit token symbol hint (e.g. VVV for contribute, DIEM for stake). */
+  depositTokenSymbol?: string;
 }
 
 let entries: PresaleEntry[] = [];
@@ -26,12 +38,24 @@ if (existsSync(jsonlPath)) {
 
   entries = raw.map(line => {
     const r = JSON.parse(line) as Record<string, unknown>;
-    return {
+
+    const rawMode =
+      typeof r['mode'] === 'string' ? (r['mode'] as string).toLowerCase() : undefined;
+    const mode: PresaleMode | undefined =
+      rawMode === 'contribute' || rawMode === 'stake' ? rawMode : undefined;
+
+    const entry: PresaleEntry = {
       vaultAddress: typeof r['vaultAddress'] === 'string' ? r['vaultAddress'] : '',
       deployedAt:   typeof r['timestamp']    === 'string' ? r['timestamp']    : '',
-      ...(typeof r['agentWallet'] === 'string' && { agentWallet: r['agentWallet'] }),
-      ...(typeof r['contract']    === 'string' && { contract:    r['contract'] }),
     };
+    if (typeof r['agentWallet'] === 'string') entry.agentWallet = r['agentWallet'];
+    if (typeof r['contract'] === 'string') entry.contract = r['contract'];
+    if (mode !== undefined) entry.mode = mode;
+    if (typeof r['token'] === 'string') entry.token = r['token'];
+    if (typeof r['depositTokenSymbol'] === 'string') {
+      entry.depositTokenSymbol = r['depositTokenSymbol'];
+    }
+    return entry;
   }).filter(e => e.vaultAddress.startsWith('0x'));
 }
 
