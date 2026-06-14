@@ -13,15 +13,15 @@ function statusBadge(state: VaultState): string {
   const now = BigInt(Math.floor(Date.now() / 1000));
   if (!state.initialized) return 'NOT STARTED';
   if (now < state.depositDeadline) return 'OPEN';
-  if (state.lockDuration === 0n) return 'FINALIZED';
-  if (now < state.lockExpiry) return 'CLOSED';
-  return 'UNLOCKED';
+  // Window closed. CONTRIBUTE sweeps to the agent (FINALIZED); STAKE keeps
+  // deposits locked per-user until each staker's expiry (CLOSED).
+  return state.mode === 'stake' ? 'CLOSED' : 'FINALIZED';
 }
 
 function badgeColor(badge: string): string {
   if (badge === 'OPEN') return 'bg-green-900 text-green-300';
   if (badge === 'FINALIZED') return 'bg-blue-900 text-blue-300';
-  if (badge === 'UNLOCKED') return 'bg-purple-900 text-purple-300';
+  if (badge === 'CLOSED') return 'bg-purple-900 text-purple-300';
   return 'bg-gray-800 text-gray-400';
 }
 
@@ -47,6 +47,7 @@ export default function VaultCard({ vaultAddress, state, loading }: VaultCardPro
   }
 
   const badge = statusBadge(state);
+  const modeLabel = state.mode === 'stake' ? 'STAKE' : 'CONTRIBUTE';
 
   return (
     <Link
@@ -58,7 +59,7 @@ export default function VaultCard({ vaultAddress, state, loading }: VaultCardPro
         <span className={`text-xs px-2 py-0.5 rounded font-mono ${badgeColor(badge)}`}>{badge}</span>
       </div>
       <div className="flex gap-4 text-xs text-gray-400 flex-wrap">
-        <span>Mode: {state.depositTokenSymbol}</span>
+        <span>Mode: {modeLabel} ({state.depositTokenSymbol})</span>
         <span>Deposited: {formatUnits(state.totalDeposited, 18)} {state.depositTokenSymbol}</span>
         {state.initialized && state.depositDeadline > 0n && (
           <Countdown targetUnix={state.depositDeadline} label="Window" />
