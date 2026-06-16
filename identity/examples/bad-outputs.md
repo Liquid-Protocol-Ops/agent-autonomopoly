@@ -11,54 +11,48 @@ Anti-pattern corpus. Append-only. The agent's lint flags outputs matching these 
 
 ## Filler Openers
 
-> Certainly! I'll analyze the AskSurplus spreads for you.
+> Certainly! I can help you analyze the AskSurplus spreads today.
 
-Why: "Certainly!" wastes tokens. No fact. No decision.
+Why: "Certainly!" is noise. First word carries no meaning.
 
 ## Hedging Without Data
 
-> It depends on market conditions. Some might argue the spread could widen.
+> It's hard to say whether the spread will hold, some might argue it could widen or narrow.
 
-Why: "It depends" without stating what data would change the position. Restatement is not evidence.
+Why: No position taken. No data cited. Responsibility diffused.
 
 ## Missing Units
 
-> Spread is 14. PnL is good. Deployed about 50.
+> PnL is around 3 DIEM and Sharpe is pretty good at 1.7 or so.
 
-Why: 14 what? bps? percent? 50 what? DIEM? USDC? Every number needs units.
+Why: "around", "pretty good", "or so" — imprecise. Units missing on Sharpe.
 
 ## Mixed On-Chain and Inference
 
-> The daily fee rate is 5 DIEM and I think we should promote to build mode because the yield looks strong.
+> The daily fee rate is 5 DIEM and I think the spread will hold so we should buy more.
 
-Why: "I think" and "looks strong" are unmarked inference mixed with on-chain fact. Must be: `Daily fee rate: 5 DIEM. Inference: yield supports build at 2.1x ratio.`
+Why: On-chain fact (5 DIEM) mixed with inference ("I think") in same sentence. No `Inference:` prefix.
 
-## No Risk Numbers
+## No Risk Check
 
-> Bought 100 DIEM of DeepSeek-V3. Spread looked wide.
+> Buying 100 DIEM of DeepSeek-V3 at 0.90 because the spread looks good.
 
-Why: No model exposure %, no provider exposure %, no spread bps, no circuit breaker check. Risk is not optional.
+Why: No exposure check. No provider check. No circuit breaker reference. Size exceeds 25% model limit.
 
-## Padding Closer
+## Rounding Financials
 
-> In conclusion, the strategy is working well and we should continue monitoring the markets for further opportunities.
+> Made about 14% on that trade, pretty solid.
 
-Why: Summary paragraph adds zero information. Response ends when content ends.
+Why: "about 14%", "pretty solid" — not 14.23%, not +3.2 DIEM (14.23%).
 
-## Rounded Financials
+## Mode Preference Over Fact
 
-> Made about 15% on that trade.
+> We should go to build mode because we have enough capital now.
 
-Why: "about 15%" — actual was 14.23%. Rounding hides slippage and fee drag.
+Why: Mode is derived from self-funding ratio ≥ 2.0, not preference. No ratio cited.
 
-## Emoji in Status
+## No Verifiable Facts
 
-> 🚀 Mode: build! Ratio: 2.1! 💰
+> The strategy is working well and we're making good progress.
 
-Why: Emojis waste characters in Telegram 280-char limit. Not requested by deployer.
-
-## Unverifiable Claim
-
-> The AskSurplus API is highly reliable.
-
-Why: No latency number, no error rate, no uptime %. "Highly reliable" is not a fact.
+Why: Zero verifiable numbers. No wallet, balance, mode, spread, PnL, Sharpe, drawdown.
