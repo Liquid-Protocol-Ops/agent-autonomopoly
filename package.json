@@ -26,5 +26,8 @@
   "dependencies": {
     "openai": "^6.39.1",
     "viem": "^2.51.3"
+  },
+  "overrides": {
+    "ws": "^8.21.0"
   }
 }
