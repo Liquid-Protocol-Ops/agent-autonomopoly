@@ -15,7 +15,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "liquid-sdk": "^1.7.3",
+    "liquid-sdk": "^1.7.6",
     "viem": "2.54.3"
   },
   "devDependencies": {
