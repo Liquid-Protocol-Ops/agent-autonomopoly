@@ -29,6 +29,8 @@ import {
   parseEther,
   type Address,
   type Hex,
+  type HttpTransport,
+  type PublicClient,
 } from 'viem';
 import { base } from 'viem/chains';
 import { ADDRESSES } from '../../platform/constants.js';
@@ -123,7 +125,8 @@ export function loadConfig(): VeniceConfig {
 
 // ── On-chain reads ──────────────────────────────────────────────────
 
-export function makePublicClient(rpcUrl: string) {
+// Explicit annotation: viem 2.53+ inference here exceeds tsc's serialization limit (TS7056).
+export function makePublicClient(rpcUrl: string): PublicClient<HttpTransport, typeof base> {
   return createPublicClient({ chain: base, transport: http(rpcUrl) });
 }
 
