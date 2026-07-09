@@ -17,7 +17,7 @@
     "prepare": "husky || true"
   },
   "devDependencies": {
-    "@types/node": "^25.9.1",
+    "@types/node": "^26.1.0",
     "husky": "^9.1.7",
     "tsx": "^4.22.3",
     "typescript": "^6.0.3",
