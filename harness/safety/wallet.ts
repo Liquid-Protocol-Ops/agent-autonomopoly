@@ -134,6 +134,14 @@ export type PrivyWalletConfig = {
   appSecret: string;
   walletId: string;
   gasPolicyId?: string;  // set to sponsor gas via Privy policy; omit to pay gas from wallet
+  // P-256 authorization private key ('wallet-auth:'-prefixed base64 DER PKCS8).
+  // Required ONLY once an owner (or owner quorum) is set on the wallet: Privy then
+  // rejects app-secret-only requests and demands a privy-authorization-signature.
+  // When set, all wallet actions route through the @privy-io/node SDK, which computes
+  // that signature (its canonicalization is unpublished — never hand-roll it). When
+  // absent, the wallet is owner-less and app-secret Basic auth alone suffices, so the
+  // legacy fetch path is used unchanged. Every existing agent leaves this undefined.
+  authKey?: string;
 };
 
 export function loadPrivyConfig(): PrivyWalletConfig {
@@ -146,7 +154,44 @@ export function loadPrivyConfig(): PrivyWalletConfig {
   const cfg: PrivyWalletConfig = { appId, appSecret, walletId };
   const gasPolicyId = process.env['PRIVY_GAS_POLICY_ID'];
   if (gasPolicyId) cfg.gasPolicyId = gasPolicyId;
+  const authKey = process.env['PRIVY_AUTH_KEY'];
+  if (authKey) cfg.authKey = authKey;
   return cfg;
+}
+
+// ── Owner-authorized RPC (used only when config.authKey is set) ──────
+//
+// Routes a wallet RPC through the official @privy-io/node SDK, which attaches the
+// P-256 privy-authorization-signature that an owned wallet requires. Dynamically
+// imported so agents without an owner key never load the SDK. The SDK client is
+// cached per (appId, walletId) since construction is cheap but not free.
+
+type PrivyRpcResult = { data?: { signature?: Hex; hash?: string } };
+
+// Injectable so tests can exercise the owner-authorized branch without the SDK
+// installed or a network round-trip — mirrors the existing `fetchFn` injection.
+export type SignedRpcFn = (config: PrivyWalletConfig, rpc: Record<string, unknown>) => Promise<PrivyRpcResult>;
+
+const sdkClientCache = new Map<string, unknown>();
+
+async function ownerAuthorizedRpc(
+  config: PrivyWalletConfig,
+  rpc: Record<string, unknown>,
+): Promise<PrivyRpcResult> {
+  const authKey = config.authKey;
+  if (!authKey) throw new Error('ownerAuthorizedRpc called without authKey');
+  const cacheKey = `${config.appId}:${config.walletId}`;
+  let sdk = sdkClientCache.get(cacheKey);
+  if (!sdk) {
+    const { PrivyClient } = await import('@privy-io/node');
+    sdk = new PrivyClient({ appId: config.appId, appSecret: config.appSecret });
+    sdkClientCache.set(cacheKey, sdk);
+  }
+  const wallets = (sdk as { wallets: () => { rpc: (id: string, body: unknown) => Promise<PrivyRpcResult> } }).wallets();
+  return wallets.rpc(config.walletId, {
+    ...rpc,
+    authorization_context: { authorization_private_keys: [authKey] },
+  });
 }
 
 function privyBasicAuth(config: PrivyWalletConfig): string {
@@ -164,6 +209,7 @@ function privyHeaders(config: PrivyWalletConfig): Record<string, string> {
 export async function loadSignerFromPrivy(
   config: PrivyWalletConfig,
   fetchFn: typeof fetch = fetch,
+  signedRpc: SignedRpcFn = ownerAuthorizedRpc,
 ): Promise<Signer> {
   const res = await fetchFn(`${PRIVY_API_BASE}/wallets/${config.walletId}`, {
     headers: privyHeaders(config),
@@ -181,6 +227,14 @@ export async function loadSignerFromPrivy(
           ? (message as { raw: string }).raw
           : Buffer.from((message as { raw: Uint8Array }).raw).toString('hex');
       const encoding = typeof message === 'string' ? 'utf-8' : 'hex';
+      if (config.authKey) {
+        const res = await signedRpc(config, {
+          method: 'personal_sign', params: { message: msg, encoding },
+        });
+        const sig = res.data?.signature;
+        if (!sig) throw new Error('Privy personal_sign (owner-authorized): no signature');
+        return sig;
+      }
       const rpcRes = await fetchFn(`${PRIVY_API_BASE}/wallets/${config.walletId}/rpc`, {
         method: 'POST',
         headers: privyHeaders(config),
@@ -192,6 +246,14 @@ export async function loadSignerFromPrivy(
     },
 
     signTypedData: async (params: unknown) => {
+      if (config.authKey) {
+        const res = await signedRpc(config, {
+          method: 'eth_signTypedData_v4', params: { typed_data: params },
+        });
+        const sig = res.data?.signature;
+        if (!sig) throw new Error('Privy eth_signTypedData_v4 (owner-authorized): no signature');
+        return sig;
+      }
       const rpcRes = await fetchFn(`${PRIVY_API_BASE}/wallets/${config.walletId}/rpc`, {
         method: 'POST',
         headers: privyHeaders(config),
@@ -210,6 +272,7 @@ export function makeTxSenderFromPrivy(
   config: PrivyWalletConfig,
   fetchFn: typeof fetch = fetch,
   opts?: TxSenderOptions,
+  signedRpc: SignedRpcFn = ownerAuthorizedRpc,
 ): TxSender {
   return async ({ to, data }: { to: Address; data: Hex }): Promise<Hex> => {
     assertTxAllowed(to, opts?.allowedTargets);
@@ -220,6 +283,16 @@ export function makeTxSenderFromPrivy(
       params: { transaction: { to, data } },
     };
     if (config.gasPolicyId) body['policy_ids'] = [config.gasPolicyId];
+
+    // Owner-authorized path: the SDK attaches the P-256 authorization signature that
+    // an owned wallet requires. The allow-list guard above still runs first, so an
+    // owner key never widens the destination surface.
+    if (config.authKey) {
+      const res = await signedRpc(config, body);
+      const hash = res.data?.hash;
+      if (!hash) throw new Error('Privy eth_sendTransaction (owner-authorized): no hash');
+      return hash as Hex;
+    }
 
     const rpcRes = await fetchFn(`${PRIVY_API_BASE}/wallets/${config.walletId}/rpc`, {
       method: 'POST',

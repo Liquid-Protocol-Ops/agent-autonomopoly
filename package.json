@@ -24,6 +24,7 @@
     "vitest": "^4.1.9"
   },
   "dependencies": {
+    "@privy-io/node": "^0.21.0",
     "openai": "^6.45.0",
     "viem": "^2.54.3"
   },
