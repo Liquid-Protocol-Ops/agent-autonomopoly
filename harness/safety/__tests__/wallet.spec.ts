@@ -270,6 +270,105 @@ describe('makeTxSenderFromPrivy', () => {
   });
 });
 
+// ── Owner-authorized (PRIVY_AUTH_KEY) path ───────────────────────────
+//
+// Once an owner/quorum is set on the wallet, Privy rejects app-secret-only
+// requests and requires a P-256 authorization signature. The SDK computes that
+// signature; here we inject a stub signedRpc to prove the branch is taken (and
+// that the fetch path is NOT) without installing the SDK or hitting the network.
+
+describe('loadPrivyConfig — PRIVY_AUTH_KEY', () => {
+  beforeEach(() => Object.entries(PRIVY_ENV).forEach(([k, v]) => (process.env[k] = v)));
+  afterEach(() => {
+    Object.keys(PRIVY_ENV).forEach(k => delete process.env[k]);
+    delete process.env['PRIVY_AUTH_KEY'];
+    vi.clearAllMocks();
+  });
+
+  it('leaves authKey undefined when PRIVY_AUTH_KEY is unset (backward compat)', () => {
+    expect(loadPrivyConfig().authKey).toBeUndefined();
+  });
+
+  it('populates authKey from PRIVY_AUTH_KEY when set', () => {
+    process.env['PRIVY_AUTH_KEY'] = 'wallet-auth:abc';
+    expect(loadPrivyConfig().authKey).toBe('wallet-auth:abc');
+  });
+});
+
+describe('makeTxSenderFromPrivy — owner-authorized branch', () => {
+  afterEach(() => vi.clearAllMocks());
+  const cfg = { appId: 'app', appSecret: 'secret', walletId: 'wid', authKey: 'wallet-auth:k' };
+
+  it('routes through signedRpc (not fetch) and returns the hash', async () => {
+    const fetchFn = vi.fn();  // must never be called
+    const signedRpc = vi.fn().mockResolvedValue({ data: { hash: '0xfeed' } });
+    const txSender = makeTxSenderFromPrivy(
+      cfg, fetchFn as unknown as typeof fetch, undefined, signedRpc,
+    );
+    const hash = await txSender({ to: ADDRESSES.FEE_LOCKER, data: '0xabcd' });
+    expect(hash).toBe('0xfeed');
+    expect(fetchFn).not.toHaveBeenCalled();
+    const [, rpc] = signedRpc.mock.calls[0]!;
+    expect(rpc.method).toBe('eth_sendTransaction');
+    expect((rpc.params as { transaction: { to: string } }).transaction.to).toBe(ADDRESSES.FEE_LOCKER);
+  });
+
+  it('still enforces the allow-list BEFORE any signed call (fail-closed)', async () => {
+    const fetchFn = vi.fn();
+    const signedRpc = vi.fn();
+    const txSender = makeTxSenderFromPrivy(
+      cfg, fetchFn as unknown as typeof fetch, undefined, signedRpc,
+    );
+    await expect(
+      txSender({ to: '0x000000000000000000000000000000000000dEaD', data: '0x' }),
+    ).rejects.toBeInstanceOf(TxDestinationNotAllowed);
+    expect(signedRpc).not.toHaveBeenCalled();
+    expect(fetchFn).not.toHaveBeenCalled();
+  });
+
+  it('throws when the signed response carries no hash', async () => {
+    const signedRpc = vi.fn().mockResolvedValue({ data: {} });
+    const txSender = makeTxSenderFromPrivy(
+      cfg, undefined, undefined, signedRpc,
+    );
+    await expect(txSender({ to: ADDRESSES.DIEM, data: '0x' }))
+      .rejects.toThrow(/no hash/);
+  });
+});
+
+describe('loadSignerFromPrivy — owner-authorized branch', () => {
+  afterEach(() => vi.clearAllMocks());
+  const cfg = { appId: 'app', appSecret: 'secret', walletId: 'wid', authKey: 'wallet-auth:k' };
+
+  it('signMessage routes through signedRpc, not the fetch rpc path', async () => {
+    // fetch is used once for GET /wallets/:id, then must NOT be used for signing.
+    const fetchFn = vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ address: MOCK_WALLET_ADDRESS }) });
+    const signedRpc = vi.fn().mockResolvedValue({ data: { signature: '0x5165' } });
+    const signer = await loadSignerFromPrivy(
+      cfg, fetchFn as unknown as typeof fetch, signedRpc,
+    );
+    const sig = await signer.signMessage({ message: 'challenge-jwt' });
+    expect(sig).toBe('0x5165');
+    expect(fetchFn).toHaveBeenCalledTimes(1);  // GET only, no signing fetch
+    const [, rpc] = signedRpc.mock.calls[0]!;
+    expect(rpc.method).toBe('personal_sign');
+    expect((rpc.params as { message: string }).message).toBe('challenge-jwt');
+  });
+
+  it('signTypedData routes through signedRpc', async () => {
+    const fetchFn = vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ address: MOCK_WALLET_ADDRESS }) });
+    const signedRpc = vi.fn().mockResolvedValue({ data: { signature: '0x7d' } });
+    const signer = await loadSignerFromPrivy(
+      cfg, fetchFn as unknown as typeof fetch, signedRpc,
+    );
+    const sig = await signer.signTypedData({ domain: {}, types: {}, message: {} } as never);
+    expect(sig).toBe('0x7d');
+    expect(signedRpc.mock.calls[0]![1]!.method).toBe('eth_signTypedData_v4');
+  });
+});
+
 // ── Destination allow-list guard ─────────────────────────────────────
 
 describe('assertTxAllowed', () => {
