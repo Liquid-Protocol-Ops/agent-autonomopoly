@@ -8,6 +8,16 @@ This directory will hold the off-chain services that watch fees, stake DIEM on t
 - [x] Foundation scaffold (this PR sequence) with `DECISIONS.md`, status doc, first Dune query stub
 - [x] **Architecture v2** ratified (2026-04-30) — DIEM-only fees direct to agent wallet; per-agent Venice key; TEE substrate post-MVP
 
+## Ownership: this `platform/` tree is a MIRROR
+
+`Liquid-Protocol-Ops/deploy-autonomous` is **canonical** for `platform/services/`.
+It landed fee-router as a feature PR (#20, 2026-05-13); this repo received the
+tree the same day in its "Initial commit". Change the canonical copy first, then
+port here — never the reverse. Dependency versions must match across both copies,
+converging **upward**. See `services/fee-router/MIRROR.md` for the sync rule and
+the currently recorded drift. This mirror is temporary either way: per the note
+above, these services move to `deploy-autonomous-platform` once it exists.
+
 ## What's planned for the next PR
 
 - [ ] **§5 identity bundle** (MOG-405 children) — 13 files including `SECTION_5.md`, identity templates, drift lint. See `../PLAN.md` Batch 1.
